@@ -77,17 +77,14 @@ your-project/
 ├── DESIGN.md                              ← prompt — agents generate this from your codebase
 └── .opencode/
     ├── agents/
-    │   ├── frontend.md                    ← your chosen agents (fill with stack details)
+    │   ├── frontend.md                    ← empty skeleton, yours to fill
     │   ├── backend.md
     │   ├── tester.md
-    │   └── <custom>.md                    ← any custom agents you named during setup
+    │   └── <custom>.md
     └── skills/
-        ├── ob-userstory-gh/               ← GitHub Issues → OpenSpec change workflow
-        │   └── SKILL.md
-        ├── ob-pullrequest-creator-gh/     ← create PRs from OpenSpec changes
-        │   └── SKILL.md
-        └── ob-pullrequest-observer-gh/    ← monitor PR status and review feedback
-            └── SKILL.md
+        ├── ob-userstory-gh/
+        ├── ob-pullrequest-creator-gh/
+        └── ob-pullrequest-observer-gh/
 ```
 
 > For **Azure DevOps**, `-gh` skills are replaced with `-az` equivalents that work with boards and pull requests.
@@ -98,16 +95,16 @@ The `.opencode/agents/` files are intentionally empty templates — open them an
 
 ## Agent team
 
-Choose any combination during setup. You can always add more later by running the tool again or copying the template.
+During setup you pick which roles exist in your project. opencode-onboard creates an **empty skeleton file** for each one at `.opencode/agents/<name>.md` — nothing more.
 
-| Agent | Role | Good for |
-|-------|------|----------|
-| `frontend` | UI / frontend implementation | React, Vue, Angular, mobile web |
-| `backend` | API / backend implementation | REST, GraphQL, serverless, databases |
-| `tester` | Testing & QA | unit tests, integration tests, test plans |
-| _custom_ | Anything you name | `devops`, `data`, `mobile`, `infra`, ... |
+The content is entirely yours to write. Open each file and describe your stack, conventions, and constraints. The richer the description, the better the agents perform.
 
-Agent files live at `.opencode/agents/<name>.md`. Fill them in with your stack, conventions, and constraints — the more specific, the better the agents perform.
+| Agent | Role |
+|-------|------|
+| `frontend` | UI / frontend implementation |
+| `backend` | API / backend implementation |
+| `tester` | Testing & QA |
+| _custom_ | Any name you type during setup |
 
 ---
 
@@ -168,16 +165,6 @@ Agent roles and platforms are defined in plain JSON files — no code changes ne
 src/presets/
 ├── agents.json      ← add/rename/remove agent roles
 └── platforms.json   ← add/rename platforms
-```
-
-**`agents.json`** example:
-
-```json
-[
-  { "value": "frontend", "label": "frontend  — UI/frontend implementation" },
-  { "value": "backend",  "label": "backend   — API/backend implementation" },
-  { "value": "tester",   "label": "tester    — Testing & QA" }
-]
 ```
 
 ---
