@@ -24,7 +24,6 @@ Most codebases have no `AGENTS.md`, no architecture docs agents can read, and no
 <div align="center">
 <img src="https://raw.githubusercontent.com/CKGrafico/opencode-onboard/refs/heads/main/demo.gif" alt="opencode-onboard demo" width="700" />
 </div>
----
 
 ## Quick start
 
