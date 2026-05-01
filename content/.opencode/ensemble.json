@@ -1,0 +1,12 @@
+{
+  "dashboardPort": 4747,
+  "mergeOnCleanup": true,
+  "timeoutMs": 1800000,
+  "stallThresholdMs": 300000,
+  "defaultModel": "anthropic/claude-sonnet-4-6",
+  "modelsByAgent": {
+    "build": "anthropic/claude-sonnet-4-6",
+    "explore": "anthropic/claude-haiku-4.5"
+  },
+  "modelAssignment": "default"
+}
