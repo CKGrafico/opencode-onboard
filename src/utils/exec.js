@@ -20,7 +20,7 @@ function stopSpinner() {
 }
 
 function redraw() {
-  console.clear()
+  if (process.stdout.isTTY) console.clear()
 
   // Show up to 2 previous steps dimmed
   for (const stepLines of previousSteps) {

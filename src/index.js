@@ -11,37 +11,45 @@ import { copyContentStep } from './steps/copy-content.js'
 import { initOpenspec } from './steps/init-openspec.js'
 import { installBrowser } from './steps/install-browser.js'
 
-console.clear()
+if (process.stdout.isTTY) console.clear()
 console.log()
 const logo = chalk.hex('#fe3d57')
-console.log(logo('                             '))
-console.log(logo('        ▒▒▒▒▒▒▒▒▒▒▒▒▒        '))
-console.log(logo('        ▓▒▓       ▓▒▓        '))
-console.log(logo('   ▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓   '))
-console.log(logo('  ▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓  '))
-console.log(logo(' ▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓ '))
-console.log(logo(' ▓▓▒▒▒░░░▒▒▒▒▒▒▒▒▒▒▒░░░▒▒▒▓▓ '))
-console.log(logo('  ▓▓▓▓▒▒▒▓▓▓▓▓▓▓▓▓▓▓▒▒▒▓▓▓▓  '))
-console.log(logo('  ▓▒▒▒▒▒▒▒░▒▒▒▒▒▒▒░▒▒▒▒▒▒▒▓  '))
-console.log(logo('  ▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓  '))
-console.log(logo('  ▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓   '))
-console.log(logo('   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ '))
-console.log()
-console.log(chalk.bold('        🧰 opencode-onboard'))
-console.log(chalk.dim('        Prepare your codebase for AI agents'))
+const bannerLines = [
+  logo('        ▒▒▒▒▒▒▒          '),
+  logo('        ▒▒▒▒▒▒▒▒▒▒▒▒▒        '),
+  logo('        ▒▒▓       ▓▒▓        '),
+  logo('   ▒▒▒▒▒▒▓▒▒▒▒▒▒▒▒▒▓▓▒▒▒▒▒   '),
+  logo('  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓  '),
+  logo(' ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓ '),
+  logo(' ▓▒▒▒▒▒░░▒▒▒▒▒▒▒▒▒▒▒░░▒▒▒▒▓▓ '),
+  logo('  ▓▓▓▓▒▒▒▓▓▓▓▓▓▓▓▓▓▓▒▒▒▓▓▓▓  '),
+  logo('  ▓▒▒▒▒▒▒▒░▒▒▒▒▒▒▒░▒▒▒▒▒▒▓▓  '),
+  logo('  ▓▒▒▒▒▒▒░▓▒▒▓▒▓▒▒▒▒▒▒▒▒▒▓▓  '),
+  logo('  ▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓   '),
+  logo('   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ '),
+  '',
+  chalk.bold('        🧰 opencode-onboard'),
+  chalk.dim('        Prepare your codebase for AI agents'),
+]
+
+for (const line of bannerLines) console.log(line)
 console.log()
 console.log('  This tool will set up your project with a team of AI agents,')
 console.log('  install skills, select models, and configure OpenCode.')
 console.log()
-console.log(chalk.bold('  Press Enter to begin...'))
-console.log()
 
-await new Promise(resolve => {
-  process.stdin.resume()
-  process.stdin.once('data', () => {
-    process.stdin.pause()
-    resolve()
+// Only wait for Enter in a real interactive TTY
+if (process.stdin.isTTY) {
+  console.log(chalk.bold('  Press Enter to begin...'))
+  console.log()
+  await new Promise(resolve => {
+    process.stdin.resume()
+    process.stdin.once('data', () => {
+      process.stdin.pause()
+      resolve()
+    })
   })
+}
 })
 
 try {
