@@ -1,7 +1,7 @@
-import { commandExists, header, success, warn, info, code } from '../utils/exec.js'
+import { code, commandExists, header, info, success, warn } from '../utils/exec.js'
 
 export async function checkRtk() {
-  header('Step 8 — Checking rtk')
+  header('Step 8, Checking rtk')
 
   const available = await commandExists('rtk')
 

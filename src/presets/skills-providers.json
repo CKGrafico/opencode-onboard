@@ -1,0 +1,14 @@
+[
+  {
+    "label": "ob-skills (default, ships with opencode-onboard)",
+    "value": "ob-skills",
+    "package": "opencode-onboard",
+    "description": "Default skill pack: GitHub and Azure DevOps user stories, pull requests, OpenSpec workflows."
+  },
+  {
+    "label": "None, I will add skills manually",
+    "value": "none",
+    "package": null,
+    "description": "Skip skill installation. Add skills to .opencode/skills/ manually."
+  }
+]

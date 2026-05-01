@@ -1,10 +1,10 @@
 import { confirm } from '@inquirer/prompts'
 import fse from 'fs-extra'
 import { findAiFiles } from '../utils/copy.js'
-import { header, success, warn, info } from '../utils/exec.js'
+import { header, info, success, warn } from '../utils/exec.js'
 
 export async function cleanAiFiles() {
-  header('Step 2 — Existing AI config files')
+  header('Step 2, Existing AI config files')
 
   const cwd = process.cwd()
   const found = await findAiFiles(cwd)
@@ -31,6 +31,6 @@ export async function cleanAiFiles() {
     }
     success('Removed existing AI config files')
   } else {
-    warn('Skipped — existing files kept. They may conflict with copied content.')
+    warn('Skipped, existing files kept. They may conflict with copied content.')
   }
 }

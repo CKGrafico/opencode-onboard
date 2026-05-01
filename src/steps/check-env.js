@@ -1,8 +1,7 @@
-import { commandExists, header, success, error } from '../utils/exec.js'
-import { execa } from 'execa'
+import { commandExists, error, header, success } from '../utils/exec.js'
 
 export async function checkEnv() {
-  header('Step 1 — Checking environment')
+  header('Step 1, Checking environment')
 
   // Node version
   const nodeVersion = process.version

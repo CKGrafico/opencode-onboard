@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import path from 'path'
-import os from 'os'
 import fse from 'fs-extra'
+import os from 'os'
+import path from 'path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('../../utils/exec.js', () => ({
   header: vi.fn(),
@@ -15,7 +15,7 @@ vi.mock('@inquirer/prompts', () => ({
 }))
 
 import { checkbox, input } from '@inquirer/prompts'
-import { success, info } from '../../utils/exec.js'
+import { info } from '../../utils/exec.js'
 
 describe('chooseTeam()', () => {
   let tmpDir
@@ -44,7 +44,7 @@ describe('chooseTeam()', () => {
     const result = await chooseTeam()
 
     expect(result).toEqual([])
-    expect(info).toHaveBeenCalledWith('No agents selected — skipping team setup.')
+    expect(info).toHaveBeenCalledWith('No agents selected, skipping team setup.')
   })
 
   it('creates agent files for selected preset agents', async () => {
@@ -100,6 +100,6 @@ describe('chooseTeam()', () => {
     // File should still have original content (not overwritten)
     const content = await fse.readFile(path.join(agentsDir, 'frontend.md'), 'utf-8')
     expect(content).toBe('existing content')
-    expect(info).toHaveBeenCalledWith('frontend.md already exists — skipping')
+    expect(info).toHaveBeenCalledWith('frontend.md already exists, skipping')
   })
 })

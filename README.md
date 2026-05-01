@@ -9,7 +9,7 @@
 
 # opencode-onboard
 
-**One command to prepare any brownfield codebase for AI agent workflows.**
+**One command to prepare any codebase for AI agent workflows.**
 
 Works with [OpenCode](https://opencode.ai), [OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble), [OpenSpec](https://github.com/fission-ai/openspec), GitHub and Azure DevOps.
 
@@ -24,11 +24,11 @@ Works with [OpenCode](https://opencode.ai), [OpenCode Ensemble](https://github.c
 
 ## What is this?
 
-Most codebases weren't built with AI agents in mind. There's no `AGENTS.md`, no architecture docs the agents can read, no defined team, and no workflow for picking up tasks from GitHub Issues or Azure DevOps.
+Most codebases have no `AGENTS.md`, no architecture docs agents can read, and no defined workflow for picking up tasks. Agents end up improvising, and that produces inconsistent, brittle results.
 
-**opencode-onboard** fixes that in a single interactive run. It scaffolds the full AI agent layer on top of any existing project, platform-aware, non-destructive, and ready to use with OpenCode the moment it finishes.
+**opencode-onboard** fixes that in a single interactive run. It installs a universal agent team and the skills they need to work on your project, platform-aware, non-destructive, and ready the moment it finishes.
 
-> **Note:** This project is an independent community tool. It is not built by or affiliated with the OpenCode team.
+> **Note:** This is an independent community tool, not built by or affiliated with the OpenCode team.
 
 ---
 
@@ -38,33 +38,94 @@ Most codebases weren't built with AI agents in mind. There's no `AGENTS.md`, no 
 npx opencode-onboard@latest
 ```
 
-Requires **Node.js 18+** and **npm** or **pnpm**.
+Requires **Node.js 18+**.
 
 ---
 
 ## How it works
 
-The CLI walks you through 9 steps, interactive, resumable, and safe to run on an existing project.
+The CLI runs through a short interactive sequence:
 
 | Step | What happens |
 |------|-------------|
 | **1. Environment check** | Verifies Node.js ≥ 18 and npm/pnpm are available |
 | **2. Clean AI files** | Detects existing `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, etc. and offers to remove them |
-| **3. Choose platform** | GitHub or Azure DevOps, controls which agent skills are installed |
-| **4. Copy scaffolding** | Drops the full agent layer into your project root, filtered by platform |
-| **5. Choose your team** | Pick agent roles from a menu, `frontend`, `backend`, `tester`, or add custom names |
-| **6. Init OpenSpec** | Runs `npx @fission-ai/openspec init` to set up structured change management |
-| **7. Install opencode-browser** | Installs the browser plugin agents use to interact with web UIs |
-| **8. Check rtk** | Verifies `rtk` is on PATH (required for agents to run CLI commands safely) |
-| **9. Verify platform CLI** | Checks `gh` auth status (GitHub) or `az` + `azure-devops` extension (Azure DevOps) |
+| **3. Choose platform** | GitHub or Azure DevOps |
+| **4. Copy scaffolding** | Drops the agent layer and bootstrap docs into your project |
+| **5. Choose skills provider** | Installs platform skills agents use for work item and PR workflows |
+| **6. Init OpenSpec** | Runs `npx @fission-ai/openspec init` for structured change management |
+| **7. Install opencode-browser** | Browser plugin agents use for local UI screenshots |
+| **8. Check rtk** | Verifies `rtk` is on PATH |
+| **9. Verify platform CLI** | Checks `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps) |
 
-When it finishes:
+When it finishes, open OpenCode in your project and type:
 
 ```
-Open OpenCode in this project and type: "init"
+init
 ```
 
-OpenCode will generate `ARCHITECTURE.md` and `DESIGN.md` from your actual codebase, then activate the full agent team.
+OpenCode generates `ARCHITECTURE.md` and `DESIGN.md` from your actual codebase, then activates the full agent team.
+
+---
+
+## Agents and Skills
+
+opencode-onboard draws a hard line between two concepts:
+
+### Agents, universal behaviors
+
+Agents define *how to work*. They are behavioral personas, the same for every project, every tech stack, every team. You never configure them or choose between them. All six are always installed.
+
+```
+devops-manager     reads work items, creates PRs, handles review feedback
+front-engineer     web, mobile, UI, anything visual
+back-engineer      APIs, services, data, AI, anything not UI
+infra-engineer     Terraform, pipelines, cloud infrastructure
+quality-engineer   unit, integration, e2e tests across all layers
+security-auditor   vulnerability audit, secrets, auth gaps
+```
+
+### Skills, platform knowledge
+
+Skills define *what to know*. They are installed separately and provide the tech and platform-specific knowledge agents need. Agents detect and load relevant skills automatically, **you never tell an agent which skill to use**.
+
+Skills shipped with opencode-onboard (`ob-` prefix):
+
+| Skill | Purpose |
+|-------|---------|
+| `ob-userstory-gh` | Parse a GitHub Issue URL into a structured work item |
+| `ob-userstory-az` | Parse an Azure DevOps work item URL |
+| `ob-pullrequest-gh` | Create and update PRs on GitHub |
+| `ob-pullrequest-az` | Create and update PRs on Azure DevOps |
+
+Skills are plain Markdown files in `.opencode/skills/`. You can write your own, any file with a `SKILL.md` in a subdirectory is automatically discoverable by agents.
+
+---
+
+## The pipeline
+
+When you give the lead agent a work item URL, it runs the full pipeline automatically:
+
+```
+devops-manager  →  parse work item via skill  →  structured summary
+                                ↓
+                         openspec-propose
+                    proposal + specs + tasks
+                                ↓
+                        [confirm with user]
+                                ↓
+   front-engineer  +  back-engineer  +  infra-engineer   (parallel)
+                                ↓
+                        quality-engineer
+                    tests, build, lint, acceptance
+                                ↓
+                        security-auditor
+                      vulnerabilities, secrets
+                                ↓
+devops-manager  →  screenshots  →  commit  →  push  →  PR  →  comment
+```
+
+Each agent runs in its own isolated git worktree via [OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble), with a live dashboard at `http://localhost:4747`.
 
 ---
 
@@ -72,85 +133,34 @@ OpenCode will generate `ARCHITECTURE.md` and `DESIGN.md` from your actual codeba
 
 ```
 your-project/
-├── AGENTS.md                              ← bootstrap mode, self-destructs after first "init"
-├── ARCHITECTURE.md                        ← prompt, agents generate this from your codebase
-├── DESIGN.md                              ← prompt, agents generate this from your codebase
+├── AGENTS.md                     ← bootstrap mode, replaced after first "init"
+├── ARCHITECTURE.md               ← prompt for agents to fill in from your codebase
+├── DESIGN.md                     ← prompt for agents to fill in from your codebase
 └── .opencode/
     ├── agents/
-    │   ├── frontend.md                    ← empty skeleton, yours to fill
-    │   ├── backend.md
-    │   ├── tester.md
-    │   └── <custom>.md
+    │   ├── devops-manager.md
+    │   ├── front-engineer.md
+    │   ├── back-engineer.md
+    │   ├── infra-engineer.md
+    │   ├── quality-engineer.md
+    │   └── security-auditor.md
     └── skills/
-        ├── ob-userstory-gh/
-        ├── ob-pullrequest-creator-gh/
-        └── ob-pullrequest-observer-gh/
+        ├── ob-userstory-gh/      ← or -az, depending on platform
+        └── ob-pullrequest-gh/
 ```
-
-> For **Azure DevOps**, `-gh` skills are replaced with `-az` equivalents that work with boards and pull requests.
-
-The `.opencode/agents/` files are intentionally empty templates, open them and describe your actual stack so agents know exactly what they're working with.
-
----
-
-## Agent team
-
-During setup you pick which roles exist in your project. opencode-onboard creates an **empty skeleton file** for each one at `.opencode/agents/<name>.md`, nothing more.
-
-The content is entirely yours to write. Open each file and describe your stack, conventions, and constraints. The richer the description, the better the agents perform.
-
-| Agent | Role |
-|-------|------|
-| `frontend` | UI / frontend implementation |
-| `backend` | API / backend implementation |
-| `tester` | Testing & QA |
-| _custom_ | Any name you type during setup |
-
----
-
-## Platform support
-
-opencode-onboard installs different skills depending on your platform choice.
-
-### GitHub
-
-| Skill | What it does |
-|-------|-------------|
-| `ob-userstory-gh` | Parses a GitHub Issue URL and creates an OpenSpec change with design, spec, and tasks |
-| `ob-pullrequest-creator-gh` | Opens a pull request from a completed OpenSpec change |
-| `ob-pullrequest-observer-gh` | Monitors PR status, surfaces review comments, and closes the loop |
-
-### Azure DevOps
-
-| Skill | What it does |
-|-------|-------------|
-| `ob-userstory-az` | Parses an Azure DevOps work item URL and creates an OpenSpec change |
-| `ob-pullrequest-creator-az` | Opens a pull request in Azure Repos from a completed change |
-| `ob-pullrequest-observer-az` | Monitors PR status and review feedback |
 
 ---
 
 ## The bootstrap sequence
 
-The first time you open OpenCode after onboarding and type `init`, this happens automatically:
+The first time you type `init` in OpenCode after onboarding:
 
-1. `AGENTS.md` (bootstrap mode) activates and guides OpenCode through the sequence
-2. OpenCode reads your actual codebase and writes a real `ARCHITECTURE.md`
-3. OpenCode reads your design patterns and writes a real `DESIGN.md`
-4. `AGENTS.md` is replaced by the production version from the template
-5. Your agent team is live and ready to take tasks
+1. OpenCode reads your codebase and writes a real `ARCHITECTURE.md`
+2. OpenCode reads your design patterns and writes a real `DESIGN.md`
+3. `AGENTS.md` is replaced by the production version
+4. Your agent team is live
 
-After this, your project has persistent, accurate context that every agent can read, no manual documentation required.
-
----
-
-## Works with OpenCode Ensemble
-
-[OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble) is an OpenCode plugin that runs your agent team in parallel, each agent in its own session, its own git worktree, coordinated through messaging and a shared task board.
-
-opencode-onboard sets up the skeleton. Ensemble runs it.
-
-Then ask OpenCode to spawn your team on a task. Ensemble picks up the agent files from `.opencode/agents/`, gives each one an isolated branch, and coordinates the work, with a live dashboard at `http://localhost:4747`.
+After this, every agent has accurate, persistent context about your project, no manual documentation required.
 
 ---
 
@@ -159,23 +169,11 @@ Then ask OpenCode to spawn your team on a task. Ensemble picks up the agent file
 | Requirement | Notes |
 |-------------|-------|
 | **Node.js 18+** | Required |
-| **npm or pnpm** | Either works |
-| **[OpenCode](https://opencode.ai)** | The agent runtime this scaffolding targets |
-| **[rtk](https://github.com/rtk-ai/rtk#pre-built-binaries)** | Required for agents to run CLI commands safely. Install separately. |
-| **[gh CLI](https://cli.github.com)** | GitHub platform only, must be authenticated (`gh auth login`) |
-| **[az CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)** + azure-devops extension | Azure platform only |
-
----
-
-## Customising presets
-
-Agent roles and platforms are defined in plain JSON files, no code changes needed.
-
-```
-src/presets/
-├── agents.json      ← add/rename/remove agent roles
-└── platforms.json   ← add/rename platforms
-```
+| **[OpenCode](https://opencode.ai)** | The agent runtime |
+| **[OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble)** | Multi-agent parallel execution |
+| **[rtk](https://github.com/rtk-ai/rtk#pre-built-binaries)** | Required for agents to run CLI commands safely |
+| **[gh CLI](https://cli.github.com)** | GitHub platform, must be authenticated |
+| **[az CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)** + azure-devops extension | Azure DevOps platform |
 
 ---
 
@@ -186,7 +184,7 @@ git clone https://github.com/ckgrafico/opencode-onboard.git
 cd opencode-onboard
 pnpm install
 
-# Run the CLI locally against any project
+# Run the CLI locally
 node src/index.js
 
 # Run tests
@@ -196,7 +194,7 @@ pnpm test
 pnpm test:watch
 ```
 
-Tests are written with [Vitest](https://vitest.dev) and cover all steps and utilities.
+Tests are written with [Vitest](https://vitest.dev).
 
 ---
 

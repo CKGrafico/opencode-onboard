@@ -16,7 +16,7 @@ Requirements:
   (colors, typography, spacing, elevation, motion, radii, shadows, etc.)
 - Follow with free-form Markdown that describes the look & feel and
   captures design intent that token values alone cannot convey
-- The file must be entirely self-contained — do not reference any
+- The file must be entirely self-contained, do not reference any
   files, variables, or paths from the codebase
 - All token values must use valid YAML design token format
 

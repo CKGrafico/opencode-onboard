@@ -16,7 +16,7 @@ metadata:
 
 ```bash
 gh auth login
-# Follow prompts — authenticate via browser or token
+# Follow prompts, authenticate via browser or token
 ```
 
 Verify:
@@ -53,7 +53,7 @@ gh auth status
 
 ## Full GitHub CLI Reference
 
-Use these for ALL GitHub operations — browser MCP is FORBIDDEN.
+Use these for ALL GitHub operations, browser MCP is FORBIDDEN.
 
 ### Issues
 ```bash
@@ -166,6 +166,6 @@ https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
 
 ## Constraints
 
-- This skill only PARSES and PROPOSES — implementation via openspec-apply-change
+- This skill only PARSES and PROPOSES, implementation via openspec-apply-change
 - Always use `gh` CLI for GitHub operations
 - Browser MCP tools FORBIDDEN for all GitHub operations

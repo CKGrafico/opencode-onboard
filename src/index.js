@@ -4,7 +4,7 @@ import { checkEnv } from './steps/check-env.js'
 import { cleanAiFiles } from './steps/clean-ai-files.js'
 import { choosePlatform } from './steps/choose-platform.js'
 import { copyContentStep } from './steps/copy-content.js'
-import { chooseTeam } from './steps/choose-team.js'
+import { chooseSkillsProvider } from './steps/choose-skills-provider.js'
 import { initOpenspec } from './steps/init-openspec.js'
 import { installBrowser } from './steps/install-browser.js'
 import { checkRtk } from './steps/check-rtk.js'
@@ -30,8 +30,8 @@ try {
   // 4. Copy content filtered by platform
   await copyContentStep(platform)
 
-  // 5. Choose team agents
-  await chooseTeam()
+  // 5. Choose skills provider
+  await chooseSkillsProvider()
 
   // 6. Init OpenSpec
   await initOpenspec()

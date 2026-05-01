@@ -1,5 +1,5 @@
-import { commandExists, header, success, warn, info, code } from '../utils/exec.js'
 import { execa } from 'execa'
+import { code, commandExists, header, info, success, warn } from '../utils/exec.js'
 
 export async function checkPlatform(platform) {
   if (platform === 'azure') {
@@ -10,7 +10,7 @@ export async function checkPlatform(platform) {
 }
 
 async function checkAzure() {
-  header('Step 9 — Checking Azure DevOps CLI')
+  header('Step 9, Checking Azure DevOps CLI')
 
   // Check az is installed
   const hasAz = await commandExists('az')
@@ -51,7 +51,7 @@ async function checkAzure() {
 }
 
 async function checkGithub() {
-  header('Step 9 — Checking GitHub CLI')
+  header('Step 9, Checking GitHub CLI')
 
   const hasGh = await commandExists('gh')
 

@@ -1,13 +1,13 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { copyContent } from '../utils/copy.js'
-import { header, success, error } from '../utils/exec.js'
+import { error, header, success } from '../utils/exec.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CONTENT_DIR = path.resolve(__dirname, '../../content')
 
 export async function copyContentStep(platform) {
-  header('Step 4 — Copying opencode-onboard files')
+  header('Step 4, Copying opencode-onboard files')
 
   const dest = process.cwd()
 
