@@ -1,7 +1,7 @@
 import fse from 'fs-extra'
 import path from 'path'
 
-// Folders never copied (internal bootstrap tooling)
+// Folders never copied (skills handled separately by chooseSkillsProvider, .bootstrap is internal tooling)
 const ALWAYS_EXCLUDE = ['.bootstrap', 'skills']
 
 /**

@@ -133,18 +133,18 @@ All agents are universal, no project-specific knowledge. Platform and tech knowl
 
 | Agent | File | Role |
 |-------|------|------|
-| `devops-manager` | .opencode/agents/devops-manager.md | Reads work items, creates PRs, handles review feedback |
-| `front-engineer` | .opencode/agents/front-engineer.md | Web, mobile, UI implementation |
-| `back-engineer` | .opencode/agents/back-engineer.md | APIs, services, data, AI implementation |
-| `infra-engineer` | .opencode/agents/infra-engineer.md | Terraform, pipelines, cloud infrastructure |
-| `quality-engineer` | .opencode/agents/quality-engineer.md | Unit, integration, e2e tests across all layers |
-| `security-auditor` | .opencode/agents/security-auditor.md | Vulnerability audit, secrets, auth gaps |
+| `devops-manager` | .agents/agents/devops-manager.md | Reads work items, creates PRs, handles review feedback |
+| `front-engineer` | .agents/agents/front-engineer.md | Web, mobile, UI implementation |
+| `back-engineer` | .agents/agents/back-engineer.md | APIs, services, data, AI implementation |
+| `infra-engineer` | .agents/agents/infra-engineer.md | Terraform, pipelines, cloud infrastructure |
+| `quality-engineer` | .agents/agents/quality-engineer.md | Unit, integration, e2e tests across all layers |
+| `security-auditor` | .agents/agents/security-auditor.md | Vulnerability audit, secrets, auth gaps |
 
 ## Skills
 
 Skills provide platform and tech-specific knowledge. Agents detect and load them automatically, the user never specifies which skill to use.
 
-Skills are located in `.opencode/skills/`. Each skill has a `SKILL.md` with a description the agent reads to determine relevance.
+Skills are located in `.agents/skills/`. Each skill has a `SKILL.md` with a description the agent reads to determine relevance.
 
 | Skill | Purpose |
 |-------|---------|

@@ -98,7 +98,7 @@ Skills shipped with opencode-onboard (`ob-` prefix):
 | `ob-pullrequest-gh` | Create and update PRs on GitHub |
 | `ob-pullrequest-az` | Create and update PRs on Azure DevOps |
 
-Skills are plain Markdown files in `.opencode/skills/`. You can write your own, any file with a `SKILL.md` in a subdirectory is automatically discoverable by agents.
+Skills are plain Markdown files in `.agents/skills/`. You can write your own, any file with a `SKILL.md` in a subdirectory is automatically discoverable by agents.
 
 ---
 

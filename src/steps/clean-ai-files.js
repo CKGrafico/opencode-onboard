@@ -9,19 +9,19 @@ export async function cleanAiFiles() {
   const cwd = process.cwd()
   const found = await findAiFiles(cwd)
 
-  // Also find .opencode contents except skills/ (preserve user skills)
-  const opencodeDir = path.join(cwd, '.opencode')
-  const opencodeEntries = []
-  if (await fse.pathExists(opencodeDir)) {
-    const entries = await fse.readdir(opencodeDir)
+  // Also find .agents contents except skills/ (preserve user skills)
+  const agentsDir = path.join(cwd, '.agents')
+  const agentsEntries = []
+  if (await fse.pathExists(agentsDir)) {
+    const entries = await fse.readdir(agentsDir)
     for (const entry of entries) {
       if (entry !== 'skills') {
-        opencodeEntries.push(path.join(opencodeDir, entry))
+        agentsEntries.push(path.join(agentsDir, entry))
       }
     }
   }
 
-  const allFiles = [...found, ...opencodeEntries]
+  const allFiles = [...found, ...agentsEntries]
 
   if (allFiles.length === 0) {
     success('No existing AI config files found')
@@ -33,7 +33,7 @@ export async function cleanAiFiles() {
     info(f.replace(cwd, '.'))
   }
   console.log()
-  info('Press Enter to remove them all (your .opencode/skills/ will be kept)')
+  info('Press Enter to remove them all (your .agents/skills/ will be kept)')
   console.log()
 
   await new Promise(resolve => {

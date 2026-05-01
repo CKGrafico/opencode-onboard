@@ -61,7 +61,7 @@ The output must be a real, populated `ARCHITECTURE.md` covering all sections the
 
 ### Step 4, Rewrite this file
 
-Replace the entire contents of `AGENTS.md` with the real agent guidance template located at `.opencode/agents/.bootstrap/AGENTS.template.md`.
+Replace the entire contents of `AGENTS.md` with the real agent guidance template located at `.agents/agents/.bootstrap/AGENTS.template.md`.
 
 ---
 
