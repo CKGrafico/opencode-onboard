@@ -1,8 +1,8 @@
 import { select } from '@inquirer/prompts'
+import { execa } from 'execa'
 import fse from 'fs-extra'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { execa } from 'execa'
 import { header, info, success, warn } from '../utils/exec.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -30,13 +30,13 @@ async function installObSkills() {
 export async function chooseSkillsProvider() {
   header('Step 7, Installing skills')
 
-  // ob-skills are always installed — mandatory
+  // ob-skills are always installed, mandatory
   info('Installing built-in ob-skills...')
   await installObSkills()
   console.log()
 
   info('Skills provide platform and tech-specific knowledge to your agents.')
-  info('Agents detect and load skills automatically — you never need to specify them.')
+  info('Agents detect and load skills automatically, you never need to specify them.')
   info('You can add more skills on top of the built-in ones.')
   console.log()
 
@@ -49,7 +49,7 @@ export async function chooseSkillsProvider() {
         description: 'Install skills from the vercel-labs community skills registry',
       },
       {
-        name: 'None — built-in skills are enough',
+        name: 'None, built-in skills are enough',
         value: 'none',
       },
     ],

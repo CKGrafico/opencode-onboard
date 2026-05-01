@@ -72,10 +72,10 @@ export async function commandExists(command) {
 }
 
 /**
- * Print a section header — clears screen, shows previous step dimmed, starts new step.
+ * Print a section header, clears screen, shows previous step dimmed, starts new step.
  */
 export function header(text) {
-  // Rotate buffers — keep last 2 completed steps
+  // Rotate buffers, keep last 2 completed steps
   previousSteps.push(currentStepLines)
   if (previousSteps.length > 2) previousSteps.shift()
   currentStepLines = []
@@ -135,7 +135,7 @@ export function info(text) {
 }
 
 /**
- * Print an action prompt line (white bold — requires user interaction).
+ * Print an action prompt line (white bold, requires user interaction).
  */
 export function prompt(text) {
   stopSpinner()

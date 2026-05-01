@@ -1,6 +1,6 @@
 import fse from 'fs-extra'
-import path from 'path'
 import os from 'os'
+import path from 'path'
 
 const CACHE_DIR = path.join(os.homedir(), '.config', 'opencode-onboard')
 const CACHE_FILE = path.join(CACHE_DIR, 'models-cache.json')
@@ -87,7 +87,7 @@ export async function fetchModels() {
     await saveCache(models)
     return { models, source: 'network' }
   } catch {
-    // 3. Network failed — fall back to stale cache if available
+    // 3. Network failed, fall back to stale cache if available
     try {
       if (await fse.pathExists(CACHE_FILE)) {
         const cache = await fse.readJson(CACHE_FILE)

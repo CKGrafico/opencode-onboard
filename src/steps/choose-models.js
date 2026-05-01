@@ -30,7 +30,7 @@ function buildDisplayModels(rawModels) {
       : ''
     return {
       ...m,
-      label: `${m.name}${COST_TIER_DISPLAY(m.cost, m.canonicalCost)} — ${m.id}`,
+      label: `${m.name}${COST_TIER_DISPLAY(m.cost, m.canonicalCost)}, ${m.id}`,
       description: `${priceStr}${canonicalNote} · context: ${m.context ? (m.context / 1000) + 'k' : '?'}`,
     }
   })
@@ -78,7 +78,7 @@ export async function chooseModels() {
   }
 
   if (source === 'stale-cache') {
-    warn('Network unavailable — using cached model list (may be outdated).')
+    warn('Network unavailable, using cached model list (may be outdated).')
   } else if (source === 'cache') {
     info('Using cached model list (refreshes weekly).')
   }
@@ -91,20 +91,20 @@ export async function chooseModels() {
   console.log()
 
   // Plan model
-  info('PLAN model — used by the main agent for proposals, specs, architecture decisions.')
+  info('PLAN model, used by the main agent for proposals, specs, architecture decisions.')
   info('Pick something capable with strong reasoning.')
   const planModel = await pickModel('Plan model:', models)
   console.log()
 
   // Build model
-  info('BUILD model — used by front-engineer, back-engineer, infra-engineer, quality-engineer, security-auditor.')
+  info('BUILD model, used by front-engineer, back-engineer, infra-engineer, quality-engineer, security-auditor.')
   info('Pick something capable for implementation work.')
   const buildModel = await pickModel('Build model:', models)
   console.log()
 
   // Fast model
-  info('FAST model — used by devops-manager for reading issues, classifying PR comments.')
-  info('Pick something fast and cheap — no heavy reasoning needed.')
+  info('FAST model, used by devops-manager for reading issues, classifying PR comments.')
+  info('Pick something fast and cheap, no heavy reasoning needed.')
   const fastModel = await pickModel('Fast model:', models)
   console.log()
 

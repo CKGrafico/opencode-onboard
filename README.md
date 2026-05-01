@@ -21,7 +21,7 @@ Works with [OpenCode](https://opencode.ai), [OpenCode Ensemble](https://github.c
 
 Most codebases have no `AGENTS.md`, no architecture docs agents can read, and no defined workflow for picking up tasks. Agents end up improvising, and that produces inconsistent, brittle results.
 
-**opencode-onboard** fixes that in a single interactive run. It installs a universal agent team, the skills they need, picks your AI models, and configures OpenCode — platform-aware, non-destructive, and ready the moment it finishes.
+**opencode-onboard** fixes that in a single interactive run. It installs a universal agent team, the skills they need, picks your AI models, and configures OpenCode, platform-aware, non-destructive, and ready the moment it finishes.
 
 > **Note:** This is an independent community tool, not built by or affiliated with the OpenCode team.
 
@@ -44,7 +44,7 @@ The CLI clears the screen, shows a welcome banner, and walks you through 10 step
 | Step | What happens |
 |------|-------------|
 | **1. Environment check** | Verifies Node.js ≥ 18 and pnpm are available |
-| **2. Clean AI files** | Detects existing `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, `.agents/` etc. and removes them — preserves your `.agents/skills/` |
+| **2. Clean AI files** | Detects existing `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, `.agents/` etc. and removes them, preserves your `.agents/skills/` |
 | **3. Choose platform** | GitHub or Azure DevOps |
 | **4. Check platform CLI** | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps) |
 | **5. Copy scaffolding** | Drops agents, skills, and bootstrap docs into your project |
@@ -68,7 +68,7 @@ OpenCode generates `ARCHITECTURE.md` and `DESIGN.md` from your actual codebase, 
 
 opencode-onboard draws a hard line between two concepts:
 
-### Agents — universal behaviors
+### Agents, universal behaviors
 
 Agents define *how to work*. They are behavioral personas, the same for every project, every tech stack, every team. You never configure them or choose between them. All six are always installed.
 
@@ -81,11 +81,11 @@ quality-engineer   unit, integration, e2e tests across all layers
 security-auditor   vulnerability audit, secrets, auth gaps
 ```
 
-Each agent has a color in the OpenCode UI. Builder agents (`front-engineer`, `back-engineer`, `infra-engineer`) run at `temperature: 0.2` for deterministic output. `security-auditor` is read-only — edit is denied.
+Each agent has a color in the OpenCode UI. Builder agents (`front-engineer`, `back-engineer`, `infra-engineer`) run at `temperature: 0.2` for deterministic output. `security-auditor` is read-only, edit is denied.
 
-### Skills — platform knowledge
+### Skills, platform knowledge
 
-Skills define *what to know*. They provide the tech and platform-specific knowledge agents need. Agents detect and load relevant skills automatically — **you never tell an agent which skill to use**.
+Skills define *what to know*. They provide the tech and platform-specific knowledge agents need. Agents detect and load relevant skills automatically, **you never tell an agent which skill to use**.
 
 Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 
@@ -95,9 +95,9 @@ Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 | `ob-userstory-az` | Parse an Azure DevOps work item URL |
 | `browser-automation` | Browser control via `@different-ai/opencode-browser` |
 
-Skills live in `.agents/skills/`. Any `SKILL.md` file in a subdirectory is automatically discoverable — write your own and agents will pick them up.
+Skills live in `.agents/skills/`. Any `SKILL.md` file in a subdirectory is automatically discoverable, write your own and agents will pick them up.
 
-### Models — plan / build / fast
+### Models, plan / build / fast
 
 During onboarding you pick three models:
 
@@ -107,7 +107,7 @@ During onboarding you pick three models:
 | **build** | All builder agents | Something capable for implementation |
 | **fast** | `devops-manager` | Something fast and cheap |
 
-Models are fetched live from [models.dev](https://models.dev) (3000+ models, cached weekly). Cost tiers `[$]` `[$$]` `[$$$]` always reflect the canonical provider price — so `github-copilot/claude-opus-4.7` shows `[$$]` not `[$]`.
+Models are fetched live from [models.dev](https://models.dev) (3000+ models, cached weekly). Cost tiers `[$]` `[$$]` `[$$$]` always reflect the canonical provider price, so `github-copilot/claude-opus-4.7` shows `[$$]` not `[$]`.
 
 ---
 
@@ -172,7 +172,7 @@ The first time you type `init` in OpenCode after onboarding:
 3. `AGENTS.md` is replaced by the production version
 4. Your agent team is live
 
-After this, every agent has accurate, persistent context about your project — no manual documentation required.
+After this, every agent has accurate, persistent context about your project, no manual documentation required.
 
 ---
 
