@@ -1,0 +1,14 @@
+[
+  {
+    "value": "frontend",
+    "label": "frontend  — UI/frontend implementation"
+  },
+  {
+    "value": "backend",
+    "label": "backend   — API/backend implementation"
+  },
+  {
+    "value": "tester",
+    "label": "tester    — Testing & QA"
+  }
+]

@@ -1,0 +1,21 @@
+import path from 'path'
+import { fileURLToPath } from 'url'
+import { copyContent } from '../utils/copy.js'
+import { header, success, error } from '../utils/exec.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const CONTENT_DIR = path.resolve(__dirname, '../../content')
+
+export async function copyContentStep(platform) {
+  header('Step 4 — Copying opencode-onboard files')
+
+  const dest = process.cwd()
+
+  try {
+    await copyContent(CONTENT_DIR, dest, platform)
+    success('Files copied to project root')
+  } catch (err) {
+    error(`Failed to copy content: ${err.message}`)
+    process.exit(1)
+  }
+}

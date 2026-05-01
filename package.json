@@ -1,0 +1,45 @@
+{
+  "name": "opencode-onboard",
+  "version": "0.0.2",
+  "description": "Prepare any brownfield codebase for AI agent workflows using OpenCode, OpenSpec, and ensemble orchestration.",
+  "keywords": [
+    "opencode",
+    "ai",
+    "agents",
+    "brownfield",
+    "onboarding",
+    "openspec",
+    "cli"
+  ],
+  "homepage": "https://github.com/ckgrafico/opencode-onboard",
+  "license": "MIT",
+  "author": "ckgrafico",
+  "type": "module",
+  "bin": {
+    "opencode-onboard": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "content"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.0.0",
+    "chalk": "^5.0.0",
+    "execa": "^9.6.1",
+    "fs-extra": "^11.0.0",
+    "ora": "^8.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.5"
+  },
+  "vitest": {
+    "environment": "node"
+  }
+}
