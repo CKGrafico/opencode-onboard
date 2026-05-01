@@ -5,9 +5,9 @@ export async function initOpenspec() {
   header('Step 6, Initializing OpenSpec')
 
   try {
-    const result = await execa('npx', ['@fission-ai/openspec', 'init'], {
+    const result = await execa('npx', ['@fission-ai/openspec', 'init', '--tools', 'opencode', '--force'], {
       cwd: process.cwd(),
-      stdio: 'inherit',
+      stdio: 'pipe',
       reject: false,
     })
 

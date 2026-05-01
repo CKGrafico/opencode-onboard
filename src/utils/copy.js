@@ -1,6 +1,5 @@
 import fse from 'fs-extra'
 import path from 'path'
-import { readdir } from 'fs/promises'
 
 // Folders never copied (internal bootstrap tooling)
 const ALWAYS_EXCLUDE = ['.bootstrap', 'skills']
@@ -32,6 +31,8 @@ export async function copyContent(contentDir, destDir, platform) {
 const AI_FILES = [
   'AGENTS.md',
   'CLAUDE.md',
+  'ARCHITECTURE.md',
+  'DESIGN.md',
   '.cursorrules',
   '.clinerules',
   '.windsurfrules',
