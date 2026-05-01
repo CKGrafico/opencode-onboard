@@ -4,7 +4,7 @@
 
 # 🧰 opencode-onboard
 
-**One command to prepare any codebase for AI agent workflows.**
+**One command to prepare any codebase for AI agent workflows in OpenCode.**
 
 Works with [OpenCode](https://opencode.ai), [OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble), [OpenSpec](https://github.com/fission-ai/openspec), GitHub and Azure DevOps.
 
@@ -19,7 +19,7 @@ Works with [OpenCode](https://opencode.ai), [OpenCode Ensemble](https://github.c
 
 Most codebases have no `AGENTS.md`, no architecture docs agents can read, and no defined workflow for picking up tasks. Agents end up improvising, and that produces inconsistent, brittle results.
 
-**opencode-onboard** fixes that in a single interactive run. It installs a universal agent team, the skills they need, picks your AI models, and configures OpenCode, platform-aware, non-destructive, and ready the moment it finishes.
+**opencode-onboard** fixes that in a single interactive run. It installs a universal and agnostic agent team,but let you choose your own skills, preconfigured your AI models, and initd OpenCode with Openspec and Ensemble.
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/CKGrafico/opencode-onboard/refs/heads/main/demo.gif" alt="opencode-onboard demo" width="700" />
