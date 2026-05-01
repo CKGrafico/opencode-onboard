@@ -50,7 +50,6 @@ if (process.stdin.isTTY) {
     })
   })
 }
-})
 
 try {
   // 1. Check Node + pnpm
