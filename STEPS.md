@@ -1,8 +1,8 @@
 - Check Node installed, npm installed 
 - ask the user to clean AI file like agents.md, claude.md etc etc.. ande delete them
 - ask the user if is using azure-devops or githb 
-- Copy /content  files and folders filtering if is using azure devops or github to dont duplicate files dont move .agent-template.md
-- ask to the user to choose the ir team (agents but will be empty files) and initialize them based on .agent-template.md
+- Copy /content  files and folders filtering if is using azure devops or github to dont duplicate files dont move .boostrap files or folder
+- ask to the user to choose the ir team (agents but will be empty files) and initialize them based on CUSTOM-AGENT.template.md
 - execute npx @fission-ai/openspec init
 - execute npx @different-ai/opencode-browser install and show result to the user
 - check if rtk gain command works if not ask the user to install and configure https://github.com/rtk-ai/rtk#pre-built-binaries
