@@ -73,6 +73,13 @@ export function info(text) {
 }
 
 /**
+ * Print an action prompt line (white bold — requires user interaction).
+ */
+export function prompt(text) {
+  console.log(chalk.bold('  ' + text))
+}
+
+/**
  * Print a code block.
  */
 export function code(lines) {

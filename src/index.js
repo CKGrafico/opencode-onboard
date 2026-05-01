@@ -3,12 +3,13 @@ import chalk from 'chalk'
 import { checkEnv } from './steps/check-env.js'
 import { cleanAiFiles } from './steps/clean-ai-files.js'
 import { choosePlatform } from './steps/choose-platform.js'
-import { copyContentStep } from './steps/copy-content.js'
-import { chooseSkillsProvider } from './steps/choose-skills-provider.js'
-import { initOpenspec } from './steps/init-openspec.js'
-import { installBrowser } from './steps/install-browser.js'
-import { checkRtk } from './steps/check-rtk.js'
 import { checkPlatform } from './steps/check-platform.js'
+import { copyContentStep } from './steps/copy-content.js'
+import { initOpenspec } from './steps/init-openspec.js'
+import { chooseSkillsProvider } from './steps/choose-skills-provider.js'
+import { chooseModels } from './steps/choose-models.js'
+import { checkRtk } from './steps/check-rtk.js'
+import { installBrowser } from './steps/install-browser.js'
 
 console.log()
 console.log(chalk.bold('┌─────────────────────────────────────┐'))
@@ -18,7 +19,7 @@ console.log(chalk.bold('└─────────────────�
 console.log()
 
 try {
-  // 1. Check Node + npm/pnpm
+  // 1. Check Node + pnpm
   await checkEnv()
 
   // 2. Clean existing AI config files
@@ -27,23 +28,26 @@ try {
   // 3. Choose platform
   const platform = await choosePlatform()
 
-  // 4. Copy content filtered by platform
-  await copyContentStep(platform)
+  // 4. Check platform CLI (az or gh)
+  await checkPlatform(platform)
 
-  // 5. Choose skills provider
-  await chooseSkillsProvider()
+  // 5. Copy content
+  await copyContentStep(platform)
 
   // 6. Init OpenSpec
   await initOpenspec()
 
-  // 7. Install opencode-browser
-  await installBrowser()
+  // 7. Install skills
+  await chooseSkillsProvider()
 
-  // 8. Check rtk
+  // 8. Choose models
+  await chooseModels()
+
+  // 9. Check RTK
   await checkRtk()
 
-  // 9. Check platform CLI (az or gh)
-  await checkPlatform(platform)
+  // 10. Install opencode-browser
+  await installBrowser()
 
   // Done
   console.log()

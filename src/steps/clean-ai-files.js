@@ -1,7 +1,7 @@
 import fse from 'fs-extra'
 import path from 'path'
 import { findAiFiles } from '../utils/copy.js'
-import { header, info, success, warn } from '../utils/exec.js'
+import { header, info, prompt, success, warn } from '../utils/exec.js'
 
 export async function cleanAiFiles() {
   header('Step 2, Existing AI config files')
@@ -33,7 +33,7 @@ export async function cleanAiFiles() {
     info(f.replace(cwd, '.'))
   }
   console.log()
-  info('Press Enter to remove them all (your .agents/skills/ will be kept)')
+  prompt('Press Enter to remove them all (your .agents/skills/ will be kept)')
   console.log()
 
   await new Promise(resolve => {

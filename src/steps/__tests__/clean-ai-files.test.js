@@ -1,62 +1,76 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import fse from 'fs-extra'
+import os from 'os'
+import path from 'path'
 
 vi.mock('../../utils/exec.js', () => ({
   header: vi.fn(),
   success: vi.fn(),
   warn: vi.fn(),
   info: vi.fn(),
+  prompt: vi.fn(),
 }))
 
-vi.mock('../../utils/copy.js', () => ({
-  findAiFiles: vi.fn(),
-}))
-
-vi.mock('fs-extra', () => ({
-  default: { remove: vi.fn() },
-}))
-
-vi.mock('@inquirer/prompts', () => ({
-  confirm: vi.fn(),
-}))
-
-import { findAiFiles } from '../../utils/copy.js'
 import { success, warn } from '../../utils/exec.js'
-import fse from 'fs-extra'
-import { confirm } from '@inquirer/prompts'
-import { cleanAiFiles } from '../clean-ai-files.js'
 
 describe('cleanAiFiles()', () => {
-  beforeEach(() => {
+  let tmpDir
+  let originalCwd
+
+  beforeEach(async () => {
+    tmpDir = await fse.mkdtemp(path.join(os.tmpdir(), 'ob-clean-test-'))
+    originalCwd = process.cwd()
+    process.chdir(tmpDir)
     vi.clearAllMocks()
+    vi.resetModules()
+  })
+
+  afterEach(async () => {
+    process.chdir(originalCwd)
+    await fse.remove(tmpDir)
   })
 
   it('prints success when no AI files are found', async () => {
-    findAiFiles.mockResolvedValue([])
+    const { cleanAiFiles } = await import('../clean-ai-files.js')
+
+    // Simulate immediate Enter key
+    const stdinPush = () => process.stdin.emit('data', '\n')
+    setTimeout(stdinPush, 10)
 
     await cleanAiFiles()
 
     expect(success).toHaveBeenCalledWith('No existing AI config files found')
-    expect(confirm).not.toHaveBeenCalled()
   })
 
-  it('deletes files when user confirms', async () => {
-    findAiFiles.mockResolvedValue(['/proj/AGENTS.md', '/proj/CLAUDE.md'])
-    confirm.mockResolvedValue(true)
+  it('removes found AI files after Enter', async () => {
+    await fse.writeFile(path.join(tmpDir, 'AGENTS.md'), '# agents')
+    await fse.writeFile(path.join(tmpDir, 'CLAUDE.md'), '# claude')
+
+    const { cleanAiFiles } = await import('../clean-ai-files.js')
+
+    setTimeout(() => process.stdin.emit('data', '\n'), 10)
 
     await cleanAiFiles()
 
-    expect(fse.remove).toHaveBeenCalledWith('/proj/AGENTS.md')
-    expect(fse.remove).toHaveBeenCalledWith('/proj/CLAUDE.md')
+    expect(await fse.pathExists(path.join(tmpDir, 'AGENTS.md'))).toBe(false)
+    expect(await fse.pathExists(path.join(tmpDir, 'CLAUDE.md'))).toBe(false)
     expect(success).toHaveBeenCalledWith('Removed existing AI config files')
   })
 
-  it('skips deletion when user declines', async () => {
-    findAiFiles.mockResolvedValue(['/proj/AGENTS.md'])
-    confirm.mockResolvedValue(false)
+  it('removes .agents sub-entries but preserves .agents/skills', async () => {
+    const agentsDir = path.join(tmpDir, '.agents')
+    await fse.ensureDir(path.join(agentsDir, 'agents'))
+    await fse.ensureDir(path.join(agentsDir, 'skills', 'my-skill'))
+    await fse.writeFile(path.join(agentsDir, 'agents', 'front-engineer.md'), 'agent')
+    await fse.writeFile(path.join(agentsDir, 'skills', 'my-skill', 'SKILL.md'), 'skill')
+
+    const { cleanAiFiles } = await import('../clean-ai-files.js')
+
+    setTimeout(() => process.stdin.emit('data', '\n'), 10)
 
     await cleanAiFiles()
 
-    expect(fse.remove).not.toHaveBeenCalled()
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Skipped'))
+    expect(await fse.pathExists(path.join(agentsDir, 'agents'))).toBe(false)
+    expect(await fse.pathExists(path.join(agentsDir, 'skills', 'my-skill', 'SKILL.md'))).toBe(true)
   })
 })

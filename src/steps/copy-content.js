@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CONTENT_DIR = path.resolve(__dirname, '../../content')
 
 export async function copyContentStep(platform) {
-  header('Step 4, Copying opencode-onboard files')
+  header('Step 5, Copying opencode-onboard files')
 
   const dest = process.cwd()
 

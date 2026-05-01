@@ -28,7 +28,7 @@ async function installObSkills() {
 }
 
 export async function chooseSkillsProvider() {
-  header('Step 5, Installing skills')
+  header('Step 7, Installing skills')
 
   // ob-skills are always installed — mandatory
   info('Installing built-in ob-skills...')

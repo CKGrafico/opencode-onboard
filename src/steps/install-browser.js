@@ -1,10 +1,18 @@
 import { execa } from 'execa'
-import { createInterface } from 'readline'
-import { error, header, success, warn } from '../utils/exec.js'
+import { header, success, warn, error } from '../utils/exec.js'
 import os from 'os'
 
+const AUTO_ANSWERS = [
+  { trigger: 'Press Enter when',             response: '' },
+  { trigger: 'Choose config location',       response: '2' },
+  { trigger: 'Add plugin automatically?',    response: 'y' },
+  { trigger: 'Create one?',                  response: 'y' },
+  { trigger: 'Add browser-automation skill', response: 'n' },
+  { trigger: 'Check broker',                 response: 'n' },
+]
+
 export async function installBrowser() {
-  header('Step 7, Installing opencode-browser')
+  header('Step 10, Installing opencode-browser')
 
   try {
     const child = execa('npx', ['@different-ai/opencode-browser', 'install'], {
@@ -13,34 +21,15 @@ export async function installBrowser() {
       reject: false,
     })
 
-    const AUTO_ANSWERS = [
-      { trigger: 'Choose config location', response: '2' },
-      { trigger: 'Create one?', response: 'y' },
-      { trigger: 'Add browser-automation skill', response: 'n' },
-      { trigger: 'Check broker', response: 'n' },
-    ]
-
-    let pendingTriggers = [...AUTO_ANSWERS]
-    let showOutput = true
-    let waitingForUser = false
+    const pendingTriggers = [...AUTO_ANSWERS]
+    let silent = false
 
     child.stdout.on('data', (chunk) => {
       const text = chunk.toString()
 
-      if (showOutput) {
-        process.stdout.write(chunk)
-      }
-
-      if (text.includes('Press Enter when') && !waitingForUser) {
-        waitingForUser = true
-        const rl = createInterface({ input: process.stdin, output: process.stdout })
-        rl.question('', () => {
-          rl.close()
-          child.stdin.write('\n')
-          showOutput = false
-        })
-        return
-      }
+      // Stop showing output after Step 3 is done
+      if (text.includes('Step 4:')) silent = true
+      if (!silent) process.stdout.write(chunk)
 
       for (let i = 0; i < pendingTriggers.length; i++) {
         if (text.includes(pendingTriggers[i].trigger)) {
@@ -50,6 +39,8 @@ export async function installBrowser() {
         }
       }
     })
+
+    child.stderr.on('data', (chunk) => process.stderr.write(chunk))
 
     const result = await child
 

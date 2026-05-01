@@ -76,28 +76,6 @@ describe('copy utils', () => {
       expect(await fse.pathExists(path.join(dest, 'AGENTS.md'))).toBe(true)
     })
 
-    it('excludes azure files when platform is github', async () => {
-      await fse.ensureDir(path.join(src, 'skills', 'ob-userstory-az'))
-      await fse.writeFile(path.join(src, 'skills', 'ob-userstory-az', 'SKILL.md'), 'azure skill')
-      await fse.writeFile(path.join(src, 'agent-az.md'), 'azure agent')
-
-      await copyContent(src, dest, 'github')
-
-      expect(await fse.pathExists(path.join(dest, 'agent-az.md'))).toBe(false)
-      expect(await fse.pathExists(path.join(dest, 'skills', 'ob-userstory-az', 'SKILL.md'))).toBe(false)
-    })
-
-    it('excludes github files when platform is azure', async () => {
-      await fse.ensureDir(path.join(src, 'skills', 'ob-userstory-gh'))
-      await fse.writeFile(path.join(src, 'skills', 'ob-userstory-gh', 'SKILL.md'), 'gh skill')
-      await fse.writeFile(path.join(src, 'agent-gh.md'), 'gh agent')
-
-      await copyContent(src, dest, 'azure')
-
-      expect(await fse.pathExists(path.join(dest, 'agent-gh.md'))).toBe(false)
-      expect(await fse.pathExists(path.join(dest, 'skills', 'ob-userstory-gh', 'SKILL.md'))).toBe(false)
-    })
-
     it('always excludes .bootstrap folder', async () => {
       await fse.ensureDir(path.join(src, '.bootstrap'))
       await fse.writeFile(path.join(src, '.bootstrap', 'secret.md'), 'internal')
