@@ -21,8 +21,9 @@ Most codebases have no `AGENTS.md`, no architecture docs agents can read, and no
 
 **opencode-onboard** fixes that in a single interactive run. It installs a universal agent team, the skills they need, picks your AI models, and configures OpenCode, platform-aware, non-destructive, and ready the moment it finishes.
 
+<div align="center">
 <img src="./demo.gif" alt="opencode-onboard demo" width="700" />
-
+</div>
 ---
 
 ## Quick start
