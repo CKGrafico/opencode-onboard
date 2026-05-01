@@ -1,5 +1,5 @@
 import { execa } from 'execa'
-import { header, success, warn, error } from '../utils/exec.js'
+import { header, info, success, warn, error } from '../utils/exec.js'
 import os from 'os'
 
 const AUTO_ANSWERS = [
@@ -22,14 +22,16 @@ export async function installBrowser() {
     })
 
     const pendingTriggers = [...AUTO_ANSWERS]
-    let silent = false
+    let show = false
 
     child.stdout.on('data', (chunk) => {
       const text = chunk.toString()
 
-      // Stop showing output after Step 3 is done
-      if (text.includes('Step 4:')) silent = true
-      if (!silent) process.stdout.write(chunk)
+      // Show only the load/pin instructions, hide everything else
+      if (text.includes('To load the extension')) show = true
+      if (text.includes('Press Enter when'))      show = false
+
+      if (show) process.stdout.write(chunk)
 
       for (let i = 0; i < pendingTriggers.length; i++) {
         if (text.includes(pendingTriggers[i].trigger)) {

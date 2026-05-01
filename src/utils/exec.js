@@ -2,6 +2,42 @@ import chalk from 'chalk'
 import { execa } from 'execa'
 import ora from 'ora'
 
+// ── Screen / step state ──────────────────────────────────────────────────────
+
+const previousSteps = []    // up to 2 completed steps, each is an array of lines
+let currentStepLines = []   // lines accumulated in the current step
+let stepSpinner = null      // ora spinner shown while step is working
+
+function appendLine(line) {
+  currentStepLines.push(line)
+}
+
+function stopSpinner() {
+  if (stepSpinner) {
+    stepSpinner.stop()
+    stepSpinner = null
+  }
+}
+
+function redraw() {
+  console.clear()
+
+  // Show up to 2 previous steps dimmed
+  for (const stepLines of previousSteps) {
+    for (const line of stepLines) {
+      process.stdout.write(chalk.dim(line) + '\n')
+    }
+    process.stdout.write('\n')
+  }
+
+  // Current step output
+  for (const line of currentStepLines) {
+    process.stdout.write(line + '\n')
+  }
+}
+
+// ── Public API ───────────────────────────────────────────────────────────────
+
 /**
  * Run a shell command with a spinner.
  * Returns { success, stdout, stderr }
@@ -36,56 +72,90 @@ export async function commandExists(command) {
 }
 
 /**
- * Print a section header.
+ * Print a section header — clears screen, shows previous step dimmed, starts new step.
  */
 export function header(text) {
-  console.log()
-  console.log(chalk.bold.cyan(`━━ ${text}`))
-  console.log()
+  // Rotate buffers — keep last 2 completed steps
+  previousSteps.push(currentStepLines)
+  if (previousSteps.length > 2) previousSteps.shift()
+  currentStepLines = []
+
+  const line1 = ''
+  const line2 = chalk.bold.hex('#fe3d57')(`━━ ${text}`)
+  const line3 = ''
+
+  appendLine(line1)
+  appendLine(line2)
+  appendLine(line3)
+
+  redraw()
+
+  // Start a spinner while the step is working
+  stepSpinner = ora({ text: chalk.dim('working...'), color: 'red' }).start()
 }
 
 /**
  * Print a success line.
  */
 export function success(text) {
-  console.log(chalk.green('✓ ') + text)
+  stopSpinner()
+  const line = chalk.green('✓ ') + text
+  appendLine(line)
+  console.log(line)
 }
 
 /**
  * Print a warning line.
  */
 export function warn(text) {
-  console.log(chalk.yellow('⚠ ') + text)
+  stopSpinner()
+  const line = chalk.yellow('⚠ ') + text
+  appendLine(line)
+  console.log(line)
 }
 
 /**
  * Print an error line.
  */
 export function error(text) {
-  console.log(chalk.red('✗ ') + text)
+  stopSpinner()
+  const line = chalk.red('✗ ') + text
+  appendLine(line)
+  console.log(line)
 }
 
 /**
  * Print an info line.
  */
 export function info(text) {
-  console.log(chalk.dim('  ' + text))
+  stopSpinner()
+  const line = chalk.dim('  ' + text)
+  appendLine(line)
+  console.log(line)
 }
 
 /**
  * Print an action prompt line (white bold — requires user interaction).
  */
 export function prompt(text) {
-  console.log(chalk.bold('  ' + text))
+  stopSpinner()
+  const line = chalk.bold('  ' + text)
+  appendLine(line)
+  console.log(line)
 }
 
 /**
  * Print a code block.
  */
 export function code(lines) {
+  stopSpinner()
+  appendLine('')
   console.log()
   for (const line of lines) {
-    console.log(chalk.bgGray.white('  ' + line + '  '))
+    const formatted = chalk.bgGray.white('  ' + line + '  ')
+    appendLine(formatted)
+    console.log(formatted)
   }
+  appendLine('')
   console.log()
 }

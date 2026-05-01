@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 // Mock chalk to return the string as-is (no ANSI codes in tests)
 vi.mock('chalk', () => ({
   default: {
-    bold: { cyan: (s) => s },
+    bold: { hex: () => (s) => s },
     green: (s) => s,
     yellow: (s) => s,
     red: (s) => s,
@@ -14,7 +14,7 @@ vi.mock('chalk', () => ({
 
 // Mock ora spinner
 vi.mock('ora', () => ({
-  default: () => ({ start: () => ({ succeed: vi.fn(), fail: vi.fn() }) }),
+  default: () => ({ start: () => ({ succeed: vi.fn(), fail: vi.fn(), stop: vi.fn() }) }),
 }))
 
 // Mock execa
@@ -72,9 +72,11 @@ describe('exec utils', () => {
   })
 
   describe('console helpers', () => {
-    it('header() calls console.log', () => {
+    it('header() clears screen and writes output', () => {
+      vi.spyOn(process.stdout, 'write').mockImplementation(() => {})
+      vi.spyOn(console, 'clear').mockImplementation(() => {})
       header('Test Header')
-      expect(console.log).toHaveBeenCalled()
+      expect(process.stdout.write).toHaveBeenCalled()
     })
 
     it('success() calls console.log with text', () => {
