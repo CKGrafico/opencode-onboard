@@ -11,7 +11,7 @@
 
 **One command to prepare any brownfield codebase for AI agent workflows.**
 
-Works with [OpenCode](https://opencode.ai), [OpenSpec](https://github.com/fission-ai/openspec), GitHub and Azure DevOps.
+Works with [OpenCode](https://opencode.ai), [OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble), [OpenSpec](https://github.com/fission-ai/openspec), GitHub and Azure DevOps.
 
 [![npm version](https://img.shields.io/npm/v/opencode-onboard?style=flat-square&color=black)](https://www.npmjs.com/package/opencode-onboard)
 [![npm downloads](https://img.shields.io/npm/dm/opencode-onboard?style=flat-square&color=black)](https://www.npmjs.com/package/opencode-onboard)
@@ -141,6 +141,24 @@ The first time you open OpenCode after onboarding and type `init`, this happens 
 5. Your agent team is live and ready to take tasks
 
 After this, your project has persistent, accurate context that every agent can read — no manual documentation required.
+
+---
+
+## Works with OpenCode Ensemble
+
+[OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble) is an OpenCode plugin that runs your agent team in parallel — each agent in its own session, its own git worktree, coordinated through messaging and a shared task board.
+
+opencode-onboard sets up the skeleton. Ensemble runs it.
+
+Once onboarding is done, install Ensemble in your `opencode.json`:
+
+```json
+{
+  "plugin": ["@hueyexe/opencode-ensemble@latest"]
+}
+```
+
+Then ask OpenCode to spawn your team on a task. Ensemble picks up the agent files from `.opencode/agents/`, gives each one an isolated branch, and coordinates the work — with a live dashboard at `http://localhost:4747`.
 
 ---
 
