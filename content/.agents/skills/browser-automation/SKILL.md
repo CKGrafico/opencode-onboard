@@ -1,19 +1,17 @@
 ---
 name: browser-automation
-description: Reliable, composable browser automation using minimal OpenCode Browser primitives.
+description: Reliable, composable browser automation using OpenCode Browser primitives. Use when capturing screenshots of a locally running app, clicking UI elements, reading page content, or automating browser interactions on localhost.
 license: MIT
-compatibility: opencode
+compatibility: Requires opencode-browser extension installed and running.
 metadata:
-  audience: agents
-  domain: browser
+  author: copilots
+  version: "1.0"
 ---
 
-## What I do
+Browser MCP tools are permitted ONLY for interactions with the LOCAL running app on `localhost` URLs.
+**Navigating to external services (github.com, dev.azure.com, etc.) via browser MCP is FORBIDDEN.**
 
-- Provide a safe, composable workflow for browsing tasks
-- Use `browser_query` list and index selection to click reliably
-- Confirm state changes after each action
-- Support CLI-first debugging with `opencode-browser tool` commands
+---
 
 ## Best-practice workflow
 
@@ -25,6 +23,8 @@ metadata:
 6. Click, type, or select using `index`
 7. Confirm using `browser_query` or `browser_snapshot`
 
+---
+
 ## CLI-first debugging
 
 - List all available tools: `npx @different-ai/opencode-browser tools`
@@ -33,13 +33,15 @@ metadata:
 - Run smoke test: `npx @different-ai/opencode-browser self-test`
 - After `update`, reload the unpacked extension in `chrome://extensions`
 
-This path is useful for reproducing selector/scroll issues quickly before running a full OpenCode session.
+---
 
 ## Selecting options
 
 - Use `browser_select` for native `<select>` elements
 - Prefer `value` or `label`; use `optionIndex` when needed
 - Example: `browser_select({ selector: "select", value: "plugin" })`
+
+---
 
 ## Query modes
 
@@ -49,10 +51,14 @@ This path is useful for reproducing selector/scroll issues quickly before runnin
 - `exists`: check presence and count
 - `page_text`: extract visible page text
 
+---
+
 ## Opening tabs
 
 - Use `browser_open_tab` to create a new tab, optionally with `url` and `active`
 - Example: `browser_open_tab({ url: "https://example.com", active: false })`
+
+---
 
 ## Troubleshooting
 
@@ -61,3 +67,13 @@ This path is useful for reproducing selector/scroll issues quickly before runnin
 - For inbox/chat panes, try text selectors first (`text:Subject line`) then verify selection with `browser_query`
 - For scrollable containers, pass both `selector` and `x`/`y` to `browser_scroll` and then verify `scrollTop`
 - Confirm results after each action
+
+---
+
+## Guardrails
+
+- ✅ Screenshots of locally running app on `localhost` URLs
+- ✅ Click, type, scroll, query on `localhost` pages
+- ❌ Navigate to external services (github.com, dev.azure.com, npmjs.com, etc.) — FORBIDDEN
+- ❌ Use browser tools for any DevOps or GitHub operations — FORBIDDEN
+- ❌ Use browser tools to read or modify production systems — FORBIDDEN

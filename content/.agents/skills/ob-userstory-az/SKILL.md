@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires openspec CLI and Azure CLI.
 metadata:
   author: copilots
-  version: "3.0"
+  version: "3.1"
 ---
 
 **RTK - MANDATORY**
@@ -24,10 +24,10 @@ Use `rtk` wrapper for ALL CLI commands:
 az config set extension.dynamic_install_allow_preview=true
 az extension add --name azure-devops
 az login
-az devops login --organization https://dev.azure.com/plainconcepts
+az devops login --organization https://dev.azure.com/{org}
 ```
 
-**PAT Token**, go to `https://dev.azure.com/plainconcepts/_usersSettings/tokens`
+**PAT Token**, go to `https://dev.azure.com/{org}/_usersSettings/tokens`
 Create with scopes: **Work Items (Read & Write)** + **Code (Read & Write)**
 
 ---
@@ -72,47 +72,24 @@ rtk az boards work-item show --id <id>
 rtk az boards work-item update --id <id> --state "Active"
 ```
 
-### Pull Requests
-```bash
-# List open PRs
-rtk az repos pr list --repository <repo> --status active --top 5
-
-# Show PR details
-rtk az repos pr show --id <pr-id>
-
-# Create PR
-rtk az repos pr create \
-  --repository <repo> \
-  --source-branch feature/<id>-<slug> \
-  --target-branch main \
-  --title "feat(#<id>): <title>" \
-  --description "<description>"
-
-# Update PR description
-rtk az repos pr update --id <pr-id> --description "<text>"
-
-# Link work item to PR (run sequentially, not parallel)
-rtk az repos pr work-item add --id <pr-id> --work-items <work-item-id>
-```
-
 ### PR Threads (Comments)
 ```bash
 # Read all threads
 rtk az devops invoke \
   --area git --resource pullRequestThreads \
-  --route-parameters project=PlainConcepts.CapacityTool repositoryId=<repo> pullRequestId=<id> \
+  --route-parameters project={project} repositoryId=<repo> pullRequestId=<id> \
   --http-method GET --api-version 7.1
 
 # Post new comment thread (requires body.json)
 rtk az devops invoke \
   --area git --resource pullRequestThreads \
-  --route-parameters project=PlainConcepts.CapacityTool repositoryId=<repo> pullRequestId=<id> \
+  --route-parameters project={project} repositoryId=<repo> pullRequestId=<id> \
   --http-method POST --api-version 7.1 --in-file body.json
 
 # Reply to existing thread
 rtk az devops invoke \
   --area git --resource pullRequestThreadComments \
-  --route-parameters project=PlainConcepts.CapacityTool repositoryId=<repo> pullRequestId=<id> threadId=<tid> \
+  --route-parameters project={project} repositoryId=<repo> pullRequestId=<id> threadId=<tid> \
   --http-method POST --api-version 7.1 --in-file reply.json
 ```
 
@@ -145,24 +122,10 @@ openspec/changes/{change-name}/images/{screenshot}.png
 
 ### Raw URL format (renders inline in PR comments)
 ```
-https://dev.azure.com/plainconcepts/PlainConcepts.CapacityTool/_apis/git/repositories/{repo}/items?path=openspec/changes/{change}/images/{file}.png&versionType=branch&version={branch}&api-version=7.1
+https://dev.azure.com/{org}/{project}/_apis/git/repositories/{repo}/items?path=openspec/changes/{change}/images/{file}.png&versionType=branch&version={branch}&api-version=7.1
 ```
 
 Do NOT use `_git/` URLs, they return HTML, not raw binary.
-
-### PR comment with screenshot
-```json
-{
-  "comments": [
-    {
-      "parentCommentId": 0,
-      "content": "## Screenshots\n\n![Description](https://dev.azure.com/plainconcepts/PlainConcepts.CapacityTool/_apis/git/repositories/{repo}/items?path=openspec/changes/{change}/images/{file}.png&versionType=branch&version={branch}&api-version=7.1)",
-      "commentType": 1
-    }
-  ],
-  "status": "active"
-}
-```
 
 ---
 
@@ -186,21 +149,24 @@ https://dev.azure.com/{org}/{project}/_git/{repo}/pullrequest/{pr-id}
 ```
 ## User Story Parsed
 
-**Work Item:** #193208
-**Title:** Roles CRUD
+**Work Item:** #{id}
+**Title:** {title}
 **Type:** User Story
-**Iteration:** Sprint 110
-**State:** New
+**Iteration:** {sprint}
+**State:** {state}
 
-**Change Created:** us-193208-roles-crud
+**Change Created:** us-{id}-{slug}
 
 ### Next Steps
 1. Review the proposal
 2. Say "implement the plan" to start implementation
 ```
 
-## Constraints
+---
 
-- This skill only PARSES and PROPOSES, implementation via openspec-apply-change
-- Always use `rtk` for CLI commands
-- Browser MCP tools FORBIDDEN for all DevOps operations
+## Guardrails
+
+- ✅ Parse Azure DevOps URL and create OpenSpec change
+- ✅ Use `rtk` for all Azure CLI operations
+- ❌ Browser MCP tools for Azure DevOps operations — FORBIDDEN
+- ❌ Implementation — this skill only parses and proposes

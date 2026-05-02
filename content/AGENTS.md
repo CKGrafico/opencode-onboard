@@ -247,6 +247,7 @@ Skills are located in `.agents/skills/`. Each skill has a `SKILL.md` with a desc
 | `openspec-propose` | Propose change artifacts (proposal, specs, tasks) |
 | `openspec-apply-change` | Implement change with agent team |
 | `openspec-archive-change` | Archive completed change |
+| `browser-automation` | Browser automation for localhost UI — screenshots, clicks, queries |
 
 ---
 

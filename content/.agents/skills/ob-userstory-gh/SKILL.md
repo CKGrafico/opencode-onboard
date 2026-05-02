@@ -5,8 +5,16 @@ license: MIT
 compatibility: Requires openspec CLI and gh CLI.
 metadata:
   author: copilots
-  version: "1.0"
+  version: "1.1"
 ---
+
+**RTK - MANDATORY**
+
+Use `rtk` wrapper for ALL CLI commands:
+- `rtk gh issue view` NOT `gh issue view`
+- `rtk gh issue list` NOT `gh issue list`
+- `rtk gh issue edit` NOT `gh issue edit`
+- `rtk openspec new change` NOT `openspec new change`
 
 **Browser MCP tools are FORBIDDEN for all GitHub operations.**
 
@@ -33,7 +41,7 @@ gh auth status
 
 2. **Fetch Issue**
    ```bash
-   gh issue view 42 --json number,title,body,labels,milestone,state
+   rtk gh issue view 42 --json number,title,body,labels,milestone,state
    ```
 
 3. **Extract Key Fields** from JSON response:
@@ -46,7 +54,7 @@ gh auth status
 
 4. **Create OpenSpec Change**
    ```bash
-   openspec new change "gh-{number}-{slug}"
+   rtk openspec new change "gh-{number}-{slug}"
    ```
 
 ---
@@ -58,55 +66,13 @@ Use these for ALL GitHub operations, browser MCP is FORBIDDEN.
 ### Issues
 ```bash
 # Read issue
-gh issue view <number>
+rtk gh issue view <number>
 
 # List open issues
-gh issue list --state open --limit 10
+rtk gh issue list --state open --limit 10
 
 # Update issue
-gh issue edit <number> --add-label "in-progress"
-```
-
-### Pull Requests
-```bash
-# List open PRs
-gh pr list --state open
-
-# Show PR details
-gh pr view <number>
-
-# Create PR
-gh pr create \
-  --base main \
-  --head feature/{slug} \
-  --title "feat: <title>" \
-  --body "<description>"
-
-# Update PR
-gh pr edit <number> --body "<text>"
-```
-
-### PR Comments
-```bash
-# Read PR comments
-gh pr view <number> --comments
-
-# Post PR comment
-gh pr comment <number> --body "Your markdown comment here."
-
-# Reply to review comment via API
-gh api repos/{owner}/{repo}/pulls/{pr-number}/comments/{comment-id}/replies \
-  --method POST \
-  --field body="Reply text here."
-```
-
-### Review Comments (structured)
-```bash
-# Get all review comments on a PR
-gh api repos/{owner}/{repo}/pulls/{pr-number}/comments
-
-# Get all reviews
-gh api repos/{owner}/{repo}/pulls/{pr-number}/reviews
+rtk gh issue edit <number> --add-label "in-progress"
 ```
 
 ---
@@ -123,11 +89,6 @@ openspec/changes/{change-name}/images/{screenshot}.png
 ### Raw URL format (renders inline in PR comments)
 ```
 https://raw.githubusercontent.com/{owner}/{repo}/{branch}/openspec/changes/{change}/images/{file}.png
-```
-
-### PR comment with screenshot
-```bash
-gh pr comment <number> --body "## Screenshots\n\n![Description](https://raw.githubusercontent.com/{owner}/{repo}/feature/{slug}/openspec/changes/{change}/images/{file}.png)"
 ```
 
 ---
@@ -164,8 +125,11 @@ https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
 2. Say "implement the plan" to start implementation
 ```
 
-## Constraints
+---
 
-- This skill only PARSES and PROPOSES, implementation via openspec-apply-change
-- Always use `gh` CLI for GitHub operations
-- Browser MCP tools FORBIDDEN for all GitHub operations
+## Guardrails
+
+- ✅ Parse GitHub Issue URL and create OpenSpec change
+- ✅ Use `rtk gh` for all GitHub CLI operations
+- ❌ Browser MCP tools for GitHub operations — FORBIDDEN
+- ❌ Implementation — this skill only parses and proposes
