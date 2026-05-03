@@ -168,5 +168,5 @@ https://dev.azure.com/{org}/{project}/_git/{repo}/pullrequest/{pr-id}
 
 - ✅ Parse Azure DevOps URL and create OpenSpec change
 - ✅ Use `rtk` for all Azure CLI operations
-- ❌ Browser MCP tools for Azure DevOps operations — FORBIDDEN
-- ❌ Implementation — this skill only parses and proposes
+- ❌ Browser MCP tools for Azure DevOps operations, FORBIDDEN
+- ❌ Implementation, this skill only parses and proposes

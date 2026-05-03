@@ -121,7 +121,7 @@ Update: `openspec/changes/{change}/proposal.md`, `design.md`, or `tasks.md` as a
 # Reply to a review comment
 rtk gh api repos/{owner}/{repo}/pulls/{pr-number}/comments/{comment-id}/replies \
   --method POST \
-  --field body="Acknowledged — applying this change now."
+  --field body="Acknowledged, applying this change now."
 
 # Or post a general PR comment
 rtk gh pr comment {pr-number} --body "Updated design.md to reflect feedback."
@@ -134,7 +134,7 @@ rtk gh pr comment {pr-number} --body "Updated design.md to reflect feedback."
 - ✅ Commit and push to feature branches only
 - ✅ Create and comment on PRs via gh CLI
 - ✅ Screenshots of localhost only via browser_screenshot
-- ❌ Commit or push to `main` — FORBIDDEN
-- ❌ Force push — FORBIDDEN
-- ❌ Merge or approve PRs — human-only
-- ❌ Navigate browser to github.com — FORBIDDEN
+- ❌ Commit or push to `main`, FORBIDDEN
+- ❌ Force push, FORBIDDEN
+- ❌ Merge or approve PRs, human-only
+- ❌ Navigate browser to github.com, FORBIDDEN

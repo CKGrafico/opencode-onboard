@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import chalk from 'chalk'
+import { createRequire } from 'node:module'
 import { checkEnv } from './steps/check-env.js'
 import { checkPlatform } from './steps/check-platform.js'
 import { checkRtk } from './steps/check-rtk.js'
@@ -13,22 +14,24 @@ import { installBrowser } from './steps/install-browser.js'
 
 if (process.stdout.isTTY) console.clear()
 console.log()
+const require = createRequire(import.meta.url)
+const { version } = require('../package.json')
 const logo = chalk.hex('#fe3d57')
 const bannerLines = [
-  logo('        ▒▒▒▒▒▒▒          '),
+  logo('                             '),
   logo('        ▒▒▒▒▒▒▒▒▒▒▒▒▒        '),
   logo('        ▒▒▓       ▓▒▓        '),
   logo('   ▒▒▒▒▒▒▓▒▒▒▒▒▒▒▒▒▓▓▒▒▒▒▒   '),
   logo('  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓  '),
   logo(' ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓ '),
-  logo(' ▓▒▒▒▒▒░░▒▒▒▒▒▒▒▒▒▒▒░░▒▒▒▒▓▓ '),
+  logo(' ▓▒▒▒▒░░░▒▒▒▒▒▒▒▒▒▒▒░░░▒▒▒▓▓ '),
   logo('  ▓▓▓▓▒▒▒▓▓▓▓▓▓▓▓▓▓▓▒▒▒▓▓▓▓  '),
-  logo('  ▓▒▒▒▒▒▒▒░▒▒▒▒▒▒▒░▒▒▒▒▒▒▓▓  '),
-  logo('  ▓▒▒▒▒▒▒░▓▒▒▓▒▓▒▒▒▒▒▒▒▒▒▓▓  '),
+  logo('  ▓▓▒▒▒▒▒▒░▒▒▒▒▒▒▒░▒▒▒▒▒▒▓▓  '),
   logo('  ▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓   '),
-  logo('   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ '),
+  logo('  ▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓   '),
+  logo('   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓    '),
   '',
-  chalk.bold('        🧰 opencode-onboard'),
+  chalk.bold('        🧰 opencode-onboard') + chalk.dim(` v${version}`),
   chalk.dim('        Prepare your codebase for AI agents'),
 ]
 

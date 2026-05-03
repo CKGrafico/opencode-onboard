@@ -56,7 +56,7 @@ Rules:
 1. Verify all changes are on a feature branch, never `main`
 2. Load the matching pullrequest skill
 3. Capture screenshots of local running app if UI changes exist
-4. Read `.agents/session-log.md` if it exists — include a "Session Activity" section in the PR description with agent names, task counts, and total duration
+4. Read `.agents/session-log.md` if it exists, include a "Session Activity" section in the PR description with agent names, task counts, and total duration
 5. Commit and push the feature branch
 6. Create the PR following the skill instructions
 7. Post PR comment with screenshots and change summary
@@ -110,7 +110,8 @@ Rules:
 
 ## Session Log
 
-Append to `.agents/session-log.md` (create with header if missing, skip if `session-logging: disabled` in AGENTS.md):
+Append to `.agents/session-log.md`. Create the file with header if it does not exist (see AGENTS.md Session Log section). This is mandatory — do it before any other work.
+
 - On start: `| {ISO timestamp} | devops-manager | started | {mode} mode |`
 - On skill load: `| {ISO timestamp} | devops-manager | skill-loaded | {skill-name} |`
-- On done: `| {ISO timestamp} | devops-manager | completed | {summary} |`
+- On done: `| {ISO timestamp} | devops-manager | completed | {summary}, skills: {comma-separated skill names or none} |`

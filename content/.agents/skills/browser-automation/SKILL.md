@@ -74,6 +74,6 @@ Browser MCP tools are permitted ONLY for interactions with the LOCAL running app
 
 - ✅ Screenshots of locally running app on `localhost` URLs
 - ✅ Click, type, scroll, query on `localhost` pages
-- ❌ Navigate to external services (github.com, dev.azure.com, npmjs.com, etc.) — FORBIDDEN
-- ❌ Use browser tools for any DevOps or GitHub operations — FORBIDDEN
-- ❌ Use browser tools to read or modify production systems — FORBIDDEN
+- ❌ Navigate to external services (github.com, dev.azure.com, npmjs.com, etc.), FORBIDDEN
+- ❌ Use browser tools for any DevOps or GitHub operations, FORBIDDEN
+- ❌ Use browser tools to read or modify production systems, FORBIDDEN

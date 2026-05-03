@@ -75,7 +75,8 @@ Rules:
 
 ## Session Log
 
-Append to `.agents/session-log.md` (create with header if missing, skip if `session-logging: disabled` in AGENTS.md):
+Append to `.agents/session-log.md`. Create the file with header if it does not exist (see AGENTS.md Session Log section). This is mandatory — do it before any other work.
+
 - On start: `| {ISO timestamp} | infra-engineer | started | {task summary} |`
 - On skill load: `| {ISO timestamp} | infra-engineer | skill-loaded | {skill-name} |`
-- On done: `| {ISO timestamp} | infra-engineer | completed | {files changed count} files |`
+- On done: `| {ISO timestamp} | infra-engineer | completed | {files changed count} files, skills: {comma-separated skill names or none} |`

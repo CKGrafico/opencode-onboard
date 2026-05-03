@@ -75,7 +75,8 @@ Rules:
 
 ## Session Log
 
-Append to `.agents/session-log.md` (create with header if missing, skip if `session-logging: disabled` in AGENTS.md):
+Append to `.agents/session-log.md`. Create the file with header if it does not exist (see AGENTS.md Session Log section). This is mandatory — do it before any other work.
+
 - On start: `| {ISO timestamp} | quality-engineer | started | {task summary} |`
 - On skill load: `| {ISO timestamp} | quality-engineer | skill-loaded | {skill-name} |`
-- On done: `| {ISO timestamp} | quality-engineer | completed | {tests added count} tests |`
+- On done: `| {ISO timestamp} | quality-engineer | completed | {tests added count} tests, skills: {comma-separated skill names or none} |`

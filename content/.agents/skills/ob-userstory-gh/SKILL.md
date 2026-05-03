@@ -131,5 +131,5 @@ https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
 
 - ✅ Parse GitHub Issue URL and create OpenSpec change
 - ✅ Use `rtk gh` for all GitHub CLI operations
-- ❌ Browser MCP tools for GitHub operations — FORBIDDEN
-- ❌ Implementation — this skill only parses and proposes
+- ❌ Browser MCP tools for GitHub operations, FORBIDDEN
+- ❌ Implementation, this skill only parses and proposes

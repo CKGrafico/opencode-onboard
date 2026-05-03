@@ -64,7 +64,7 @@ rtk az repos pr create \
   --description "{description}"
 ```
 
-### Step 5: Link work item (MANDATORY, run sequentially — not in parallel)
+### Step 5: Link work item (MANDATORY, run sequentially, not in parallel)
 
 ```bash
 rtk az repos pr work-item add --id {pr-id} --work-items {workitem-id}
@@ -151,7 +151,7 @@ rtk az devops invoke \
 {
   "comments": [{
     "parentCommentId": 1,
-    "content": "Acknowledged — applying this change now.",
+    "content": "Acknowledged, applying this change now.",
     "commentType": 1
   }]
 }
@@ -164,7 +164,7 @@ rtk az devops invoke \
 - ✅ Commit and push to feature branches only
 - ✅ Create and comment on PRs via az CLI
 - ✅ Screenshots of localhost only via browser_screenshot
-- ❌ Commit or push to `main` — FORBIDDEN
-- ❌ Force push — FORBIDDEN
-- ❌ Merge or approve PRs — human-only
-- ❌ Navigate browser to dev.azure.com — FORBIDDEN
+- ❌ Commit or push to `main`, FORBIDDEN
+- ❌ Force push, FORBIDDEN
+- ❌ Merge or approve PRs, human-only
+- ❌ Navigate browser to dev.azure.com, FORBIDDEN
