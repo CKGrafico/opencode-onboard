@@ -3,7 +3,7 @@ import path from "node:path"
 
 const LOG_FILE = ".agents/session-log.json"
 
-// Per-session state: editCount and skills loaded
+// Per-session state: editCount and loaded skills
 const sessionState = new Map()
 
 function ts() {
@@ -30,6 +30,29 @@ function resolveAgentName(session) {
     if (base) return base
   }
   return "lead"
+}
+
+function addSkillToState(state, skillName) {
+  if (!skillName || !state) return false
+  if (!state.skills) state.skills = new Set()
+  if (state.skills.has(skillName)) return false
+  state.skills.add(skillName)
+  return true
+}
+
+function buildTeamSkillsSummary() {
+  const byAgent = {}
+  for (const state of sessionState.values()) {
+    if (!state?.agentName) continue
+    if (!byAgent[state.agentName]) byAgent[state.agentName] = new Set()
+    for (const skill of state.skills ?? []) byAgent[state.agentName].add(skill)
+  }
+
+  const summary = {}
+  for (const [agent, skills] of Object.entries(byAgent)) {
+    summary[agent] = Array.from(skills).sort()
+  }
+  return summary
 }
 
 // Maps ensemble tool name → function that extracts the log entry fields from args
@@ -60,7 +83,7 @@ export const SessionLogPlugin = async ({ client, directory }) => {
           const session = res?.data
           const agentName = resolveAgentName(session)
 
-          sessionState.set(sessionId, { agentName, editCount: 0, skills: [] })
+          sessionState.set(sessionId, { agentName, editCount: 0, skills: new Set() })
           appendEntry(directory, { ts: ts(), agent: agentName, action: "started", sessionId })
         }
 
@@ -77,7 +100,8 @@ export const SessionLogPlugin = async ({ client, directory }) => {
           const state = sessionState.get(sessionId)
           if (!state) return
 
-          const { agentName, editCount, skills } = state
+          const { agentName, editCount } = state
+          const skills = Array.from(state.skills ?? []).sort()
           appendEntry(directory, { ts: ts(), agent: agentName, action: "completed", filesEdited: editCount, skills })
           sessionState.delete(sessionId)
         }
@@ -94,14 +118,26 @@ export const SessionLogPlugin = async ({ client, directory }) => {
 
         const tool = input?.tool
 
-        // Track skill loads
+        // Track skill loads via skill tool (primary)
+        if (tool === "skill") {
+          const skillName = input?.args?.name
+          const added = addSkillToState(state, skillName)
+          if (added) {
+            appendEntry(directory, { ts: ts(), agent: state.agentName, action: "skill-loaded", skill: skillName, source: "skill-tool" })
+          }
+          return
+        }
+
+        // Track skill loads via reading SKILL.md (fallback)
         if (tool === "read") {
           const filePath = input?.args?.filePath ?? ""
           const match = filePath.match(/[/\\]skills[/\\]([^/\\]+)[/\\]SKILL\.md$/i)
           if (match) {
             const skillName = match[1]
-            if (!state.skills.includes(skillName)) state.skills.push(skillName)
-            appendEntry(directory, { ts: ts(), agent: state.agentName, action: "skill-loaded", skill: skillName })
+            const added = addSkillToState(state, skillName)
+            if (added) {
+              appendEntry(directory, { ts: ts(), agent: state.agentName, action: "skill-loaded", skill: skillName, source: "read-skill-file" })
+            }
           }
           return
         }
@@ -112,7 +148,12 @@ export const SessionLogPlugin = async ({ client, directory }) => {
         const ensembleHandler = ENSEMBLE_TOOL_HANDLERS[tool]
         if (!ensembleHandler) return
 
-        appendEntry(directory, { ts: ts(), agent: state.agentName, ...ensembleHandler(args) })
+        const entry = { ts: ts(), agent: state.agentName, ...ensembleHandler(args) }
+        appendEntry(directory, entry)
+
+        if (tool === "team_cleanup") {
+          appendEntry(directory, { ts: ts(), agent: state.agentName, action: "team-skills-summary", byAgent: buildTeamSkillsSummary() })
+        }
       } catch (_) {}
     },
   }
