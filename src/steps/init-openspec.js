@@ -17,22 +17,25 @@ const ENSEMBLE_PATCH = `6. **Implement via ensemble team**
       \`\`\`
       Announce: "Team running. Monitor at http://localhost:4747/"
 
-   c. Add all tasks to the shared board so progress is visible in the dashboard:
+   c. Add all tasks to the shared board so progress is visible in the dashboard.
+      Tasks take { content, priority } only, no assignee field:
       \`\`\`
       team_tasks_add tasks:[
-        { title: "1.1 <task>", assignee: "back" },
-        { title: "1.2 <task>", assignee: "back" },
+        { content: "1.1 <task description>", priority: "high" },
+        { content: "1.2 <task description>", priority: "high" },
         ...one entry per task from the tasks.md checklist...
-        { title: "4.1 <task>", assignee: "front" },
-        ...
       ]
       \`\`\`
+      team_tasks_add returns the task IDs, save them to pass to each agent.
 
-   d. Spawn only the specialists the tasks require (in parallel). Include the FULL task list and ALL context file paths directly in each spawn prompt, agents start working immediately:
+   d. Spawn specialists one at a time (wait for each team_spawn result before calling the next,
+      this avoids git worktree contention). Include the FULL task list,
+      ALL context file paths, and the task IDs for their assigned tasks directly in each spawn prompt.
+      Agents must call team_claim on each task ID before starting it, then team_tasks_complete when done:
       \`\`\`
-      team_spawn name:front  agent:front-engineer  prompt:"<full task list + context file paths + architecture notes + use team_tasks_complete to mark each task done + report back when done or blocked>"
-      team_spawn name:back   agent:back-engineer   prompt:"<full task list + context file paths + architecture notes + use team_tasks_complete to mark each task done + report back when done or blocked>"
-      team_spawn name:infra  agent:infra-engineer  prompt:"<full task list + context file paths + architecture notes + use team_tasks_complete to mark each task done + report back when done or blocked>"
+      team_spawn name:back   agent:back-engineer   prompt:"<full task list + context file paths + architecture notes + task IDs for your tasks + call team_claim before each task, team_tasks_complete after + report back when done or blocked>"
+      team_spawn name:front  agent:front-engineer  prompt:"<full task list + context file paths + architecture notes + task IDs for your tasks + call team_claim before each task, team_tasks_complete after + report back when done or blocked>"
+      team_spawn name:infra  agent:infra-engineer  prompt:"<full task list + context file paths + architecture notes + task IDs for your tasks + call team_claim before each task, team_tasks_complete after + report back when done or blocked>"
       \`\`\`
 
    e. Wait for all → \`team_results\` → \`team_shutdown\` + \`team_merge\`
@@ -40,7 +43,7 @@ const ENSEMBLE_PATCH = `6. **Implement via ensemble team**
 7. **Quality check**
 
    \`\`\`
-   team_spawn name:quality agent:quality-engineer prompt:"<task list, context files, run tests + build + lint + verify acceptance criteria, use team_tasks_complete for each verified item, report back when done>"
+   team_spawn name:quality agent:quality-engineer prompt:"<task list, context files, run tests + build + lint + verify acceptance criteria, call team_claim before each task, team_tasks_complete after, report back when done>"
    \`\`\`
    Wait → \`team_results\` → fix blockers → \`team_shutdown\`
 
@@ -63,9 +66,10 @@ const ENSEMBLE_PATCH = `6. **Implement via ensemble team**
 - NEVER implement tasks directly. Always use \`team_create\` + \`team_spawn\`, no exceptions
 - NEVER touch source files before \`team_create\` is called, not even one edit
 - ALWAYS run \`team_cleanup force:true\` before \`team_create\` to clear stale state from previous runs
-- ALWAYS add tasks to the board with \`team_tasks_add\` before spawning so the dashboard shows progress
-- ALWAYS include the full task list and context file paths in the spawn prompt. Agents must start working immediately, never tell them to "wait for a message"
-- ALWAYS tell spawned agents to call \`team_tasks_complete\` as they finish each task
+- ALWAYS add tasks to the board with \`team_tasks_add tasks:[{content, priority}]\` before spawning. No assignee field exists.
+- ALWAYS pass the task IDs returned by team_tasks_add to each agent in their spawn prompt so they can call team_claim
+- NEVER claim or complete tasks yourself as lead. Only subagents call team_claim and team_tasks_complete
+- Spawn teammates ONE AT A TIME, waiting for each team_spawn result before calling the next (avoids git worktree contention)
 - "Small feature", "faster to do it directly", "environment issues", "teammates not responding" are NOT valid reasons to implement directly. If teammates are stuck, use \`team_message\` to resend tasks, then wait
 - Always read context files before spawning (from the apply instructions output)
 - Mark tasks complete in openspec AFTER specialists finish, not before
