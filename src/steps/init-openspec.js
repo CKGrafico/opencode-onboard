@@ -8,51 +8,76 @@ const ENSEMBLE_PATCH = `6. **Implement via ensemble team**
    NEVER implement tasks directly. Always delegate to specialists via ensemble.
    Do NOT touch any source files before the team is running, not even a single edit.
 
-   a. Create feature branch if not already on one: \`feature/{id}-{slug}\`
+   Steps MUST be followed in order. Do not skip any step.
 
-   b. Clean up any stale team state, then create the team:
+   **Step 6a.** Create feature branch if not already on one: \`feature/{id}-{slug}\`
+
+   **Step 6b.** Clean up stale state, then create the team:
       \`\`\`
-      team_cleanup force:true acknowledge_uncommitted:true   (ignore "not in a team" errors)
+      team_cleanup force:true acknowledge_uncommitted:true
       team_create "<change-name>"
       \`\`\`
+      "not in a team" error from team_cleanup is expected, ignore it.
       Announce: "Team running. Monitor at http://localhost:4747/"
 
-   c. Add all tasks to the shared board so progress is visible in the dashboard.
-      Tasks take { content, priority } only, no assignee field:
+   **Step 6c.** Add ALL tasks to the shared board BEFORE spawning anyone.
+      Schema: { content: string, priority: "high"|"medium"|"low", depends_on?: string[] }
+      Use depends_on to block tasks that require other tasks first — pass the IDs returned by team_tasks_add.
       \`\`\`
       team_tasks_add tasks:[
-        { content: "1.1 <task description>", priority: "high" },
-        { content: "1.2 <task description>", priority: "high" },
-        ...one entry per task from the tasks.md checklist...
+        { content: "1.1 <exact task text from tasks.md>", priority: "high" },
+        { content: "1.2 <exact task text>", priority: "high" },
+        { content: "3.1 <task that needs 1.x done first>", priority: "medium", depends_on: ["<id-of-1.1>"] },
+        ...every task from tasks.md, one entry each...
       ]
       \`\`\`
-      team_tasks_add returns the task IDs, save them to pass to each agent.
+      Save the task IDs returned. Pass them to agents in step 6d.
+      DO NOT call team_claim yourself — only agents claim tasks.
+      DO NOT proceed to 6d until team_tasks_add succeeds.
 
-   d. Spawn specialists one at a time (wait for each team_spawn result before calling the next,
-      this avoids git worktree contention). Include the FULL task list,
-      ALL context file paths, and the task IDs for their assigned tasks directly in each spawn prompt.
-      Agents must call team_claim on each task ID before starting it, then team_tasks_complete when done:
+   **Step 6d.** Spawn specialists ONE AT A TIME. Wait for each team_spawn result before calling the next.
+      Each team_spawn MUST include agent field (required, causes NOT NULL error if omitted).
+
+      The spawn prompt must contain exactly:
+      1. Their name and role on this team
+      2. Which tasks are theirs — list the task IDs and content from the board
+      3. Key context they need (summarized from context files — do NOT tell them to read files themselves)
+      4. The 6 tools they can use, one line each: team_message, team_broadcast, team_tasks_list, team_tasks_add, team_tasks_complete, team_claim
+      5. How to proceed: use team_claim to claim a task before starting it, team_tasks_complete after finishing it, repeat until all their tasks are done, then team_message lead with results or blockers
+
+      Keep spawn prompts under 500 tokens. Do not describe team internals or how ensemble works.
       \`\`\`
-      team_spawn name:back   agent:back-engineer   prompt:"<full task list + context file paths + architecture notes + task IDs for your tasks + call team_claim before each task, team_tasks_complete after + report back when done or blocked>"
-      team_spawn name:front  agent:front-engineer  prompt:"<full task list + context file paths + architecture notes + task IDs for your tasks + call team_claim before each task, team_tasks_complete after + report back when done or blocked>"
-      team_spawn name:infra  agent:infra-engineer  prompt:"<full task list + context file paths + architecture notes + task IDs for your tasks + call team_claim before each task, team_tasks_complete after + report back when done or blocked>"
+      team_spawn name:"back" agent:"back-engineer" prompt:"..."
+      (wait for result)
+      team_spawn name:"front" agent:"front-engineer" prompt:"..."
+      (wait for result)
+      team_spawn name:"infra" agent:"infra-engineer" prompt:"..."
+      (wait for result)
       \`\`\`
 
-   e. Wait for all → \`team_results\` → \`team_shutdown\` + \`team_merge\`
+   **Step 6e.** After all spawns, tell the user what is running, then STOP and wait.
+      Do NOT call team_results, team_status, or team_broadcast in a loop.
+      Teammates will message you when done or blocked. Wait for those messages.
+
+   **Step 6f.** When a teammate messages back, you receive a ping only — the full content is NOT in the notification.
+      Call team_results to read the full message and mark it read. Then for each teammate: team_shutdown → team_merge.
+      If team_merge blocks ("overlapping local changes"), commit or stash your local changes first, then retry.
+      Fix any other blockers reported.
 
 7. **Quality check**
 
+   Spawn quality engineer with worktree:false (read-only, no file edits):
    \`\`\`
-   team_spawn name:quality agent:quality-engineer prompt:"<task list, context files, run tests + build + lint + verify acceptance criteria, call team_claim before each task, team_tasks_complete after, report back when done>"
+   team_spawn name:"quality" agent:"quality-engineer" worktree:false prompt:"<task list, context files, run tests + build + lint + verify acceptance criteria, send results to lead when done>"
    \`\`\`
-   Wait → \`team_results\` → fix blockers → \`team_shutdown\`
+   Wait for message → team_results → fix blockers → team_shutdown (no team_merge needed, worktree:false)
 
 8. **Mark tasks complete in openspec**
 
-   After specialists finish, update the tasks file: \`- [ ]\` → \`- [x]\` for each completed task.
-   Run \`openspec status --change "<name>" --json\` to confirm progress.
+   Update tasks.md: \`- [ ]\` → \`- [x]\` for each completed task.
+   Run \`rtk openspec status --change "<name>" --json\` to confirm.
 
-9. **On completion or pause, show status**
+9. **Show status, then cleanup**
 
    Display:
    - Tasks completed this session
@@ -63,20 +88,23 @@ const ENSEMBLE_PATCH = `6. **Implement via ensemble team**
    Then run \`team_cleanup\`.
 
 **Guardrails**
-- NEVER implement tasks directly. Always use \`team_create\` + \`team_spawn\`, no exceptions
-- NEVER touch source files before \`team_create\` is called, not even one edit
-- ALWAYS run \`team_cleanup force:true\` before \`team_create\` to clear stale state from previous runs
-- ALWAYS add tasks to the board with \`team_tasks_add tasks:[{content, priority}]\` before spawning. No assignee field exists.
-- ALWAYS pass the task IDs returned by team_tasks_add to each agent in their spawn prompt so they can call team_claim
-- NEVER claim or complete tasks yourself as lead. Only subagents call team_claim and team_tasks_complete
-- Spawn teammates ONE AT A TIME, waiting for each team_spawn result before calling the next (avoids git worktree contention)
-- "Small feature", "faster to do it directly", "environment issues", "teammates not responding" are NOT valid reasons to implement directly. If teammates are stuck, use \`team_message\` to resend tasks, then wait
-- Always read context files before spawning (from the apply instructions output)
+- NEVER skip or reorder steps 6a-6f
+- NEVER implement tasks directly. Always use team_create + team_spawn, no exceptions
+- NEVER touch source files before team_create is called, not even one edit
+- NEVER call team_spawn without the agent field — it is required and will fail without it
+- NEVER call team_spawn before team_tasks_add — tasks must exist before agents are spawned
+- NEVER poll team_results or team_status in a loop — wait for teammates to message you
+- NEVER call team_claim or team_tasks_complete as lead — only agents call these tools
+- ALWAYS pass the task IDs returned by team_tasks_add to each agent's spawn prompt
+- NEVER edit files between team_spawn and team_merge — team_merge blocks on overlapping local changes
+- ALWAYS run team_cleanup force:true before team_create to clear stale state
+- ALWAYS add every task from tasks.md to the board with team_tasks_add before spawning
+- ALWAYS spawn one at a time, waiting for each result before the next (avoids worktree contention)
+- ALWAYS instruct agents to call team_claim before each task and team_tasks_complete after — this is the ensemble-intended flow
+- If teammates are stuck, use team_message to resend tasks, then wait — never implement directly
 - Mark tasks complete in openspec AFTER specialists finish, not before
-- If task is ambiguous, pause and ask before spawning
-- If implementation reveals issues, pause and suggest artifact updates
 - Pause on errors, blockers, or unclear requirements. Do not guess
-- Use contextFiles from CLI output, do not assume specific file names
+- Use contextFiles from CLI output, do not assume specific file paths
 `
 
 // Patterns that identify the solo implementation step in openspec-generated files

@@ -60,7 +60,16 @@ Rules:
 - Do not force push
 - Report all failures, do not silently skip failing tests
 
+## Workflow
+
+When spawned by the lead:
+1. Read the task list and context files provided in the spawn prompt
+2. Run tests, build, lint, and verify acceptance criteria
+3. When done, send results to lead via `team_message`
+
 ## Output Format
+
+Send via `team_message` to lead when done:
 
 ```
 ## Quality Engineer, Done

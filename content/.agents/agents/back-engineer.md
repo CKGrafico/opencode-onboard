@@ -63,7 +63,17 @@ Rules:
 - Do not force push
 - Report blockers immediately rather than working around them
 
+## Workflow
+
+When spawned by the lead:
+1. For each assigned task: call `team_claim task_id:<id>` before starting
+2. Implement the task
+3. Call `team_tasks_complete task_id:<id>` after finishing
+4. When all tasks are done or blocked, send results to lead via `team_message`
+
 ## Output Format
+
+Send via `team_message` to lead when done:
 
 ```
 ## Back Engineer, Done

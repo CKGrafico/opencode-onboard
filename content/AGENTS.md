@@ -130,11 +130,14 @@ Works on **all platforms** (Windows, macOS, Linux) via OpenCode's built-in workt
 | `team_shutdown` | Stop a teammate, preserve their branch |
 | `team_merge` | Merge a teammate's branch into working dir |
 | `team_cleanup` | Tear down the team |
-| `team_results` | Retrieve full message from a teammate |
-| `team_message` | Send a direct message to a teammate |
+| `team_results` | Retrieve full message content (delivery is a ping only) |
+| `team_message` | Send a direct message to a teammate or lead |
 | `team_broadcast` | Message all teammates |
+| `team_status` | View all members and task summary |
+| `team_tasks_list` | View the shared task board |
 | `team_tasks_add` | Add tasks to shared board |
-| `team_tasks_complete` | Mark task done |
+| `team_tasks_complete` | Mark task done, auto-unblocks dependents |
+| `team_claim` | Atomically claim a pending task (teammates use this) |
 
 **Dashboard**: Monitor running agents at **http://localhost:4747/**
 
@@ -151,12 +154,12 @@ devops-manager (read mode)
         ↓
   [confirm with user]
         ↓
-front-engineer + back-engineer + infra-engineer  ← parallel, only spawn what the task needs
+back-engineer → front-engineer → infra-engineer  ← sequential, one at a time, only spawn what the task needs
         ↓
-quality-engineer
+quality-engineer (worktree:false)
   → tests, build, lint, acceptance criteria
         ↓
-security-auditor
+security-auditor (worktree:false)
   → vulnerability audit, secrets, auth gaps
         ↓
 devops-manager (ship mode)
@@ -177,21 +180,24 @@ devops-manager (ship mode)
 
 ```
 1. Run /opsx-apply, handles context reading, ensemble orchestration, and task marking.
+   - Lead adds all tasks to board, then spawns specialists ONE AT A TIME (not parallel)
+   - Each specialist claims tasks, implements, completes tasks, messages lead when done
+   - Lead merges each branch after shutdown, then marks tasks done in tasks.md
 2. After /opsx-apply completes, proceed to quality check.
 ```
 
 ### Phase 3, Quality
 
 ```
-7. team_spawn name:quality agent:quality-engineer → tests, build, lint
-8. Wait → team_results → fix any blockers → team_shutdown
+3. team_spawn name:quality agent:quality-engineer worktree:false → tests, build, lint
+4. Wait → team_results → fix any blockers → team_shutdown (no merge, worktree:false)
 ```
 
 ### Phase 4, Security
 
 ```
-9. team_spawn name:security agent:security-auditor → audit full change
-10. Wait → team_results → fix Critical findings → team_shutdown
+5. team_spawn name:security agent:security-auditor worktree:false → audit full change
+6. Wait → team_results → fix Critical findings → team_shutdown (no merge, worktree:false)
 ```
 
 ### Phase 5, Ship
