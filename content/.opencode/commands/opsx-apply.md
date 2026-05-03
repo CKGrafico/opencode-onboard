@@ -65,9 +65,8 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 
    **Step 6a.** Create feature branch if not already on one: `feature/{id}-{slug}`
 
-   **Step 6b.** Clean up stale state, then create the team:
+   **Step 6b.** Create the team:
       ```
-      team_cleanup force:true acknowledge_uncommitted:true
       team_create "<change-name>-<random 4 digit number>"
       ```
       Announce: "Team running. Monitor at http://localhost:4747/"
@@ -87,18 +86,22 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
       DO NOT call team_claim yourself, only agents claim tasks.
       DO NOT proceed to 6d until team_tasks_add succeeds.
 
-   **Step 6d.** Spawn specialists ONE AT A TIME. Wait for each team_spawn result before calling the next.
+   **Step 6d.** Spawn all needed specialists, then kick them off in parallel.
+
       Each team_spawn MUST include the agent field (required, causes NOT NULL error if omitted).
 
-       The spawn prompt must contain exactly:
-       1. Their name and role on this team
-       2. Which tasks are theirs, list the task IDs and content from the board
-       3. Key context they need (summarized from context files, do NOT tell them to read files themselves)
-       4. The 6 OpenCode tools they have available (these are OpenCode tools, NOT shell commands, call them directly as tools, never via bash):
-          team_claim, team_tasks_complete, team_tasks_list, team_tasks_add, team_message, team_broadcast
-       5. How to proceed: call team_claim tool with the task_id to claim a task before starting it, call team_tasks_complete tool after finishing it, repeat until all their tasks are done, then call team_message tool to notify lead with results or blockers
+      The spawn prompt must contain exactly:
+      1. Their name and role on this team
+      2. Which tasks are theirs, list the task IDs and content from the board
+      3. Key context they need (summarized from context files, do NOT tell them to read files themselves)
+      4. The 6 OpenCode tools they have available (these are OpenCode tools, NOT shell commands, call them directly as tools, never via bash):
+         team_claim, team_tasks_complete, team_tasks_list, team_tasks_add, team_message, team_broadcast
+      5. How to proceed: call team_claim tool with the task_id to claim a task before starting it, call team_tasks_complete tool after finishing it, repeat until all their tasks are done, then call team_message tool to notify lead with results or blockers
 
       Keep spawn prompts under 500 tokens. Do not describe team internals or how ensemble works.
+      Only spawn agents whose tasks are actually needed by this change. Skip agents with no tasks.
+
+      First spawn all agents (wait for each team_spawn to confirm before the next):
       ```
       team_spawn name:"back" agent:"back-engineer" prompt:"..."
       (wait for result)
@@ -107,9 +110,15 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
       team_spawn name:"infra" agent:"infra-engineer" prompt:"..."
       (wait for result)
       ```
-      Only spawn agents whose tasks are actually needed by this change. Skip agents with no tasks.
 
-   **Step 6e.** After all spawns, tell the user what is running, then STOP and wait.
+      Then immediately send each spawned agent a start message to kick them off:
+      ```
+      team_message to:"back" text:"Start now. Claim your first task with team_claim and begin implementing."
+      team_message to:"front" text:"Start now. Claim your first task with team_claim and begin implementing."
+      team_message to:"infra" text:"Start now. Claim your first task with team_claim and begin implementing."
+      ```
+
+   **Step 6e.** After sending start messages, tell the user what is running, then STOP and wait.
       Do NOT call team_results, team_status, or team_broadcast in a loop.
       Teammates will message you when done or blocked. Wait for those messages.
 
@@ -151,9 +160,8 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 - NEVER call team_claim or team_tasks_complete as lead, only agents call these tools
 - ALWAYS pass the task IDs returned by team_tasks_add to each agent's spawn prompt
 - NEVER edit files between team_spawn and team_merge, team_merge blocks on overlapping local changes
-- ALWAYS run team_cleanup force:true before team_create to clear stale state
 - ALWAYS add every task to the board with team_tasks_add before spawning
-- ALWAYS spawn one at a time, waiting for each result before the next
+- ALWAYS spawn agents sequentially (wait for each team_spawn result before the next), then send start messages to all of them together
 - ALWAYS instruct agents to call team_claim before each task and team_tasks_complete after
 - If teammates are stuck, use team_message to resend tasks, then wait, never implement directly
 - Mark tasks complete in openspec AFTER specialists finish, not before

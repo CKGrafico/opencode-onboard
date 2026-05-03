@@ -106,6 +106,8 @@ export const SessionLogPlugin = async ({ client, directory }) => {
           return
         }
 
+        const args = input?.args ?? {}
+
         // Track ensemble tool calls
         const ensembleHandler = ENSEMBLE_TOOL_HANDLERS[tool]
         if (!ensembleHandler) return

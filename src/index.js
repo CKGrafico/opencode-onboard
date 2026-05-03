@@ -10,6 +10,7 @@ import { chooseSkillsProvider } from './steps/choose-skills-provider.js'
 import { cleanAiFiles } from './steps/clean-ai-files.js'
 import { copyContentStep } from './steps/copy-content.js'
 import { initOpenspec } from './steps/init-openspec.js'
+import { patchAgentsMd } from './steps/patch-agents-md.js'
 import { installBrowser } from './steps/install-browser.js'
 
 if (process.stdout.isTTY) console.clear()
@@ -58,8 +59,8 @@ try {
   // 1. Check Node + pnpm
   await checkEnv()
 
-  // 2. Clean existing AI config files
-  await cleanAiFiles()
+  // 2. Clean existing AI config files, detect preserved state
+  const ctx = await cleanAiFiles()
 
   // 3. Choose platform
   const platform = await choosePlatform()
@@ -68,7 +69,10 @@ try {
   await checkPlatform(platform)
 
   // 5. Copy content
-  await copyContentStep(platform)
+  await copyContentStep(platform, ctx)
+
+  // 5b. Patch AGENTS.md to skip steps for already-existing files
+  await patchAgentsMd(ctx)
 
   // 6. Init OpenSpec
   await initOpenspec()
@@ -86,22 +90,25 @@ try {
   await installBrowser()
 
   // Done
+  const toGenerate = [
+    !ctx.hasDesign && 'DESIGN.md',
+    !ctx.hasArchitecture && 'ARCHITECTURE.md',
+  ].filter(Boolean)
+
   console.log()
   console.log(chalk.bold.green('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'))
   console.log(chalk.bold.green('  Onboarding complete!'))
   console.log(chalk.bold.green('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'))
   console.log()
-  console.log(chalk.bold.hex('#fe3d57')('  !! RESTART OPENCODE NOW !!'))
-  console.log()
-  console.log('  You MUST restart OpenCode before doing anything else.')
-  console.log('  The new AGENTS.md and agent files are not loaded until you do.')
-  console.log('  Nothing will work correctly without a restart.')
-  console.log()
-  console.log('  After restarting, open this project in OpenCode and type:')
+  console.log('  Open this project in OpenCode and type:')
   console.log(chalk.bold('  "init"'))
   console.log()
-  console.log('  OpenCode will generate ARCHITECTURE.md and DESIGN.md')
-  console.log('  from your actual codebase, then activate the agent team.')
+  if (toGenerate.length > 0) {
+    console.log(`  OpenCode will generate ${toGenerate.join(' and ')}`)
+    console.log('  from your actual codebase, then activate the agent team.')
+  } else {
+    console.log('  OpenCode will activate the agent team.')
+  }
   console.log()
 } catch (err) {
   if (err.name === 'ExitPromptError') {
