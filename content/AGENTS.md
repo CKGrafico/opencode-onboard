@@ -108,9 +108,9 @@ This is the agent orchestration layer for your project. It provides:
 When the user provides a work item URL, says "implement the plan", or "I've added comments to the PR", **I own the full lifecycle**. I load the appropriate skill and use ensemble tools (`team_create`, `team_spawn`, etc.) to coordinate the agent team.
 
 Trigger patterns:
-- `work on this <azure-devops-url>` → spawn `devops-manager` in read mode → propose OpenSpec → implement → ship
-- `work on this <github-url>` → spawn `devops-manager` in read mode → propose OpenSpec → implement → ship
-- `implement the plan` → load skill `openspec-apply-change` → implement → ship
+- `work on this <azure-devops-url>` → spawn `devops-manager` in read mode → propose OpenSpec → **confirm with user** → implement → ship
+- `work on this <github-url>` → spawn `devops-manager` in read mode → propose OpenSpec → **confirm with user** → implement → ship
+- `implement the plan` → load skill `openspec-apply-change` (read context + tasks ONLY, DO NOT implement directly) → `team_create` → spawn specialists → ship
 - `I've added comments to the PR` → spawn `devops-manager` in feedback mode → fix → update PR
 
 **Never delegate without a plan. Never write implementation code directly, always spawn specialists.**
@@ -166,13 +166,15 @@ devops-manager (ship mode)
 1. team_spawn devops-manager (read mode) → fetch work item via skill, output summary
 2. Load skill: openspec-propose → generate proposal.md, specs/, tasks.md
    - team_create → spawn design + specs in parallel → merge → write tasks.md
-3. Show summary, confirm with user before implementing
+3. Show the plan: change name, schema, total tasks, task list summary
+4. STOP. Ask user: "Ready to implement? (yes/no)" — DO NOT proceed until confirmed.
 ```
 
 ### Phase 2, Implement
 
 ```
-1. Load skill: openspec-apply-change → get apply instructions
+1. Load skill: openspec-apply-change → follow steps 1–5 only (select, status, instructions, context, progress)
+   STOP at step 6. Do NOT follow the skill's implementation loop. Proceed with ensemble below.
 2. Create feature branch: feature/{id}-{slug}
 3. team_create "<change-name>"
 4. Announce: "Team running. Monitor at http://localhost:4747/"
@@ -181,6 +183,7 @@ devops-manager (ship mode)
    team_spawn name:back    agent:back-engineer   → backend tasks
    team_spawn name:infra   agent:infra-engineer  → infra tasks
 6. Wait for all → team_results → team_shutdown + team_merge
+7. Mark completed tasks in openspec: update tasks file `- [ ]` → `- [x]` for each finished task
 ```
 
 ### Phase 3, Quality
@@ -274,6 +277,21 @@ Example: `feature/42-add-user-auth`
 ├── ARCHITECTURE.md
 └── DESIGN.md
 ```
+
+---
+
+## RTK
+
+Use `rtk` wrapper for ALL CLI commands. Never run git, az, gh, or openspec commands directly.
+
+- `rtk git add` NOT `git add`
+- `rtk git commit` NOT `git commit`
+- `rtk git push` NOT `git push`
+- `rtk az boards work-item show` NOT `az boards work-item show`
+- `rtk az repos pr create` NOT `az repos pr create`
+- `rtk gh issue view` NOT `gh issue view`
+- `rtk gh pr create` NOT `gh pr create`
+- `rtk openspec new change` NOT `openspec new change`
 
 ---
 
