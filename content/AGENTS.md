@@ -65,6 +65,71 @@ Replace the entire contents of this file (`AGENTS.md`) with everything below the
 
 ---
 
+### Step 4b, Patch opsx-apply for ensemble
+
+Read `.opencode/commands/opsx-apply.md`. Find the step that instructs the agent to **implement tasks directly** — it will contain phrases like "make the code changes", "implement tasks", "loop until done or blocked". This step tells the agent to write code itself.
+
+**Replace that step and everything after it** (completion output, pause output, guardrails, fluid workflow) with the following:
+
+```markdown
+6. **Implement via ensemble team**
+
+   NEVER implement tasks directly. Always delegate to specialists via ensemble.
+
+   a. Create feature branch if not already on one: `feature/{id}-{slug}`
+   b. Create team:
+      ```
+      team_create "<change-name>"
+      ```
+      Announce: "Team running. Monitor at http://localhost:4747/"
+
+   c. Spawn only what the tasks require (in parallel):
+      ```
+      team_spawn name:front   agent:front-engineer  → UI/frontend tasks
+      team_spawn name:back    agent:back-engineer   → backend/API tasks
+      team_spawn name:infra   agent:infra-engineer  → infra/pipeline tasks
+      ```
+      Pass each specialist: their relevant tasks + all context file paths from step above.
+
+   d. Wait for all → `team_results` → `team_shutdown` + `team_merge`
+
+7. **Quality check**
+
+   ```
+   team_spawn name:quality agent:quality-engineer
+   ```
+   Wait → `team_results` → fix blockers → `team_shutdown`
+
+8. **Mark tasks complete in openspec**
+
+   After specialists finish, update the tasks file: `- [ ]` → `- [x]` for each completed task.
+   Run `openspec status --change "<name>" --json` to confirm progress.
+
+9. **On completion or pause, show status**
+
+   Display:
+   - Tasks completed this session
+   - Overall progress: "N/M tasks complete"
+   - If all done: suggest archive with `/opsx-archive`
+   - If paused: explain why and wait for guidance
+
+   Then run `team_cleanup`.
+
+**Guardrails**
+- NEVER implement tasks directly — always use `team_create` + `team_spawn`
+- Always read context files before spawning (from the apply instructions output)
+- Always pass context file paths and task list to spawned specialists
+- Mark tasks complete in openspec AFTER specialists finish, not before
+- If task is ambiguous, pause and ask before spawning
+- If implementation reveals issues, pause and suggest artifact updates
+- Pause on errors, blockers, or unclear requirements — don't guess
+- Use contextFiles from CLI output, don't assume specific file names
+```
+
+Keep all steps before the implementation step unchanged — they are openspec's domain (select change, check status, get instructions, read context, show progress).
+
+---
+
 ### Step 5, Confirm
 
 Tell the user:
@@ -110,7 +175,7 @@ When the user provides a work item URL, says "implement the plan", or "I've adde
 Trigger patterns:
 - `work on this <azure-devops-url>` → spawn `devops-manager` in read mode → propose OpenSpec → **confirm with user** → implement → ship
 - `work on this <github-url>` → spawn `devops-manager` in read mode → propose OpenSpec → **confirm with user** → implement → ship
-- `implement the plan` → load skill `openspec-apply-change` (read context + tasks ONLY, DO NOT implement directly) → `team_create` → spawn specialists → ship
+- `implement the plan` → run `/opsx-apply` (ensemble orchestration is built into the command) → ship
 - `I've added comments to the PR` → spawn `devops-manager` in feedback mode → fix → update PR
 
 **Never delegate without a plan. Never write implementation code directly, always spawn specialists.**
@@ -173,17 +238,10 @@ devops-manager (ship mode)
 ### Phase 2, Implement
 
 ```
-1. Load skill: openspec-apply-change → follow steps 1–5 only (select, status, instructions, context, progress)
-   STOP at step 6. Do NOT follow the skill's implementation loop. Proceed with ensemble below.
-2. Create feature branch: feature/{id}-{slug}
-3. team_create "<change-name>"
-4. Announce: "Team running. Monitor at http://localhost:4747/"
-5. Spawn only what the task needs (in parallel):
-   team_spawn name:front   agent:front-engineer  → UI tasks
-   team_spawn name:back    agent:back-engineer   → backend tasks
-   team_spawn name:infra   agent:infra-engineer  → infra tasks
-6. Wait for all → team_results → team_shutdown + team_merge
-7. Mark completed tasks in openspec: update tasks file `- [ ]` → `- [x]` for each finished task
+1. Run /opsx-apply (or load skill openspec-apply-change)
+   The command handles context reading, ensemble orchestration, and task marking automatically.
+   DO NOT implement tasks directly — the command spawns specialists via ensemble.
+2. After /opsx-apply completes, proceed to quality check.
 ```
 
 ### Phase 3, Quality
