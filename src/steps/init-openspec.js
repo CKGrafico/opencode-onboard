@@ -1,25 +1,149 @@
 import { execa } from 'execa'
-import fse from 'fs-extra'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import fse from 'fs-extra'
 import { error, header, success, warn } from '../utils/exec.js'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-// Our owned apply command and skill, stored in the package content folder.
-// After openspec init generates its versions, we delete them and copy ours in.
-const OUR_CONTENT_DIR = path.resolve(__dirname, '../../content')
-
-const APPLY_OVERRIDES = [
-  {
-    src: path.join(OUR_CONTENT_DIR, '.opencode', 'commands', 'opsx-apply.md'),
-    dest: path.join('.opencode', 'commands', 'opsx-apply.md'),
-  },
-  {
-    src: path.join(OUR_CONTENT_DIR, '.opencode', 'skills', 'openspec-apply-change', 'SKILL.md'),
-    dest: path.join('.opencode', 'skills', 'openspec-apply-change', 'SKILL.md'),
-  },
+const APPLY_TARGETS = [
+  path.join('.opencode', 'commands', 'opsx-apply.md'),
+  path.join('.opencode', 'skills', 'openspec-apply-change', 'SKILL.md'),
 ]
+
+const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
+
+   NEVER implement tasks directly. Always delegate to specialists via ensemble.
+   Do NOT touch any source files before the team is running, not even a single edit.
+
+   Steps MUST be followed in order. Do not skip any step.
+
+   **Step 6a.** Create feature branch if not already on one: \`feature/{id}-{slug}\`
+
+   **Step 6b.** Create the team:
+      \`\`\`
+      team_create "<change-name>-<random 4 digit number>"
+      \`\`\`
+      Announce: "Team running. Monitor at http://localhost:4747/"
+
+   **Step 6c.** Add ALL tasks to the shared board BEFORE spawning anyone.
+      Schema: { content: string, priority: "high"|"medium"|"low", depends_on?: string[] }
+      Use depends_on to block tasks that require other tasks first, pass the IDs returned by team_tasks_add.
+      \`\`\`
+      team_tasks_add tasks:[
+        { content: "1.1 <exact task text from tasks.md>", priority: "high" },
+        { content: "1.2 <exact task text>", priority: "high" },
+        { content: "3.1 <task that needs 1.x done first>", priority: "medium", depends_on: ["<id-of-1.1>"] },
+        ...every task, one entry each...
+      ]
+      \`\`\`
+      Save the task IDs returned. Pass them to agents in step 6d.
+      DO NOT call team_claim yourself, only agents claim tasks.
+      DO NOT proceed to 6d until team_tasks_add succeeds.
+
+   **Step 6d.** Spawn all needed specialists, then kick them off in parallel.
+
+      Each team_spawn MUST include the agent field (required, causes NOT NULL error if omitted).
+
+      The spawn prompt must contain exactly:
+      1. Their name and role on this team
+      2. Which tasks are theirs, list the task IDs and content from the board
+      3. Key context they need (summarized from context files, do NOT tell them to read files themselves)
+      4. The 6 OpenCode tools they have available (these are OpenCode tools, NOT shell commands, call them directly as tools, never via bash):
+         team_claim, team_tasks_complete, team_tasks_list, team_tasks_add, team_message, team_broadcast
+      5. How to proceed: call team_claim tool with the task_id to claim a task before starting it, call team_tasks_complete tool after finishing it, repeat until all their tasks are done, then call team_message tool to notify lead with results or blockers
+
+      Keep spawn prompts under 500 tokens. Do not describe team internals or how ensemble works.
+      Only spawn agents whose tasks are actually needed by this change. Skip agents with no tasks.
+
+      First spawn all agents (wait for each team_spawn to confirm before the next):
+      \`\`\`
+      team_spawn name:"back" agent:"back-engineer" prompt:"..."
+      (wait for result)
+      team_spawn name:"front" agent:"front-engineer" prompt:"..."
+      (wait for result)
+      team_spawn name:"infra" agent:"infra-engineer" prompt:"..."
+      (wait for result)
+      \`\`\`
+
+      Then immediately send each spawned agent a start message to kick them off:
+      \`\`\`
+      team_message to:"back" text:"Start now. Claim your first task with team_claim and begin implementing."
+      team_message to:"front" text:"Start now. Claim your first task with team_claim and begin implementing."
+      team_message to:"infra" text:"Start now. Claim your first task with team_claim and begin implementing."
+      \`\`\`
+
+   **Step 6e.** After sending start messages, tell the user what is running, then STOP and wait.
+      Do NOT call team_results, team_status, or team_broadcast in a loop.
+      Teammates will message you when done or blocked. Wait for those messages.
+
+   **Step 6f.** When a teammate messages back, you receive a ping only, the full content is NOT in the notification.
+      Call team_results to read the full message and mark it read. Then for each teammate: team_shutdown -> team_merge.
+      If team_merge blocks ("overlapping local changes"), commit or stash your local changes first, then retry.
+      Fix any other blockers reported.
+
+7. **Quality check**
+
+   Spawn quality engineer with worktree:false (read-only, no file edits):
+   \`\`\`
+   team_spawn name:"quality" agent:"quality-engineer" worktree:false prompt:"<task list, context summary, run tests + build + lint + verify acceptance criteria, send results to lead when done>"
+   \`\`\`
+   Wait for message -> team_results -> fix blockers -> team_shutdown (no team_merge needed, worktree:false)
+
+8. **Mark tasks complete in openspec**
+
+   Update tasks.md: \`- [ ]\` -> \`- [x]\` for each completed task.
+   Run \`rtk openspec status --change "<name>" --json\` to confirm.
+
+9. **Show status, then cleanup**
+
+   Display:
+   - Tasks completed this session
+   - Overall progress: "N/M tasks complete"
+   - If all done: suggest archive with \`/opsx-archive\`
+   - If paused: explain why and wait for guidance
+
+   Then run \`team_cleanup\`.
+
+**Guardrails**
+- NEVER skip or reorder steps 6a-6f
+- NEVER implement tasks directly. Always use team_create + team_spawn, no exceptions
+- NEVER touch source files before team_create is called, not even one edit
+- NEVER call team_spawn without the agent field, it is required and will fail without it
+- NEVER call team_spawn before team_tasks_add, tasks must exist before agents are spawned
+- NEVER poll team_results or team_status in a loop, wait for teammates to message you
+- NEVER call team_claim or team_tasks_complete as lead, only agents call these tools
+- ALWAYS pass the task IDs returned by team_tasks_add to each agent's spawn prompt
+- NEVER edit files between team_spawn and team_merge, team_merge blocks on overlapping local changes
+- ALWAYS add every task to the board with team_tasks_add before spawning
+- ALWAYS spawn agents sequentially (wait for each team_spawn result before the next), then send start messages to all of them together
+- ALWAYS instruct agents to call team_claim before each task and team_tasks_complete after
+- If teammates are stuck, use team_message to resend tasks, then wait, never implement directly
+- Mark tasks complete in openspec AFTER specialists finish, not before
+- Pause on errors, blockers, or unclear requirements. Do not guess
+- Use contextFiles from CLI output, do not assume specific file paths
+- Use \`rtk\` wrapper for ALL CLI commands. Never run openspec, git, gh, or az directly
+`
+
+const STEP_6_START = /^6\.\s+\*\*Implement\b/im
+const FLUID_SECTION = /^\*\*Fluid Workflow Integration\*\*/im
+
+async function patchApplyFile(filePath) {
+  if (!await fse.pathExists(filePath)) return { ok: false, reason: 'missing-file' }
+
+  const original = await fse.readFile(filePath, 'utf-8')
+  const startMatch = original.match(STEP_6_START)
+  if (!startMatch || startMatch.index === undefined) return { ok: false, reason: 'missing-step-6' }
+
+  const before = original.slice(0, startMatch.index).replace(/\s*$/, '')
+  const fromStep6 = original.slice(startMatch.index)
+  const fluidMatch = fromStep6.match(FLUID_SECTION)
+
+  const after = fluidMatch && fluidMatch.index !== undefined
+    ? `\n\n${fromStep6.slice(fluidMatch.index).replace(/^\s*/, '')}`
+    : ''
+
+  const patched = `${before}\n\n${ENSEMBLE_SECTION}${after}`
+  await fse.writeFile(filePath, patched, 'utf-8')
+  return { ok: true }
+}
 
 export async function initOpenspec() {
   header('Step 6, Initializing OpenSpec')
@@ -40,15 +164,18 @@ export async function initOpenspec() {
     error(`Failed to run openspec init: ${err.message}`)
   }
 
-  // Replace the openspec-generated apply command and skill with our ensemble-native versions.
-  // The generated files implement tasks directly (solo agent). Ours delegate to the ensemble team.
-  for (const { src, dest } of APPLY_OVERRIDES) {
-    const destAbs = path.join(process.cwd(), dest)
+  // Keep openspec defaults for selection/status/context steps, replace only implementation + guardrails.
+  for (const rel of APPLY_TARGETS) {
+    const abs = path.join(process.cwd(), rel)
     try {
-      await fse.copy(src, destAbs, { overwrite: true })
-      success(`Installed ensemble apply → ${dest}`)
+      const res = await patchApplyFile(abs)
+      if (res.ok) {
+        success(`Patched ensemble implementation section in ${rel}`)
+      } else {
+        warn(`Could not patch ${rel} (${res.reason})`)
+      }
     } catch (err) {
-      warn(`Could not install ${dest}: ${err.message}`)
+      warn(`Could not patch ${rel}: ${err.message}`)
     }
   }
 }
