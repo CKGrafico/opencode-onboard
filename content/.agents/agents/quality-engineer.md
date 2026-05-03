@@ -72,3 +72,10 @@ Rules:
 **Acceptance criteria:** met | <unmet items>
 **Blockers:** none | <description>
 ```
+
+## Session Log
+
+Append to `.agents/session-log.md` (create with header if missing, skip if `session-logging: disabled` in AGENTS.md):
+- On start: `| {ISO timestamp} | quality-engineer | started | {task summary} |`
+- On skill load: `| {ISO timestamp} | quality-engineer | skill-loaded | {skill-name} |`
+- On done: `| {ISO timestamp} | quality-engineer | completed | {tests added count} tests |`

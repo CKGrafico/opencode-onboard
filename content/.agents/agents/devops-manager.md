@@ -56,10 +56,11 @@ Rules:
 1. Verify all changes are on a feature branch, never `main`
 2. Load the matching pullrequest skill
 3. Capture screenshots of local running app if UI changes exist
-4. Commit and push the feature branch
-5. Create the PR following the skill instructions
-6. Post PR comment with screenshots and change summary
-7. Report PR URL to the lead
+4. Read `.agents/session-log.md` if it exists — include a "Session Activity" section in the PR description with agent names, task counts, and total duration
+5. Commit and push the feature branch
+6. Create the PR following the skill instructions
+7. Post PR comment with screenshots and change summary
+8. Report PR URL to the lead
 
 ### Feedback Mode (PR review loop)
 1. Load the matching pullrequest observer skill
@@ -106,3 +107,10 @@ Rules:
 **Questions for human:** <count>, <list>
 **Acknowledged only:** <count>
 ```
+
+## Session Log
+
+Append to `.agents/session-log.md` (create with header if missing, skip if `session-logging: disabled` in AGENTS.md):
+- On start: `| {ISO timestamp} | devops-manager | started | {mode} mode |`
+- On skill load: `| {ISO timestamp} | devops-manager | skill-loaded | {skill-name} |`
+- On done: `| {ISO timestamp} | devops-manager | completed | {summary} |`

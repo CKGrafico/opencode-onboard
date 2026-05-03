@@ -72,3 +72,10 @@ Rules:
 **Files changed:** <list>
 **Blockers:** none | <description>
 ```
+
+## Session Log
+
+Append to `.agents/session-log.md` (create with header if missing, skip if `session-logging: disabled` in AGENTS.md):
+- On start: `| {ISO timestamp} | back-engineer | started | {task summary} |`
+- On skill load: `| {ISO timestamp} | back-engineer | skill-loaded | {skill-name} |`
+- On done: `| {ISO timestamp} | back-engineer | completed | {files changed count} files |`

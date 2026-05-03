@@ -82,3 +82,10 @@ Rules:
 
 **Blockers:** none | <critical findings that must be resolved before PR>
 ```
+
+## Session Log
+
+Append to `.agents/session-log.md` (create with header if missing, skip if `session-logging: disabled` in AGENTS.md):
+- On start: `| {ISO timestamp} | security-auditor | started | {task summary} |`
+- On skill load: `| {ISO timestamp} | security-auditor | skill-loaded | {skill-name} |`
+- On done: `| {ISO timestamp} | security-auditor | completed | {findings count} findings |`

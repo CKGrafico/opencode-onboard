@@ -72,3 +72,10 @@ Rules:
 **Resources affected:** <list>
 **Blockers:** none | <description>
 ```
+
+## Session Log
+
+Append to `.agents/session-log.md` (create with header if missing, skip if `session-logging: disabled` in AGENTS.md):
+- On start: `| {ISO timestamp} | infra-engineer | started | {task summary} |`
+- On skill load: `| {ISO timestamp} | infra-engineer | skill-loaded | {skill-name} |`
+- On done: `| {ISO timestamp} | infra-engineer | completed | {files changed count} files |`

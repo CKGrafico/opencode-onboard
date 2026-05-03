@@ -90,6 +90,7 @@ Read `.opencode/commands/opsx-apply.md`. Find the step that instructs the agent 
       team_spawn name:infra   agent:infra-engineer  → infra/pipeline tasks
       ```
       Pass each specialist: their relevant tasks + all context file paths from step above.
+      Log each spawn to `.agents/session-log.md` (see Session Log section).
 
    d. Wait for all → `team_results` → `team_shutdown` + `team_merge`
 
@@ -335,6 +336,37 @@ Example: `feature/42-add-user-auth`
 ├── ARCHITECTURE.md
 └── DESIGN.md
 ```
+
+---
+
+## Session Log
+
+<!-- session-logging: enabled -->
+
+All agents MUST log their activity to `.agents/session-log.md`. This file is gitignored and temporary.
+
+**Check before logging:** Read the `session-logging` comment above. If it says `disabled`, skip all logging.
+
+**On first write per session**, create the file with the header:
+```markdown
+# Session Log
+
+| Timestamp | Agent | Action | Detail |
+|-----------|-------|--------|--------|
+```
+
+**Log these events** by appending a row:
+- Lead spawns an agent → `| {ISO timestamp} | lead | spawned | {agent-name} for {purpose} |`
+- Agent starts → `| {ISO timestamp} | {agent-name} | started | {task summary} |`
+- Agent loads a skill → `| {ISO timestamp} | {agent-name} | skill-loaded | {skill-name} |`
+- Agent completes → `| {ISO timestamp} | {agent-name} | completed | {files changed count} files |`
+- Agent blocked → `| {ISO timestamp} | {agent-name} | blocked | {reason} |`
+
+**Rules:**
+- Append only, never overwrite previous entries
+- One row per event, keep detail column short
+- Use ISO 8601 timestamps
+- The file is gitignored — never commit it
 
 ---
 
