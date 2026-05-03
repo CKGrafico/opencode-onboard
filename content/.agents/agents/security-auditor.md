@@ -82,11 +82,3 @@ Rules:
 
 **Blockers:** none | <critical findings that must be resolved before PR>
 ```
-
-## Session Log
-
-Append to `.agents/session-log.md`. Create the file with header if it does not exist (see AGENTS.md Session Log section). This is mandatory — do it before any other work.
-
-- On start: `| {ISO timestamp} | security-auditor | started | {task summary} |`
-- On skill load: `| {ISO timestamp} | security-auditor | skill-loaded | {skill-name} |`
-- On done: `| {ISO timestamp} | security-auditor | completed | {findings count} findings, skills: {comma-separated skill names or none} |`

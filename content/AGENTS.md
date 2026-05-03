@@ -67,75 +67,6 @@ Replace the entire contents of this file (`AGENTS.md`) with everything below the
 
 ---
 
-### Step 4b, Patch opsx-apply for ensemble
-
-Read **both** `.opencode/commands/opsx-apply.md` AND `.opencode/skills/openspec-apply-change/SKILL.md`. They contain the same solo implementation loop. Patch both identically.
-
-In each file, find the step that instructs the agent to **implement tasks directly**, it will contain phrases like "make the code changes", "implement tasks", "loop until done or blocked". This step tells the agent to write code itself.
-
-**Replace that step and everything after it** (completion output, pause output, guardrails, fluid workflow) with the following:
-
-```markdown
-6. **Implement via ensemble team**
-
-   NEVER implement tasks directly. Always delegate to specialists via ensemble.
-
-   a. Create feature branch if not already on one: `feature/{id}-{slug}`
-   b. Create team:
-      ```
-      team_create "<change-name>"
-      ```
-      Announce: "Team running. Monitor at http://localhost:4747/"
-
-   c. Spawn only what the tasks require (in parallel):
-      ```
-      team_spawn name:front   agent:front-engineer  → UI/frontend tasks
-      team_spawn name:back    agent:back-engineer   → backend/API tasks
-      team_spawn name:infra   agent:infra-engineer  → infra/pipeline tasks
-      ```
-      Pass each specialist: their relevant tasks + all context file paths from step above.
-      Log each spawn to `.agents/session-log.md` (see Session Log section).
-
-   d. Wait for all → `team_results` → `team_shutdown` + `team_merge`
-
-7. **Quality check**
-
-   ```
-   team_spawn name:quality agent:quality-engineer
-   ```
-   Wait → `team_results` → fix blockers → `team_shutdown`
-
-8. **Mark tasks complete in openspec**
-
-   After specialists finish, update the tasks file: `- [ ]` → `- [x]` for each completed task.
-   Run `openspec status --change "<name>" --json` to confirm progress.
-
-9. **On completion or pause, show status**
-
-   Display:
-   - Tasks completed this session
-   - Overall progress: "N/M tasks complete"
-   - If all done: suggest archive with `/opsx-archive`
-   - If paused: explain why and wait for guidance
-
-   Then run `team_cleanup`.
-
-**Guardrails**
-- NEVER implement tasks directly, always use `team_create` + `team_spawn`, no exceptions
-- "Small feature", "faster to do it directly", "environment issues" are NOT valid reasons to skip ensemble, if you find yourself thinking this, stop and spawn anyway
-- Always read context files before spawning (from the apply instructions output)
-- Always pass context file paths and task list to spawned specialists
-- Mark tasks complete in openspec AFTER specialists finish, not before
-- If task is ambiguous, pause and ask before spawning
-- If implementation reveals issues, pause and suggest artifact updates
-- Pause on errors, blockers, or unclear requirements, don't guess
-- Use contextFiles from CLI output, don't assume specific file names
-```
-
-Keep all steps before the implementation step unchanged in both files, they are openspec's domain (select change, check status, get instructions, read context, show progress).
-
----
-
 ### Step 5, Confirm
 
 Tell the user:
@@ -245,9 +176,7 @@ devops-manager (ship mode)
 ### Phase 2, Implement
 
 ```
-1. Run /opsx-apply (or load skill openspec-apply-change)
-   The command handles context reading, ensemble orchestration, and task marking automatically.
-   DO NOT implement tasks directly, the command spawns specialists via ensemble.
+1. Run /opsx-apply, handles context reading, ensemble orchestration, and task marking.
 2. After /opsx-apply completes, proceed to quality check.
 ```
 
@@ -345,41 +274,6 @@ Example: `feature/42-add-user-auth`
 
 ---
 
-## Session Log
-
-<!-- session-logging: enabled -->
-
-All agents MUST log their activity to `.agents/session-log.md`.
-
-**Check before logging:** Read the `session-logging` comment above. If it says `disabled`, skip all logging.
-
-**Every agent MUST create or append to this file when it starts, no exceptions.** If the file does not exist, create it with this exact header first:
-
-```markdown
-# Session Log
-
-| Timestamp | Agent | Action | Detail |
-|-----------|-------|--------|--------|
-```
-
-Then immediately append a `started` row.
-
-**Log these events** by appending a row:
-- Lead spawns an agent → `| {ISO timestamp} | lead | spawned | {agent-name}, {purpose} |`
-- Agent starts → `| {ISO timestamp} | {agent-name} | started | {task summary} |`
-- Agent loads a skill → `| {ISO timestamp} | {agent-name} | skill-loaded | {skill-name} |`
-- Agent completes → `| {ISO timestamp} | {agent-name} | completed | {files changed count} files, skills: {comma-separated skill names or none} |`
-- Agent blocked → `| {ISO timestamp} | {agent-name} | blocked | {reason} |`
-
-**Rules:**
-- Creating the file and logging `started` is mandatory, do it before any other work
-- Append only, never overwrite previous entries
-- One row per event, keep detail column short
-- Use ISO 8601 timestamps
-- The file is gitignored, never commit it
-
----
-
 ## RTK
 
 Use `rtk` wrapper for ALL CLI commands. Never run git, az, gh, or openspec commands directly.
@@ -411,7 +305,7 @@ Agents CANNOT:
 
 ### Platform CLI
 
-ALL platform interactions via CLI only. Browser MCP and webfetch FORBIDDEN for any DevOps or GitHub operation — use `gh` or `az` CLI exclusively, never fall back to HTTP requests.
+ALL platform interactions via CLI only. Browser MCP and webfetch FORBIDDEN for any DevOps or GitHub operation, use `gh` or `az` CLI exclusively, never fall back to HTTP requests.
 
 | Operation | Azure DevOps | GitHub |
 |-----------|-------------|--------|

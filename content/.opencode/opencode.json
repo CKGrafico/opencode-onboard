@@ -3,6 +3,6 @@
   "plugin": [
     "opencode-plugin-openspec",
     "@different-ai/opencode-browser",
-    "@hueyexe/opencode-ensemble@0.13.1"
+    "@hueyexe/opencode-ensemble@0.13.2"
   ]
 }

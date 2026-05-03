@@ -16,7 +16,7 @@ Use `rtk` wrapper for ALL CLI commands:
 - `rtk gh issue edit` NOT `gh issue edit`
 - `rtk openspec new change` NOT `openspec new change`
 
-**ALL GitHub data MUST come from `gh` CLI. NEVER use webfetch, HTTP requests, or browser MCP tools to fetch GitHub URLs — even if gh CLI fails. If `gh` is unavailable, report it as a blocker.**
+**ALL GitHub data MUST come from `gh` CLI. NEVER use webfetch, HTTP requests, or browser MCP tools to fetch GitHub URLs, even if gh CLI fails. If `gh` is unavailable, report it as a blocker.**
 
 ---
 
@@ -36,13 +36,14 @@ gh auth status
 
 ## Steps
 
-1. **Extract Issue Number** from URL
-   - `https://github.com/{owner}/{repo}/issues/42` → number: 42
+1. **Extract owner, repo, and issue number** from URL
+   - `https://github.com/{owner}/{repo}/issues/42` → owner: `{owner}`, repo: `{repo}`, number: `42`
 
-2. **Fetch Issue**
+2. **Fetch Issue**, always pass `--repo` explicitly, never rely on git context:
    ```bash
-   rtk gh issue view 42 --json number,title,body,labels,milestone,state
+   rtk gh issue view 42 --repo {owner}/{repo} --json number,title,body,labels,milestone,state
    ```
+   If this returns an auth error or 404, report as a blocker, do NOT fall back to webfetch or web search.
 
 3. **Extract Key Fields** from JSON response:
    - `number` → Issue number
@@ -61,18 +62,18 @@ gh auth status
 
 ## Full GitHub CLI Reference
 
-Use these for ALL GitHub operations, browser MCP is FORBIDDEN.
+Use these for ALL GitHub operations, browser MCP and webfetch are FORBIDDEN. Always pass `--repo {owner}/{repo}`, never rely on git context.
 
 ### Issues
 ```bash
 # Read issue
-rtk gh issue view <number>
+rtk gh issue view <number> --repo {owner}/{repo}
 
 # List open issues
-rtk gh issue list --state open --limit 10
+rtk gh issue list --repo {owner}/{repo} --state open --limit 10
 
 # Update issue
-rtk gh issue edit <number> --add-label "in-progress"
+rtk gh issue edit <number> --repo {owner}/{repo} --add-label "in-progress"
 ```
 
 ---
@@ -119,11 +120,9 @@ https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
 **Milestone:** {milestone}
 
 **Change Created:** gh-{number}-{slug}
-
-### Next Steps
-1. Review the proposal
-2. Say "implement the plan" to start implementation
 ```
+
+After outputting the above, the lead MUST run `/opsx-propose` to generate the proposal, specs, and tasks. After `/opsx-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"**, do NOT proceed to `/opsx-apply` until confirmed.
 
 ---
 
@@ -131,6 +130,8 @@ https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
 
 - ✅ Parse GitHub Issue URL and create OpenSpec change
 - ✅ Use `rtk gh` for all GitHub CLI operations
-- ❌ `webfetch` or HTTP requests to GitHub URLs, FORBIDDEN — use `gh` CLI only
+- ✅ Always run `/opsx-propose` after parsing, never skip to implementation
+- ✅ Always stop and confirm with user after propose, before running `/opsx-apply`
+- ❌ `webfetch` or HTTP requests to GitHub URLs, FORBIDDEN, use `gh` CLI only
 - ❌ Browser MCP tools for GitHub operations, FORBIDDEN
-- ❌ Implementation, this skill only parses and proposes
+- ❌ Jump to implementation without user confirmation, FORBIDDEN

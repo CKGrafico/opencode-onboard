@@ -40,6 +40,8 @@ const AI_FILES = [
   'copilot-instructions.md',
   '.aider.conf.yml',
   '.aider',
+  '.opencode',
+  '.agents'
 ]
 
 export async function findAiFiles(dir) {

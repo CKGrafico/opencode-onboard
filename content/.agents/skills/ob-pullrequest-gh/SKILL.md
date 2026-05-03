@@ -18,8 +18,8 @@ Use `rtk` wrapper for ALL CLI commands:
 - `rtk gh pr comment` NOT `gh pr comment`
 - `rtk gh api` NOT `gh api`
 
-**Browser MCP tools are FORBIDDEN for all GitHub operations.**
-Browser tools are ONLY permitted for screenshots of the LOCAL running app on `localhost` URLs.
+**ALL GitHub data MUST come from `gh` CLI. NEVER use webfetch, HTTP requests, or browser MCP tools for GitHub operations, even if gh CLI fails. If `gh` is unavailable, report as a blocker.**
+Always pass `--repo {owner}/{repo}` explicitly, never rely on git context to resolve the repo.
 
 ---
 
@@ -85,13 +85,13 @@ Triggered when user says "I've added comments to the PR" or "check PR feedback".
 
 If PR link provided, extract number from URL. Otherwise:
 ```bash
-rtk gh pr list --state open --limit 1
+rtk gh pr list --repo {owner}/{repo} --state open --limit 1
 ```
 
 ### Step 2: Read comment threads
 
 ```bash
-rtk gh pr view {pr-number} --comments
+rtk gh pr view {pr-number} --repo {owner}/{repo} --comments
 # Or structured output:
 rtk gh api repos/{owner}/{repo}/pulls/{pr-number}/comments
 rtk gh api repos/{owner}/{repo}/pulls/{pr-number}/reviews
@@ -132,9 +132,10 @@ rtk gh pr comment {pr-number} --body "Updated design.md to reflect feedback."
 ## Guardrails
 
 - ✅ Commit and push to feature branches only
-- ✅ Create and comment on PRs via gh CLI
+- ✅ Create and comment on PRs via gh CLI with explicit `--repo {owner}/{repo}`
 - ✅ Screenshots of localhost only via browser_screenshot
 - ❌ Commit or push to `main`, FORBIDDEN
 - ❌ Force push, FORBIDDEN
 - ❌ Merge or approve PRs, human-only
 - ❌ Navigate browser to github.com, FORBIDDEN
+- ❌ webfetch or HTTP requests to GitHub URLs, FORBIDDEN

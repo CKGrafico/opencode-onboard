@@ -156,11 +156,9 @@ https://dev.azure.com/{org}/{project}/_git/{repo}/pullrequest/{pr-id}
 **State:** {state}
 
 **Change Created:** us-{id}-{slug}
-
-### Next Steps
-1. Review the proposal
-2. Say "implement the plan" to start implementation
 ```
+
+After outputting the above, the lead MUST run `/opsx-propose` to generate the proposal, specs, and tasks. After `/opsx-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"**, do NOT proceed to `/opsx-apply` until confirmed.
 
 ---
 
@@ -168,5 +166,7 @@ https://dev.azure.com/{org}/{project}/_git/{repo}/pullrequest/{pr-id}
 
 - ✅ Parse Azure DevOps URL and create OpenSpec change
 - ✅ Use `rtk` for all Azure CLI operations
+- ✅ Always run `/opsx-propose` after parsing, never skip to implementation
+- ✅ Always stop and confirm with user after propose, before running `/opsx-apply`
 - ❌ Browser MCP tools for Azure DevOps operations, FORBIDDEN
-- ❌ Implementation, this skill only parses and proposes
+- ❌ Jump to implementation without user confirmation, FORBIDDEN

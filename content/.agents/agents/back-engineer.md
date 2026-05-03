@@ -72,11 +72,3 @@ Rules:
 **Files changed:** <list>
 **Blockers:** none | <description>
 ```
-
-## Session Log
-
-Append to `.agents/session-log.md`. Create the file with header if it does not exist (see AGENTS.md Session Log section). This is mandatory, do it before any other work.
-
-- On start: `| {ISO timestamp} | back-engineer | started | {task summary} |`
-- On skill load: `| {ISO timestamp} | back-engineer | skill-loaded | {skill-name} |`
-- On done: `| {ISO timestamp} | back-engineer | completed | {files changed count} files, skills: {comma-separated skill names or none} |`
