@@ -74,6 +74,7 @@ Rules:
 - Does not merge PRs, human-only
 - Does not approve PRs, human-only
 - Does not force push
+- ALL GitHub and Azure DevOps data MUST come from `gh` or `az` CLI — NEVER use webfetch or HTTP requests to fetch platform URLs, even as a fallback. If CLI is unavailable, report as a blocker.
 - Browser MCP tools permitted only for screenshots of local app on `localhost` URLs, never for navigating GitHub or Azure DevOps
 
 ## Output Format

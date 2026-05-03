@@ -411,7 +411,7 @@ Agents CANNOT:
 
 ### Platform CLI
 
-ALL platform interactions via CLI only. Browser MCP FORBIDDEN for any DevOps or GitHub operation.
+ALL platform interactions via CLI only. Browser MCP and webfetch FORBIDDEN for any DevOps or GitHub operation — use `gh` or `az` CLI exclusively, never fall back to HTTP requests.
 
 | Operation | Azure DevOps | GitHub |
 |-----------|-------------|--------|

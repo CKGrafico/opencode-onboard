@@ -16,7 +16,7 @@ Use `rtk` wrapper for ALL CLI commands:
 - `rtk gh issue edit` NOT `gh issue edit`
 - `rtk openspec new change` NOT `openspec new change`
 
-**Browser MCP tools are FORBIDDEN for all GitHub operations.**
+**ALL GitHub data MUST come from `gh` CLI. NEVER use webfetch, HTTP requests, or browser MCP tools to fetch GitHub URLs — even if gh CLI fails. If `gh` is unavailable, report it as a blocker.**
 
 ---
 
@@ -131,5 +131,6 @@ https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
 
 - ✅ Parse GitHub Issue URL and create OpenSpec change
 - ✅ Use `rtk gh` for all GitHub CLI operations
+- ❌ `webfetch` or HTTP requests to GitHub URLs, FORBIDDEN — use `gh` CLI only
 - ❌ Browser MCP tools for GitHub operations, FORBIDDEN
 - ❌ Implementation, this skill only parses and proposes
