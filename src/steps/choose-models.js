@@ -91,20 +91,21 @@ export async function chooseModels() {
   console.log()
 
   // Plan model
-  info('PLAN model, used by the main agent for proposals, specs, architecture decisions.')
-  info('Pick something capable with strong reasoning.')
+  info('PLAN model: used by the main agent to read issues, write proposals, coordinate the team.')
+  info('This model needs to be strong. Use Claude Sonnet/Opus, GPT-4o, o3, or equivalent.')
+  info('A weak model here will silently skip steps and break the workflow.')
   const planModel = await pickModel('Plan model:', models)
   console.log()
 
   // Build model
-  info('BUILD model, used by front-engineer, back-engineer, infra-engineer, quality-engineer, security-auditor.')
-  info('Pick something capable for implementation work.')
+  info('BUILD model: used by front-engineer, back-engineer, infra-engineer, quality-engineer, security-auditor.')
+  info('Needs to be capable for implementation work. Claude Sonnet, GPT-4o, or equivalent.')
   const buildModel = await pickModel('Build model:', models)
   console.log()
 
   // Fast model
-  info('FAST model, used by devops-manager for reading issues, classifying PR comments.')
-  info('Pick something fast and cheap, no heavy reasoning needed.')
+  info('FAST model: used by devops-manager for reading issues and classifying PR comments.')
+  info('Something fast and cheap is fine here, no heavy reasoning needed.')
   const fastModel = await pickModel('Fast model:', models)
   console.log()
 

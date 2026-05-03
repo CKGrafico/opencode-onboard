@@ -2,7 +2,13 @@ import fse from 'fs-extra'
 import path from 'path'
 
 // Folders never copied (skills handled separately by chooseSkillsProvider, .bootstrap is internal tooling)
+// These are excluded from the general content copy, they are installed separately
+// by initOpenspec after openspec init runs, so our versions win over the generated ones.
 const ALWAYS_EXCLUDE = ['.bootstrap', 'skills', 'node_modules']
+const OPENSPEC_APPLY_FILES = [
+  path.join('.opencode', 'commands', 'opsx-apply.md'),
+  path.join('.opencode', 'skills', 'openspec-apply-change', 'SKILL.md'),
+]
 
 /**
  * Copy content/ directory to destination, excluding skills (handled separately by chooseSkillsProvider)
@@ -17,9 +23,9 @@ export async function copyContent(contentDir, destDir, platform) {
     filter: (src) => {
       const rel = path.relative(contentDir, src)
       const parts = rel.split(path.sep)
-      return !parts.some(part =>
-        ALWAYS_EXCLUDE.some(pattern => part.includes(pattern))
-      )
+      if (parts.some(part => ALWAYS_EXCLUDE.some(pattern => part.includes(pattern)))) return false
+      if (OPENSPEC_APPLY_FILES.some(f => rel === f)) return false
+      return true
     },
   })
 }

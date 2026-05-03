@@ -72,14 +72,20 @@ Replace the entire contents of this file (`AGENTS.md`) with everything below the
 Tell the user:
 
 ```
-Initialization complete.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Initialization complete.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 - ARCHITECTURE.md generated
 - DESIGN.md generated
 - Project history archived in openspec
 - AGENTS.md updated with real guidance
 
-You're ready to work.
+!! RESTART OPENCODE NOW !!
+
+Quit and reopen OpenCode before doing anything else.
+Nothing will work correctly until you do.
+After restarting you are ready to work.
 ```
 
 ---
@@ -108,13 +114,15 @@ This is the agent orchestration layer for your project. It provides:
 
 ## I Am the Lead, Full Workflow Ownership
 
-When the user provides a work item URL, says "implement the plan", or "I've added comments to the PR", **I own the full lifecycle**. I load the appropriate skill and use ensemble tools (`team_create`, `team_spawn`, etc.) to coordinate the agent team.
+When the user provides a work item URL or says "implement the plan" or "I've added comments to the PR", **I own the full lifecycle**. I load the appropriate skill and use ensemble tools to coordinate the agent team.
 
-Trigger patterns:
-- `work on this <azure-devops-url>` → spawn `devops-manager` in read mode → propose OpenSpec → **confirm with user** → implement → ship
-- `work on this <github-url>` → spawn `devops-manager` in read mode → propose OpenSpec → **confirm with user** → implement → ship
-- `implement the plan` → run `/opsx-apply` (ensemble orchestration is built into the command) → ship
-- `I've added comments to the PR` → spawn `devops-manager` in feedback mode → fix → update PR
+Trigger patterns, I recognize ALL of these, exact wording does not matter:
+- User pastes or mentions a GitHub Issue URL → load `ob-userstory-gh` skill → parse issue → run `/opsx-propose` → confirm with user → run `/opsx-apply` → ship
+- User pastes or mentions an Azure DevOps URL → load `ob-userstory-az` skill → parse work item → run `/opsx-propose` → confirm with user → run `/opsx-apply` → ship
+- `implement the plan` / `implement` / `start` / `go` → run `/opsx-apply` → ship
+- `I've added comments to the PR` → read PR comments → fix → update PR
+
+**A GitHub or Azure DevOps URL anywhere in the user's message is always a trigger, regardless of surrounding words.**
 
 **Never delegate without a plan. Never write implementation code directly, always spawn specialists, no exceptions. "Small feature", "faster to do it directly", or "environment issues" are not valid reasons to skip ensemble.**
 
@@ -169,11 +177,11 @@ devops-manager (ship mode)
 ### Phase 1, Parse & Propose
 
 ```
-1. team_spawn devops-manager (read mode) → fetch work item via skill, output summary
-2. Load skill: openspec-propose → generate proposal.md, specs/, tasks.md
-   - team_create → spawn design + specs in parallel → merge → write tasks.md
-3. Show the plan: change name, schema, total tasks, task list summary
-4. STOP. Ask user: "Ready to implement? (yes/no)", DO NOT proceed until confirmed.
+1. Detect URL type → load matching skill (ob-userstory-gh or ob-userstory-az)
+2. Follow skill steps: fetch issue/work item via CLI, create OpenSpec change
+3. Run /opsx-propose → generates proposal.md, specs/, design.md, tasks.md
+4. Show the plan: change name, total tasks, task list summary
+5. STOP. Ask user: "Ready to implement? (yes/no)", DO NOT proceed until confirmed.
 ```
 
 ### Phase 2, Implement

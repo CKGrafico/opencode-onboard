@@ -32,6 +32,22 @@ function resolveAgentName(session) {
   return "lead"
 }
 
+// Maps ensemble tool name → function that extracts the log entry fields from args
+const ENSEMBLE_TOOL_HANDLERS = {
+  team_create:         (args) => ({ action: "team-created",        team: args.name }),
+  team_spawn:          (args) => ({ action: "teammate-spawned",    name: args.name, agentType: args.agent }),
+  team_shutdown:       (args) => ({ action: "teammate-shutdown",   name: args.name }),
+  team_merge:          (args) => ({ action: "teammate-merged",     name: args.name }),
+  team_cleanup:        ()     => ({ action: "team-cleanup" }),
+  team_status:         ()     => ({ action: "team-status-checked" }),
+  team_results:        (args) => ({ action: "team-results-read",   from: args.from }),
+  team_message:        (args) => ({ action: "team-message",        to: args.to ?? "lead", preview: String(args.text ?? "").slice(0, 120) }),
+  team_broadcast:      (args) => ({ action: "team-broadcast",      preview: String(args.text ?? "").slice(0, 120) }),
+  team_tasks_add:      (args) => ({ action: "tasks-added",         count: Array.isArray(args.tasks) ? args.tasks.length : "?" }),
+  team_tasks_complete: (args) => ({ action: "task-completed",      taskId: args.task_id }),
+  team_claim:          (args) => ({ action: "task-claimed",        taskId: args.task_id }),
+}
+
 export const SessionLogPlugin = async ({ client, directory }) => {
   return {
     event: async ({ event }) => {
@@ -76,7 +92,10 @@ export const SessionLogPlugin = async ({ client, directory }) => {
         const state = sessionState.get(sessionId)
         if (!state) return
 
-        if (input?.tool === "read") {
+        const tool = input?.tool
+
+        // Track skill loads
+        if (tool === "read") {
           const filePath = input?.args?.filePath ?? ""
           const match = filePath.match(/[/\\]skills[/\\]([^/\\]+)[/\\]SKILL\.md$/i)
           if (match) {
@@ -84,7 +103,14 @@ export const SessionLogPlugin = async ({ client, directory }) => {
             if (!state.skills.includes(skillName)) state.skills.push(skillName)
             appendEntry(directory, { ts: ts(), agent: state.agentName, action: "skill-loaded", skill: skillName })
           }
+          return
         }
+
+        // Track ensemble tool calls
+        const ensembleHandler = ENSEMBLE_TOOL_HANDLERS[tool]
+        if (!ensembleHandler) return
+
+        appendEntry(directory, { ts: ts(), agent: state.agentName, ...ensembleHandler(args) })
       } catch (_) {}
     },
   }
