@@ -37,7 +37,7 @@ Requires **Node.js 18+**.
 
 ## How it works
 
-The CLI clears the screen, shows a welcome banner, and walks you through 13 steps. The screen always shows the last 2 completed steps + the current one so you always know where you are.
+The CLI clears the screen, shows a welcome banner, and walks you through 14 steps. The screen always shows the last 2 completed steps + the current one so you always know where you are.
 
 | Step | What happens |
 |------|-------------|
@@ -49,10 +49,11 @@ The CLI clears the screen, shows a welcome banner, and walks you through 13 step
 | **6. Init OpenSpec** | Runs `npx @fission-ai/openspec init` silently for structured change management |
 | **7. Install skills** | Installs built-in `ob-` skills + optional additional skills provider |
 | **8. Choose models** | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing |
-| **9. Check RTK** | Verifies `rtk` is on PATH |
-| **10. Install quota plugin** | Runs `npx @slkiser/opencode-quota init` and auto-selects recommended defaults |
-| **11. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
-| **12. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details |
+| **9. Check RTK** | Optional (recommended). Verifies `rtk` is on PATH |
+| **10. Install quota plugin** | Optional (recommended). Runs `npx @slkiser/opencode-quota init` and auto-selects recommended defaults |
+| **11. Install caveman** | Optional (recommended). Installs [caveman](https://github.com/juliusbrussee/caveman) for OpenCode via `npx skills add JuliusBrussee/caveman -a opencode` |
+| **12. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
+| **13. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details |
 
 When it finishes, open OpenCode in your project and type:
 
@@ -183,7 +184,7 @@ After this, every agent has accurate, persistent context about your project, no 
 | **Node.js 18+** | Required |
 | **[OpenCode](https://opencode.ai)** | The agent runtime |
 | **[OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble)** | Multi-agent parallel execution |
-| **[rtk](https://github.com/rtk-ai/rtk#pre-built-binaries)** | Required for agents to run CLI commands safely |
+| **[rtk](https://github.com/rtk-ai/rtk#pre-built-binaries)** | Recommended for safer agent CLI command execution |
 | **[gh CLI](https://cli.github.com)** | GitHub platform, must be authenticated |
 | **[az CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)** + azure-devops extension | Azure DevOps platform |
 

@@ -13,8 +13,11 @@ import { copyContentStep } from './steps/copy-content.js'
 import { initOpenspec } from './steps/init-openspec.js'
 import { patchAgentsMd } from './steps/patch-agents-md.js'
 import { installQuota } from './steps/install-quota.js'
+import { installCaveman } from './steps/install-caveman.js'
+import { enableCavemanGuidance } from './steps/enable-caveman-guidance.js'
 import { installBrowser } from './steps/install-browser.js'
 import { writeOnboardConfig } from './steps/write-onboard-config.js'
+import { loading } from './utils/exec.js'
 
 if (process.stdout.isTTY) console.clear()
 console.log()
@@ -61,50 +64,73 @@ if (process.stdin.isTTY) {
 try {
   // 1. Check Node + pnpm
   await checkEnv()
+  loading('preparing next step...')
 
   // 2. Choose source code scope for init analysis
   const scope = await chooseSourceScope()
+  loading('preparing next step...')
 
   // 3. Clean existing AI config files, detect preserved state
   const preserve = await cleanAiFiles()
   const ctx = { ...preserve, ...scope }
+  loading('preparing next step...')
 
   // 4. Choose platform
   const platform = await choosePlatform()
+  loading('preparing next step...')
 
   // 5. Check platform CLI (az or gh)
   await checkPlatform(platform)
+  loading('preparing next step...')
 
   // 6. Copy content
   await copyContentStep(platform, ctx)
+  loading('preparing next step...')
 
   // 6b. Patch AGENTS.md to skip steps for already-existing files
   await patchAgentsMd(ctx)
+  loading('preparing next step...')
 
   // 7. Init OpenSpec
   await initOpenspec()
+  loading('preparing next step...')
 
   // 8. Install skills
   const skillsSelection = await chooseSkillsProvider()
+  loading('preparing next step...')
 
   // 9. Choose models
   const selectedModels = await chooseModels()
+  loading('preparing next step...')
 
   // 10. Check RTK
-  await checkRtk()
+  const rtk = await checkRtk()
+  loading('preparing next step...')
 
   // 11. Install opencode-quota
-  await installQuota()
+  const quota = await installQuota()
+  loading('preparing next step...')
 
-  // 12. Install opencode-browser
+  // 12. Install caveman
+  const caveman = await installCaveman()
+  loading('preparing next step...')
+
+  // 12b. Enable concise-mode guidance when caveman is installed
+  const cavemanGuidance = await enableCavemanGuidance(caveman)
+  loading('preparing next step...')
+
+  // 13. Install opencode-browser
   await installBrowser()
+  loading('preparing next step...')
 
-  // 13. Write onboarding metadata
+  // 14. Write onboarding metadata
   await writeOnboardConfig({
     ...ctx,
     platform,
     ...skillsSelection,
     ...selectedModels,
+    optionalTools: { rtk, quota, caveman },
+    cavemanGuidance,
   })
 
   // Done

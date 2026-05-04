@@ -1,17 +1,33 @@
+import { confirm } from '@inquirer/prompts'
 import { execa } from 'execa'
-import { header, success, warn, error } from '../utils/exec.js'
+import { header, success, warn, error, loading } from '../utils/exec.js'
 
-const AUTO_ANSWERS = [
-  { trigger: 'Install scope', response: 'Project' },
-  { trigger: 'Quota UI', response: 'Sidebar' },
-  { trigger: 'Provider mode', response: 'Auto-detect' },
-  { trigger: 'Quota display style', response: 'Single window' },
-  { trigger: 'Percent display (toast/sidebar)', response: 'Used' },
-  { trigger: 'Show session input/output tokens', response: 'Yes' },
+const PROMPT_PATTERNS = [
+  /Install scope/i,
+  /Quota UI/i,
+  /Provider mode/i,
+  /Quota display style/i,
+  /Percent display \(toast\/sidebar\)/i,
+  /Show session input\/output tokens/i,
+  /Apply these changes\?/i,
 ]
+
+const ANSI_REGEX = /\x1B\[[0-?]*[ -/]*[@-~]/g
 
 export async function installQuota() {
   header('Step 11, Installing opencode-quota')
+
+  const shouldInstall = await confirm({
+    message: 'Install opencode-quota with recommended defaults?',
+    default: true,
+  })
+
+  if (!shouldInstall) {
+    warn('Skipped opencode-quota installation')
+    return { optedIn: false, installed: false }
+  }
+
+  loading('configuring opencode-quota...')
 
   try {
     const child = execa('npx', ['@slkiser/opencode-quota', 'init'], {
@@ -19,30 +35,46 @@ export async function installQuota() {
       reject: false,
     })
 
-    const pendingTriggers = [...AUTO_ANSWERS]
+    let textBuffer = ''
+    const pending = [...PROMPT_PATTERNS]
+    let timedOut = false
 
-    child.stdout.on('data', chunk => {
-      const text = chunk.toString()
+    const timeout = setTimeout(() => {
+      timedOut = true
+      child.kill('SIGTERM')
+    }, 120000)
 
-      for (let i = 0; i < pendingTriggers.length; i++) {
-        if (text.includes(pendingTriggers[i].trigger)) {
-          child.stdin.write(pendingTriggers[i].response + '\n')
-          pendingTriggers.splice(i, 1)
-          break
-        }
+    const onData = chunk => {
+      textBuffer += chunk.toString().replace(ANSI_REGEX, '')
+      if (textBuffer.length > 12000) textBuffer = textBuffer.slice(-12000)
+
+      if (pending.length > 0 && pending[0].test(textBuffer)) {
+        child.stdin.write('\n')
+        pending.shift()
       }
-    })
+    }
 
+    child.stdout.on('data', onData)
+    child.stderr.on('data', onData)
     child.stderr.on('data', chunk => process.stderr.write(chunk))
 
     const result = await child
+    clearTimeout(timeout)
+
+    if (timedOut) {
+      warn('opencode-quota init timed out after 120s, skipping')
+      return { optedIn: true, installed: false }
+    }
 
     if (result.exitCode === 0) {
       success('opencode-quota configured')
-    } else {
-      warn('opencode-quota init exited with non-zero code')
+      return { optedIn: true, installed: true }
     }
+
+    warn('opencode-quota init exited with non-zero code')
+    return { optedIn: true, installed: false }
   } catch (err) {
     error(`Failed to configure opencode-quota: ${err.message}`)
+    return { optedIn: true, installed: false }
   }
 }

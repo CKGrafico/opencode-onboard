@@ -19,6 +19,11 @@ function stopSpinner() {
   }
 }
 
+function startSpinner(text = 'working...') {
+  stopSpinner()
+  stepSpinner = ora({ text: chalk.dim(text), color: 'red' }).start()
+}
+
 function redraw() {
   if (process.stdout.isTTY) console.clear()
 
@@ -91,7 +96,14 @@ export function header(text) {
   redraw()
 
   // Start a spinner while the step is working
-  stepSpinner = ora({ text: chalk.dim('working...'), color: 'red' }).start()
+  startSpinner('working...')
+}
+
+/**
+ * Restart the step spinner after prompts or logs.
+ */
+export function loading(text = 'working...') {
+  startSpinner(text)
 }
 
 /**

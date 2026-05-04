@@ -19,7 +19,7 @@ async function detectOpencodeVersion() {
 }
 
 export async function writeOnboardConfig(data) {
-  header('Step 13, Writing onboarding metadata')
+  header('Step 14, Writing onboarding metadata')
 
   const opencodeVersion = await detectOpencodeVersion()
   const target = path.join(process.cwd(), '.opencode', 'opencode-onboard.json')
@@ -44,6 +44,8 @@ export async function writeOnboardConfig(data) {
         build: data.buildModel,
         fast: data.fastModel,
       },
+      optionalTools: data.optionalTools ?? null,
+      cavemanGuidance: data.cavemanGuidance ?? null,
     },
     note: 'Informational file only. Editing this file does not change runtime behavior.',
   }
