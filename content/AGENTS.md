@@ -129,6 +129,7 @@ Trigger patterns, I recognize ALL of these, exact wording does not matter:
 - User pastes or mentions an Azure DevOps URL → load `ob-userstory-az` skill → parse work item → run `/opsx-propose` → confirm with user → run `/opsx-apply` → ship
 - `implement the plan` / `implement` / `start` / `go` → run `/opsx-apply` → ship
 - `I've added comments to the PR` → read PR comments → fix → update PR
+- Any GitHub/Azure DevOps PR URL in a feedback/fix request (e.g. "check comments", "fix PR feedback") → run PR Feedback Loop
 
 **A GitHub or Azure DevOps URL anywhere in the user's message is always a trigger, regardless of surrounding words.**
 
@@ -228,12 +229,24 @@ devops-manager (ship mode)
 ### Phase 6, PR Feedback Loop
 
 ```
-When user says "I've added comments to the PR":
-1. team_spawn devops-manager (feedback mode) → read & classify comments
-2. Wait → team_results → spawn front/back/infra for code-change items (parallel)
-3. Wait → team_results → spawn quality-engineer → verify fixes
-4. Wait → team_results → spawn devops-manager (ship mode) → push & update PR
-5. team_cleanup
+When user says "I've added comments to the PR" or asks to fix PR comments from PR URLs:
+1. team_create "pr-feedback-<id>-<random>"
+2. team_tasks_add with at least these lead-managed tasks:
+   - Parse and classify PR feedback (devops-manager)
+   - Implement Api feedback items (back-engineer, if needed)
+   - Implement App feedback items (front-engineer, if needed)
+   - Infra feedback items (infra-engineer, if needed)
+   - Verify with tests/build (quality-engineer)
+   - Push updates and post PR replies (devops-manager)
+3. team_spawn devops-manager (feedback mode) with explicit task IDs, then team_message "Start now"
+4. Wait for message → team_results
+5. Add/update implementation tasks on board from parsed checklist (Api/App/Infra), then spawn needed specialists in parallel with explicit task IDs + team_message "Start now"
+6. Wait for specialist results → team_shutdown + team_merge per specialist
+7. team_spawn quality-engineer worktree:false with verification task ID + team_message "Start now"
+8. Wait → team_results → fix blockers if any
+9. team_spawn devops-manager (ship mode) with "push + update PR threads" task ID + team_message "Start now"
+10. Wait → team_results → report what was updated
+11. team_cleanup
 ```
 
 ---
