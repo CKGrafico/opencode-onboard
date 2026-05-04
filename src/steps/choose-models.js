@@ -154,4 +154,10 @@ export async function chooseModels() {
   console.log()
   warn('Make sure you have API access to the selected models.')
   warn('Change them anytime in .agents/agents/<name>.md and .opencode/opencode.json')
+
+  return {
+    planModel,
+    buildModel,
+    fastModel,
+  }
 }

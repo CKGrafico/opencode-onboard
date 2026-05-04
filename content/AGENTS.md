@@ -16,6 +16,8 @@ When the user says anything resembling initialization, "init", "initialize", "se
 
 Scan the codebase for any existing documentation, changelogs, ADRs, README files, or notable history that describes decisions already made in this project. Create an OpenSpec archive entry that captures this history so agents have context going forward.
 
+Before scanning, load source roots from `.agents/source-roots.json` when present. Only scan those roots plus this repo's docs/config files.
+
 ```bash
 openspec new change "project-history"
 ```
@@ -111,6 +113,12 @@ This is the agent orchestration layer for your project. It provides:
 - Universal agent team for development workflow
 - OpenSpec change management
 - Skills for platform-specific knowledge
+
+## Source Scope
+
+- Read source scope from `.agents/source-roots.json`.
+- Use those roots for codebase analysis tasks (design, architecture, project-history, exploration).
+- If missing, default to current folder.
 
 ## I Am the Lead, Full Workflow Ownership
 

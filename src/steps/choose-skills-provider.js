@@ -56,7 +56,7 @@ export async function chooseSkillsProvider() {
   })
 
   if (selected === 'none') {
-    return
+    return { additionalSkillsProvider: 'none' }
   }
 
   if (selected === 'npx-skills') {
@@ -71,5 +71,9 @@ export async function chooseSkillsProvider() {
     } catch (err) {
       warn(`npx skills failed: ${err.message}`)
     }
+
+    return { additionalSkillsProvider: 'npx-skills' }
   }
+
+  return { additionalSkillsProvider: selected }
 }

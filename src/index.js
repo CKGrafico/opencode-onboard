@@ -13,6 +13,7 @@ import { copyContentStep } from './steps/copy-content.js'
 import { initOpenspec } from './steps/init-openspec.js'
 import { patchAgentsMd } from './steps/patch-agents-md.js'
 import { installBrowser } from './steps/install-browser.js'
+import { writeOnboardConfig } from './steps/write-onboard-config.js'
 
 if (process.stdout.isTTY) console.clear()
 console.log()
@@ -83,16 +84,24 @@ try {
   await initOpenspec()
 
   // 8. Install skills
-  await chooseSkillsProvider()
+  const skillsSelection = await chooseSkillsProvider()
 
   // 9. Choose models
-  await chooseModels()
+  const selectedModels = await chooseModels()
 
   // 10. Check RTK
   await checkRtk()
 
   // 11. Install opencode-browser
   await installBrowser()
+
+  // 12. Write onboarding metadata
+  await writeOnboardConfig({
+    ...ctx,
+    platform,
+    ...skillsSelection,
+    ...selectedModels,
+  })
 
   // Done
   const toGenerate = [
