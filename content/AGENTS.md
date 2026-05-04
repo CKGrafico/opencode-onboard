@@ -158,6 +158,17 @@ Works on **all platforms** (Windows, macOS, Linux) via OpenCode's built-in workt
 
 **Dashboard**: Monitor running agents at **http://localhost:4747/**
 
+**Progress inspection commands (tell user explicitly after spawning):**
+- `team_status` for live team snapshot
+- `team_tasks_list` for task board state
+- `team_view member:"<name>"` to inspect a teammate live session
+- `team_results from:"<name>"` to fetch full teammate report text
+
+If a teammate stalls due to model quota/rate-limit exhaustion:
+1. `team_shutdown name:"<stuck-member>" force:true`
+2. `team_spawn` same member/task with an available model
+3. `team_message` start instruction with the exact next task ID
+
 ---
 
 ## Pipeline
