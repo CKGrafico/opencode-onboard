@@ -73,11 +73,17 @@ const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
    **Step 6e.** After sending start messages, tell the user what is running, then STOP and wait.
       Do NOT call team_results, team_status, or team_broadcast in a loop.
       Teammates will message you when done or blocked. Wait for those messages.
+      Tell the user exactly how to inspect progress:
+      - \`team_status\` for team snapshot
+      - \`team_tasks_list\` for board state
+      - \`team_view member:"<name>"\` for a teammate live session
+      - \`team_results from:"<name>"\` for full teammate report text
 
    **Step 6f.** When a teammate messages back, you receive a ping only, the full content is NOT in the notification.
       Call team_results to read the full message and mark it read. Then for each teammate: team_shutdown -> team_merge.
       If team_merge blocks ("overlapping local changes"), commit or stash your local changes first, then retry.
       Fix any other blockers reported.
+      If a teammate reports rate-limit/quota/token exhaustion, immediately shutdown that teammate and respawn with an available model.
 
 7. **Quality check**
 
@@ -120,6 +126,7 @@ const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 - Pause on errors, blockers, or unclear requirements. Do not guess
 - Use contextFiles from CLI output, do not assume specific file paths
 - Use \`rtk\` wrapper for ALL CLI commands. Never run openspec, git, gh, or az directly
+- If model quota/rate-limit is exhausted, tell lead immediately via team_message and stop claiming new tasks until respawned
 `
 
 const STEP_6_START = /^6\.\s+\*\*Implement\b/im
