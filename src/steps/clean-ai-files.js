@@ -53,7 +53,7 @@ async function hasOpenspecHistory(cwd) {
 }
 
 export async function cleanAiFiles() {
-  header('Step 2, Existing AI config files')
+  header('Step 3, Existing AI config files')
 
   const cwd = process.cwd()
 

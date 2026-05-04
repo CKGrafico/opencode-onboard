@@ -6,6 +6,7 @@ import { checkPlatform } from './steps/check-platform.js'
 import { checkRtk } from './steps/check-rtk.js'
 import { chooseModels } from './steps/choose-models.js'
 import { choosePlatform } from './steps/choose-platform.js'
+import { chooseSourceScope } from './steps/choose-source-scope.js'
 import { chooseSkillsProvider } from './steps/choose-skills-provider.js'
 import { cleanAiFiles } from './steps/clean-ai-files.js'
 import { copyContentStep } from './steps/copy-content.js'
@@ -59,34 +60,38 @@ try {
   // 1. Check Node + pnpm
   await checkEnv()
 
-  // 2. Clean existing AI config files, detect preserved state
-  const ctx = await cleanAiFiles()
+  // 2. Choose source code scope for init analysis
+  const scope = await chooseSourceScope()
 
-  // 3. Choose platform
+  // 3. Clean existing AI config files, detect preserved state
+  const preserve = await cleanAiFiles()
+  const ctx = { ...preserve, ...scope }
+
+  // 4. Choose platform
   const platform = await choosePlatform()
 
-  // 4. Check platform CLI (az or gh)
+  // 5. Check platform CLI (az or gh)
   await checkPlatform(platform)
 
-  // 5. Copy content
+  // 6. Copy content
   await copyContentStep(platform, ctx)
 
-  // 5b. Patch AGENTS.md to skip steps for already-existing files
+  // 6b. Patch AGENTS.md to skip steps for already-existing files
   await patchAgentsMd(ctx)
 
-  // 6. Init OpenSpec
+  // 7. Init OpenSpec
   await initOpenspec()
 
-  // 7. Install skills
+  // 8. Install skills
   await chooseSkillsProvider()
 
-  // 8. Choose models
+  // 9. Choose models
   await chooseModels()
 
-  // 9. Check RTK
+  // 10. Check RTK
   await checkRtk()
 
-  // 10. Install opencode-browser
+  // 11. Install opencode-browser
   await installBrowser()
 
   // Done
@@ -109,6 +114,7 @@ try {
   } else {
     console.log('  OpenCode will activate the agent team.')
   }
+  console.log(`  Source scope: ${ctx.sourceMode === 'parent-selected' ? ctx.sourceRoots.map(p => `../${p.split(/[/\\]/).pop()}`).join(', ') : 'current folder'}`)
   console.log()
 } catch (err) {
   if (err.name === 'ExitPromptError') {

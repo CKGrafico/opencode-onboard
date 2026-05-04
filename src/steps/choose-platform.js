@@ -10,7 +10,7 @@ const PLATFORMS_PRESET_PATH = path.resolve(__dirname, '../presets/platforms.json
 const platformsPreset = await fse.readJson(PLATFORMS_PRESET_PATH)
 
 export async function choosePlatform() {
-  header('Step 3, Version control platform')
+  header('Step 4, Version control platform')
 
   const platform = await select({
     message: 'Which platform are you using?',

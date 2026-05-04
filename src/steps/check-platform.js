@@ -10,7 +10,7 @@ export async function checkPlatform(platform) {
 }
 
 async function checkAzure() {
-  header('Step 4, Checking Azure DevOps CLI')
+  header('Step 5, Checking Azure DevOps CLI')
 
   // Check az is installed
   const hasAz = await commandExists('az')
@@ -51,7 +51,7 @@ async function checkAzure() {
 }
 
 async function checkGithub() {
-  header('Step 4, Checking GitHub CLI')
+  header('Step 5, Checking GitHub CLI')
 
   const hasGh = await commandExists('gh')
 

@@ -146,7 +146,7 @@ async function patchApplyFile(filePath) {
 }
 
 export async function initOpenspec() {
-  header('Step 6, Initializing OpenSpec')
+  header('Step 7, Initializing OpenSpec')
 
   try {
     const result = await execa('npx', ['@fission-ai/openspec', 'init', '--tools', 'opencode', '--force'], {

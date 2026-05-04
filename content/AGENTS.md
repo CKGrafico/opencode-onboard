@@ -40,7 +40,7 @@ openspec archive "project-history"
 1. **Read `DESIGN.md` now** using a file read tool. The file contains a prompt with instructions and an output format.
 2. **Store the full prompt text** in your context.
 3. **Overwrite `DESIGN.md` with an empty string** (zero bytes). Do this before generating any content.
-4. **Analyze the actual codebase**: read CSS files, Tailwind config, component files, token definitions. Do not rely on prior knowledge, read the files.
+4. **Analyze the actual codebase**: use `.agents/source-roots.json` as source roots when present, then read CSS files, Tailwind config, component files, token definitions. Do not rely on prior knowledge, read the files.
 5. **Write the result into `DESIGN.md`** following exactly the format and sections described in the stored prompt.
 
 The output must be a real, populated `DESIGN.md` based on what you found in the codebase, not from memory or assumptions.
@@ -54,7 +54,7 @@ The output must be a real, populated `DESIGN.md` based on what you found in the 
 1. **Read `ARCHITECTURE.md` now** using a file read tool. The file contains a prompt with instructions and an output format.
 2. **Store the full prompt text** in your context.
 3. **Overwrite `ARCHITECTURE.md` with an empty string** (zero bytes). Do this before generating any content.
-4. **Analyze the actual codebase**: read folder structure, config files, route definitions, data models, integration points. Do not rely on prior knowledge, read the files.
+4. **Analyze the actual codebase**: use `.agents/source-roots.json` as source roots when present, then read folder structure, config files, route definitions, data models, integration points. Do not rely on prior knowledge, read the files.
 5. **Write the result into `ARCHITECTURE.md`** following exactly the format and sections described in the stored prompt.
 
 The output must be a real, populated `ARCHITECTURE.md` based on what you found in the codebase, covering all sections the prompt describes.

@@ -66,7 +66,7 @@ async function writeModelToAgent(agentFile, modelId) {
 }
 
 export async function chooseModels() {
-  header('Step 8, Choose models')
+  header('Step 9, Choose models')
 
   info('Fetching available models from models.dev...')
   const { models: rawModels, source } = await fetchModels()
