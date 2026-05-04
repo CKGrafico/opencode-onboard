@@ -12,6 +12,7 @@ import { cleanAiFiles } from './steps/clean-ai-files.js'
 import { copyContentStep } from './steps/copy-content.js'
 import { initOpenspec } from './steps/init-openspec.js'
 import { patchAgentsMd } from './steps/patch-agents-md.js'
+import { installQuota } from './steps/install-quota.js'
 import { installBrowser } from './steps/install-browser.js'
 import { writeOnboardConfig } from './steps/write-onboard-config.js'
 
@@ -92,10 +93,13 @@ try {
   // 10. Check RTK
   await checkRtk()
 
-  // 11. Install opencode-browser
+  // 11. Install opencode-quota
+  await installQuota()
+
+  // 12. Install opencode-browser
   await installBrowser()
 
-  // 12. Write onboarding metadata
+  // 13. Write onboarding metadata
   await writeOnboardConfig({
     ...ctx,
     platform,

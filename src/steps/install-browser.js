@@ -12,7 +12,7 @@ const AUTO_ANSWERS = [
 ]
 
 export async function installBrowser() {
-  header('Step 11, Installing opencode-browser')
+  header('Step 12, Installing opencode-browser')
 
   try {
     const child = execa('npx', ['@different-ai/opencode-browser', 'install'], {

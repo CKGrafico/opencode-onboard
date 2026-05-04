@@ -37,7 +37,7 @@ Requires **Node.js 18+**.
 
 ## How it works
 
-The CLI clears the screen, shows a welcome banner, and walks you through 10 steps. The screen always shows the last 2 completed steps + the current one so you always know where you are.
+The CLI clears the screen, shows a welcome banner, and walks you through 13 steps. The screen always shows the last 2 completed steps + the current one so you always know where you are.
 
 | Step | What happens |
 |------|-------------|
@@ -50,7 +50,9 @@ The CLI clears the screen, shows a welcome banner, and walks you through 10 step
 | **7. Install skills** | Installs built-in `ob-` skills + optional additional skills provider |
 | **8. Choose models** | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing |
 | **9. Check RTK** | Verifies `rtk` is on PATH |
-| **10. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
+| **10. Install quota plugin** | Runs `npx @slkiser/opencode-quota init` and auto-selects recommended defaults |
+| **11. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
+| **12. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details |
 
 When it finishes, open OpenCode in your project and type:
 
