@@ -16,10 +16,10 @@ export async function installCaveman(options = {}) {
 
   try {
     info('Installing caveman via npx skills')
-    const result = await execa('npx', ['skills', 'add', 'JuliusBrussee/caveman', '-a', 'opencode'], {
+    const result = await execa('npx', ['skills', 'add', 'JuliusBrussee/caveman/caveman', '-a', 'opencode', '--yes'], {
       reject: false,
       timeout: 600000,
-      stdio: 'inherit',
+      stdio: 'pipe',
     })
 
     if (result.exitCode === 0) {
@@ -32,6 +32,7 @@ export async function installCaveman(options = {}) {
       success('caveman installed')
       return { optedIn: true, installed: true }
     } else {
+      if (result.stderr?.trim()) warn(result.stderr.trim().split('\n').slice(-3).join('\n'))
       warn('caveman install exited with non-zero code')
       return { optedIn: true, installed: false }
     }
