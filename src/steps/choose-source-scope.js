@@ -65,7 +65,7 @@ export async function chooseSourceScope() {
     choices: parentFolders.map(d => ({
       name: `../${d.name}`,
       value: d.abs,
-      checked: false,
+      checked: true,
     })),
     required: true,
   })

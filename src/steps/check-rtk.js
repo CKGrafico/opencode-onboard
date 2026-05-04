@@ -1,14 +1,17 @@
 import { confirm } from '@inquirer/prompts'
 import { code, commandExists, header, info, loading, success, warn } from '../utils/exec.js'
 
-export async function checkRtk() {
-  header('Step 10, Checking rtk')
+export async function checkRtk(options = {}) {
+  if (!options.skipHeader) header('Checking rtk')
 
-  info('Recommended: install and verify rtk for safer agent CLI command execution.')
-  const shouldCheck = await confirm({
-    message: 'Check rtk now?',
-    default: true,
-  })
+  let shouldCheck = true
+  if (!options.skipPrompt) {
+    info('Recommended: install and verify rtk for safer agent CLI command execution.')
+    shouldCheck = await confirm({
+      message: 'Check rtk now?',
+      default: true,
+    })
+  }
 
   if (!shouldCheck) {
     warn('Skipped rtk check (you can install it later)')

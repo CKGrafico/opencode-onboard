@@ -51,9 +51,25 @@ export async function enableCavemanGuidance(cavemanResult) {
 
   const targets = [
     { rel: 'AGENTS.md', block: AGENTS_BLOCK },
-    { rel: path.join('.opencode', 'commands', 'opsx-apply.md'), block: OPSX_BLOCK },
-    { rel: path.join('.opencode', 'skills', 'openspec-apply-change', 'SKILL.md'), block: OPSX_BLOCK },
   ]
+
+  const commandsDir = path.join(process.cwd(), '.opencode', 'commands')
+  if (await fse.pathExists(commandsDir)) {
+    const entries = await fse.readdir(commandsDir)
+    for (const name of entries) {
+      if (!/^opsx-.*\.md$/i.test(name)) continue
+      targets.push({ rel: path.join('.opencode', 'commands', name), block: OPSX_BLOCK })
+    }
+  }
+
+  const skillsDir = path.join(process.cwd(), '.opencode', 'skills')
+  if (await fse.pathExists(skillsDir)) {
+    const skillEntries = await fse.readdir(skillsDir)
+    for (const dirName of skillEntries) {
+      if (!/^openspec-/i.test(dirName)) continue
+      targets.push({ rel: path.join('.opencode', 'skills', dirName, 'SKILL.md'), block: OPSX_BLOCK })
+    }
+  }
 
   let changedCount = 0
   for (const target of targets) {

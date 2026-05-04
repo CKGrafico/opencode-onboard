@@ -34,7 +34,8 @@ describe('copyContentStep()', () => {
     expect(copyContent).toHaveBeenCalledWith(
       expect.stringContaining('content'),
       process.cwd(),
-      'github'
+      'github',
+      {}
     )
     expect(success).toHaveBeenCalledWith('Files copied to project root')
   })
@@ -47,7 +48,8 @@ describe('copyContentStep()', () => {
     expect(copyContent).toHaveBeenCalledWith(
       expect.stringContaining('content'),
       process.cwd(),
-      'azure'
+      'azure',
+      {}
     )
   })
 

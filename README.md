@@ -33,11 +33,34 @@ npx opencode-onboard@latest
 
 Requires **Node.js 18+**.
 
+### Run specific steps
+
+You can also run individual maintenance/setup steps without the full wizard:
+
+```bash
+# Run one step directly
+npx opencode-onboard clean
+npx opencode-onboard platform
+npx opencode-onboard copy
+npx opencode-onboard openspec
+npx opencode-onboard skills
+npx opencode-onboard models
+npx opencode-onboard optimization
+npx opencode-onboard browser
+npx opencode-onboard metadata
+
+# Show CLI help and all commands
+npx opencode-onboard --help
+npx opencode-onboard -h
+```
+
+When available, step commands reuse context from `.opencode/opencode-onboard.json`.
+
 ---
 
 ## How it works
 
-The CLI clears the screen, shows a welcome banner, and walks you through 14 steps. The screen always shows the last 2 completed steps + the current one so you always know where you are.
+The CLI clears the screen, shows a welcome banner, and walks you through 12 steps. The screen always shows the last 2 completed steps + the current one so you always know where you are.
 
 | Step | What happens |
 |------|-------------|
@@ -49,11 +72,9 @@ The CLI clears the screen, shows a welcome banner, and walks you through 14 step
 | **6. Init OpenSpec** | Runs `npx @fission-ai/openspec init` silently for structured change management |
 | **7. Install skills** | Installs built-in `ob-` skills + optional additional skills provider |
 | **8. Choose models** | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing |
-| **9. Check RTK** | Optional (recommended). Verifies `rtk` is on PATH |
-| **10. Install quota plugin** | Optional (recommended). Runs `npx @slkiser/opencode-quota init` and auto-selects recommended defaults |
-| **11. Install caveman** | Optional (recommended). Installs [caveman](https://github.com/juliusbrussee/caveman) for OpenCode via `npx skills add JuliusBrussee/caveman -a opencode` |
-| **12. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
-| **13. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details |
+| **9. Token optimization tools** | Optional (recommended). One checklist step for RTK check, opencode-quota setup, and caveman install (all preselected) |
+| **11. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
+| **12. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details |
 
 When it finishes, open OpenCode in your project and type:
 

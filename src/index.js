@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import chalk from 'chalk'
 import { createRequire } from 'node:module'
+import path from 'node:path'
+import fse from 'fs-extra'
 import { checkEnv } from './steps/check-env.js'
 import { checkPlatform } from './steps/check-platform.js'
 import { checkRtk } from './steps/check-rtk.js'
@@ -18,11 +20,152 @@ import { enableCavemanGuidance } from './steps/enable-caveman-guidance.js'
 import { installBrowser } from './steps/install-browser.js'
 import { writeOnboardConfig } from './steps/write-onboard-config.js'
 import { loading } from './utils/exec.js'
+import { tokenOptimizationStep } from './steps/token-optimization.js'
+
+function printHelp(version) {
+  console.log(`opencode-onboard v${version}`)
+  console.log()
+  console.log('Usage:')
+  console.log('  npx opencode-onboard                Run full onboarding wizard')
+  console.log('  npx opencode-onboard <command>      Run a single step command')
+  console.log()
+  console.log('Commands:')
+  console.log('  clean           Run AI files cleanup step')
+  console.log('  platform        Run platform selection step')
+  console.log('  copy            Run content copy step')
+  console.log('  openspec        Run OpenSpec initialization step')
+  console.log('  skills          Run skills install step')
+  console.log('  models          Run models selection step')
+  console.log('  optimization    Run token optimization tools step')
+  console.log('  quota           Run opencode-quota installer step')
+  console.log('  rtk             Run rtk check step')
+  console.log('  caveman         Run caveman install + guidance steps')
+  console.log('  browser         Run opencode-browser installer step')
+  console.log('  metadata        Write onboarding metadata step')
+  console.log()
+  console.log('Options:')
+  console.log('  -h, --help      Show this help message')
+}
+
+async function readOnboardConfig() {
+  const cfgPath = path.join(process.cwd(), '.opencode', 'opencode-onboard.json')
+  if (!await fse.pathExists(cfgPath)) return null
+  try {
+    return await fse.readJson(cfgPath)
+  } catch {
+    return null
+  }
+}
+
+async function runSingleCommand(command) {
+  const saved = await readOnboardConfig()
+  const savedWizard = saved?.wizard ?? {}
+  const ctx = {
+    hasDesign: !!savedWizard?.preserved?.design,
+    hasArchitecture: !!savedWizard?.preserved?.architecture,
+    hasOpenspec: !!savedWizard?.preserved?.openspec,
+    sourceMode: savedWizard?.sourceMode ?? 'current',
+    sourceRoots: Array.isArray(savedWizard?.sourceRoots) ? savedWizard.sourceRoots : [],
+  }
+  const platform = savedWizard?.platform
+  const resolvedPlatform = platform === 'azure' || platform === 'github' ? platform : 'github'
+
+  if (command === 'clean') {
+    await cleanAiFiles()
+    return true
+  }
+
+  if (command === 'platform') {
+    await choosePlatform()
+    return true
+  }
+
+  if (command === 'copy') {
+    await copyContentStep(resolvedPlatform, ctx)
+    await patchAgentsMd(ctx)
+    return true
+  }
+
+  if (command === 'openspec') {
+    await initOpenspec()
+    return true
+  }
+
+  if (command === 'skills') {
+    await chooseSkillsProvider()
+    return true
+  }
+
+  if (command === 'models') {
+    await chooseModels()
+    return true
+  }
+
+  if (command === 'optimization') {
+    await tokenOptimizationStep({ skillsProvider: savedWizard?.additionalSkillsProvider })
+    return true
+  }
+
+  if (command === 'quota') {
+    await installQuota()
+    return true
+  }
+
+  if (command === 'rtk') {
+    await checkRtk()
+    return true
+  }
+
+  if (command === 'caveman') {
+    const caveman = await installCaveman({ skillsProvider: savedWizard?.additionalSkillsProvider })
+    await enableCavemanGuidance(caveman)
+    return true
+  }
+
+  if (command === 'browser') {
+    await installBrowser()
+    return true
+  }
+
+  if (command === 'metadata') {
+    await writeOnboardConfig({
+      ...ctx,
+      platform: resolvedPlatform,
+      additionalSkillsProvider: savedWizard?.additionalSkillsProvider ?? 'none',
+      planModel: savedWizard?.models?.plan ?? null,
+      buildModel: savedWizard?.models?.build ?? null,
+      fastModel: savedWizard?.models?.fast ?? null,
+      optionalTools: savedWizard?.optionalTools ?? null,
+      cavemanGuidance: savedWizard?.cavemanGuidance ?? null,
+    })
+    return true
+  }
+
+  return false
+}
 
 if (process.stdout.isTTY) console.clear()
 console.log()
 const require = createRequire(import.meta.url)
 const { version } = require('../package.json')
+const args = process.argv.slice(2)
+
+if (args.includes('-h') || args.includes('--help')) {
+  printHelp(version)
+  process.exit(0)
+}
+
+if (args.length > 0) {
+  const ok = await runSingleCommand(args[0])
+  if (!ok) {
+    console.log(chalk.red(`Unknown command: ${args[0]}`))
+    console.log()
+    printHelp(version)
+    process.exit(1)
+  }
+  process.exit(0)
+}
+
 const logo = chalk.hex('#fe3d57')
 const bannerLines = [
   logo('                             '),
@@ -103,27 +246,16 @@ try {
   const selectedModels = await chooseModels()
   loading('preparing next step...')
 
-  // 10. Check RTK
-  const rtk = await checkRtk()
+  // 10. Token optimization tools
+  const tokenOpt = await tokenOptimizationStep({ skillsProvider: skillsSelection.additionalSkillsProvider })
+  const { rtk, quota, caveman, cavemanGuidance } = tokenOpt
   loading('preparing next step...')
 
-  // 11. Install opencode-quota
-  const quota = await installQuota()
-  loading('preparing next step...')
-
-  // 12. Install caveman
-  const caveman = await installCaveman()
-  loading('preparing next step...')
-
-  // 12b. Enable concise-mode guidance when caveman is installed
-  const cavemanGuidance = await enableCavemanGuidance(caveman)
-  loading('preparing next step...')
-
-  // 13. Install opencode-browser
+  // 11. Install opencode-browser
   await installBrowser()
   loading('preparing next step...')
 
-  // 14. Write onboarding metadata
+  // 12. Write onboarding metadata
   await writeOnboardConfig({
     ...ctx,
     platform,

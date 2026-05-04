@@ -39,7 +39,7 @@ describe('cleanAiFiles()', () => {
 
     await cleanAiFiles()
 
-    expect(success).toHaveBeenCalledWith('No existing AI config files found')
+    expect(success).toHaveBeenCalledWith('No existing AI config files to remove')
   })
 
   it('removes found AI files after Enter', async () => {

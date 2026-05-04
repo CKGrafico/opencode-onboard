@@ -1,26 +1,34 @@
 import { confirm } from '@inquirer/prompts'
-import { execa } from 'execa'
-import { header, success, warn, error, loading } from '../utils/exec.js'
+import fse from 'fs-extra'
+import path from 'node:path'
+import { header, success, warn, error, loading, info } from '../utils/exec.js'
 
-const PROMPT_PATTERNS = [
-  /Install scope/i,
-  /Quota UI/i,
-  /Provider mode/i,
-  /Quota display style/i,
-  /Percent display \(toast\/sidebar\)/i,
-  /Show session input\/output tokens/i,
-  /Apply these changes\?/i,
-]
+const PLUGIN = '@slkiser/opencode-quota'
 
-const ANSI_REGEX = /\x1B\[[0-?]*[ -/]*[@-~]/g
+function ensurePlugin(config) {
+  if (!Array.isArray(config.plugin)) config.plugin = []
+  if (!config.plugin.includes(PLUGIN)) config.plugin.push(PLUGIN)
+}
 
-export async function installQuota() {
-  header('Step 11, Installing opencode-quota')
+function addIfMissing(target, key, value) {
+  if (!(key in target)) target[key] = value
+}
 
-  const shouldInstall = await confirm({
-    message: 'Install opencode-quota with recommended defaults?',
-    default: true,
-  })
+export async function installQuota(options = {}) {
+  if (!options.skipHeader) header('Installing opencode-quota')
+
+  let shouldInstall = true
+  if (!options.skipPrompt && process.stdin.isTTY) {
+    const timeoutMs = 20000
+    const choice = await Promise.race([
+      confirm({
+        message: 'Install opencode-quota with recommended defaults?',
+        default: true,
+      }),
+      new Promise(resolve => setTimeout(() => resolve(true), timeoutMs)),
+    ])
+    shouldInstall = choice !== false
+  }
 
   if (!shouldInstall) {
     warn('Skipped opencode-quota installation')
@@ -30,49 +38,43 @@ export async function installQuota() {
   loading('configuring opencode-quota...')
 
   try {
-    const child = execa('npx', ['@slkiser/opencode-quota', 'init'], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      reject: false,
-    })
+    const opencodeDir = path.join(process.cwd(), '.opencode')
+    const opencodePath = path.join(opencodeDir, 'opencode.json')
+    const tuiPath = path.join(opencodeDir, 'tui.json')
+    const quotaDir = path.join(opencodeDir, 'opencode-quota')
+    const quotaPath = path.join(quotaDir, 'quota-toast.json')
 
-    let textBuffer = ''
-    const pending = [...PROMPT_PATTERNS]
-    let timedOut = false
+    const opencode = await fse.pathExists(opencodePath)
+      ? await fse.readJson(opencodePath)
+      : { $schema: 'https://opencode.ai/config.json' }
 
-    const timeout = setTimeout(() => {
-      timedOut = true
-      child.kill('SIGTERM')
-    }, 120000)
+    const tui = await fse.pathExists(tuiPath)
+      ? await fse.readJson(tuiPath)
+      : { $schema: 'https://opencode.ai/tui.json' }
 
-    const onData = chunk => {
-      textBuffer += chunk.toString().replace(ANSI_REGEX, '')
-      if (textBuffer.length > 12000) textBuffer = textBuffer.slice(-12000)
+    ensurePlugin(opencode)
+    ensurePlugin(tui)
 
-      if (pending.length > 0 && pending[0].test(textBuffer)) {
-        child.stdin.write('\n')
-        pending.shift()
-      }
-    }
+    await fse.ensureDir(opencodeDir)
+    await fse.writeJson(opencodePath, opencode, { spaces: 2 })
+    await fse.writeJson(tuiPath, tui, { spaces: 2 })
 
-    child.stdout.on('data', onData)
-    child.stderr.on('data', onData)
-    child.stderr.on('data', chunk => process.stderr.write(chunk))
+    const quotaConfig = await fse.pathExists(quotaPath)
+      ? await fse.readJson(quotaPath)
+      : {}
 
-    const result = await child
-    clearTimeout(timeout)
+    // Keep installer semantics append-only: add defaults only when missing.
+    addIfMissing(quotaConfig, 'enabledProviders', 'auto')
+    addIfMissing(quotaConfig, 'formatStyle', 'singleWindow')
+    addIfMissing(quotaConfig, 'percentDisplayMode', 'used')
+    addIfMissing(quotaConfig, 'showSessionTokens', true)
 
-    if (timedOut) {
-      warn('opencode-quota init timed out after 120s, skipping')
-      return { optedIn: true, installed: false }
-    }
+    await fse.ensureDir(quotaDir)
+    await fse.writeJson(quotaPath, quotaConfig, { spaces: 2 })
 
-    if (result.exitCode === 0) {
-      success('opencode-quota configured')
-      return { optedIn: true, installed: true }
-    }
-
-    warn('opencode-quota init exited with non-zero code')
-    return { optedIn: true, installed: false }
+    success('opencode-quota configured (manual setup)')
+    info('Restart OpenCode and run /quota to verify')
+    return { optedIn: true, installed: true }
   } catch (err) {
     error(`Failed to configure opencode-quota: ${err.message}`)
     return { optedIn: true, installed: false }

@@ -19,7 +19,7 @@ async function detectOpencodeVersion() {
 }
 
 export async function writeOnboardConfig(data) {
-  header('Step 14, Writing onboarding metadata')
+  header('Step 12, Writing onboarding metadata')
 
   const opencodeVersion = await detectOpencodeVersion()
   const target = path.join(process.cwd(), '.opencode', 'opencode-onboard.json')
