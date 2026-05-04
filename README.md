@@ -73,8 +73,8 @@ The CLI clears the screen, shows a welcome banner, and walks you through 12 step
 | **7. Install skills** | Installs built-in `ob-` skills + optional additional skills provider |
 | **8. Choose models** | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing |
 | **9. Token optimization tools** | Optional (recommended). One checklist step for RTK check, opencode-quota setup, and caveman install (all preselected) |
-| **11. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
-| **12. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details |
+| **10. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
+| **11. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details |
 
 When it finishes, open OpenCode in your project and type:
 
