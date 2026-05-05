@@ -6,30 +6,15 @@ const MARKER_START = '<!-- CAVEMAN-GUIDANCE-START -->'
 const MARKER_END = '<!-- CAVEMAN-GUIDANCE-END -->'
 
 const AGENTS_BLOCK = `${MARKER_START}
-## Caveman Mode (Optional)
+## Caveman Mode
 
-If caveman is installed, prefer concise responses by default to reduce token usage while keeping full technical accuracy.
-
-Treat any of these as a direct trigger to enable concise style:
-- "talk like caveman"
-- "caveman mode"
-- "less tokens please"
-
-When enabled:
-- Keep explanations short and direct
-- Prioritize exact commands, paths, and outcomes
-- Avoid filler, greetings, and repeated context
-
-The user can disable it with phrases like: "normal mode" or "stop caveman".
+caveman mode. Active now. Every response. No revert.
 ${MARKER_END}`
 
 const OPSX_BLOCK = `${MARKER_START}
-## Caveman Output Style
+## Caveman Mode
 
-If the user requests "talk like caveman", "caveman mode", or "less tokens please", keep all status updates concise:
-- Report only key actions, blockers, and next commands
-- Keep completion updates brief and factual
-- Preserve technical precision; compress wording only
+caveman mode. Active now. Every response. No revert.
 ${MARKER_END}`
 
 async function appendBlockIfMissing(filePath, block) {
