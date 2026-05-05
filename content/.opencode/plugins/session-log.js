@@ -2,7 +2,8 @@ import fs from "node:fs"
 import path from "node:path"
 
 const LOG_FILE = ".agents/session-log.json"
-const SPAWN_MATCH_WINDOW_MS = 15000
+const SPAWN_MATCH_WINDOW_MS = 30000
+const UNMATCHED_SESSION_WARN_MS = 30000
 const DEBUG = process.env.SESSION_LOG_DEBUG === "true"
 
 // Per-session state
@@ -12,7 +13,11 @@ const sessionState = new Map()
 const leadTeamBySession = new Map()
 
 // Pending spawn records waiting for a session.created match
+// Each entry: { leadSessionId, at, member, agentType, teamName, spawnedSessionId, intendedSkills }
 const pendingSpawns = []
+
+// spawnedSessionId -> pending spawn (direct correlation fast path)
+const pendingSpawnBySessionId = new Map()
 
 // Team -> completed session snapshots
 const completedByTeam = new Map()
@@ -47,12 +52,48 @@ function resolveAgentName(session) {
   return "lead"
 }
 
+function resolveModel(session) {
+  // Try common field names used by OpenCode session objects
+  return session?.model || session?.modelId || session?.model_id || null
+}
+
 function addSkillToState(state, skillName) {
   if (!skillName || !state) return false
   if (!state.skills) state.skills = new Set()
   if (state.skills.has(skillName)) return false
   state.skills.add(skillName)
   return true
+}
+
+// Extract skill names hinted in a spawn prompt by scanning for known skill-like tokens.
+// Matches strings that look like skill directory names (kebab-case words after "skill" keyword
+// or adjacent to known skill name patterns).
+function extractIntendedSkills(prompt) {
+  if (!prompt || typeof prompt !== "string") return []
+  const skills = new Set()
+
+  // Match explicit skill name mentions: e.g. "ob-pullrequest-gh", "browser-automation"
+  const kebabPattern = /\b([a-z][a-z0-9]*(?:-[a-z0-9]+){1,})\b/g
+  let m
+  while ((m = kebabPattern.exec(prompt)) !== null) {
+    const candidate = m[1]
+    // Filter to plausible skill names: 2+ segments, known prefixes or suffixes
+    if (
+      candidate.startsWith("ob-") ||
+      candidate.startsWith("openspec-") ||
+      candidate.startsWith("browser-") ||
+      candidate.endsWith("-gh") ||
+      candidate.endsWith("-az") ||
+      candidate.endsWith("-automation") ||
+      candidate.endsWith("-change") ||
+      candidate.endsWith("-engineer") ||
+      candidate.endsWith("-manager") ||
+      candidate.endsWith("-auditor")
+    ) {
+      skills.add(candidate)
+    }
+  }
+  return Array.from(skills).sort()
 }
 
 function toNum(v) {
@@ -133,7 +174,9 @@ function buildCompletedSnapshot(state, sessionId) {
     member: state.member || null,
     agentType: state.agentType || null,
     team: state.teamName || null,
+    model: state.model || null,
     skills: Array.from(state.skills || []).sort(),
+    intendedSkills: state.intendedSkills || [],
     usage: usagePayload(state),
     filesEdited: state.editCount || 0,
   }
@@ -144,14 +187,21 @@ function buildTeamSkillsSummary(teamName) {
   const byAgent = {}
   for (const row of rows) {
     const key = row.member || row.agent || "unknown"
-    if (!byAgent[key]) byAgent[key] = { agentType: row.agentType || null, skills: new Set() }
+    if (!byAgent[key]) byAgent[key] = { agentType: row.agentType || null, model: row.model || null, skills: new Set(), intendedSkills: new Set() }
     for (const s of row.skills || []) byAgent[key].skills.add(s)
+    for (const s of row.intendedSkills || []) byAgent[key].intendedSkills.add(s)
   }
   const out = {}
   for (const [k, v] of Object.entries(byAgent)) {
+    const skills = Array.from(v.skills).sort()
+    const intendedSkills = Array.from(v.intendedSkills).sort()
+    const missingSkills = intendedSkills.filter(s => !v.skills.has(s))
     out[k] = {
       agentType: v.agentType,
-      skills: Array.from(v.skills).sort(),
+      model: v.model,
+      skills,
+      intendedSkills,
+      missingSkills: missingSkills.length > 0 ? missingSkills : undefined,
     }
   }
   return out
@@ -163,21 +213,52 @@ function trackCompletedByTeam(snapshot) {
   completedByTeam.get(snapshot.team).push(snapshot)
 }
 
-function enqueuePendingSpawn(leadSessionId, args) {
-  pendingSpawns.push({
+function enqueuePendingSpawn(leadSessionId, args, spawnOutput) {
+  // Try to extract spawnedSessionId from team_spawn output for direct correlation
+  const spawnedSessionId =
+    spawnOutput?.sessionId ||
+    spawnOutput?.session_id ||
+    spawnOutput?.id ||
+    spawnOutput?.data?.sessionId ||
+    spawnOutput?.data?.session_id ||
+    spawnOutput?.data?.id ||
+    null
+
+  const record = {
     leadSessionId,
     at: nowMs(),
     member: args?.name || null,
     agentType: args?.agent || null,
     teamName: leadTeamBySession.get(leadSessionId) || null,
-  })
+    spawnedSessionId,
+    intendedSkills: extractIntendedSkills(args?.prompt),
+  }
+
+  pendingSpawns.push(record)
+
+  if (spawnedSessionId) {
+    pendingSpawnBySessionId.set(spawnedSessionId, record)
+  }
 }
 
-function matchPendingSpawn() {
+function matchPendingSpawn(sessionId) {
   const now = nowMs()
-  // Drop expired pending spawns first
+
+  // Fast path: direct session ID correlation from team_spawn output
+  if (sessionId && pendingSpawnBySessionId.has(sessionId)) {
+    const record = pendingSpawnBySessionId.get(sessionId)
+    pendingSpawnBySessionId.delete(sessionId)
+    const idx = pendingSpawns.indexOf(record)
+    if (idx !== -1) pendingSpawns.splice(idx, 1)
+    return record
+  }
+
+  // Fallback: time-window heuristic (drop expired first)
   for (let i = pendingSpawns.length - 1; i >= 0; i--) {
-    if (now - pendingSpawns[i].at > SPAWN_MATCH_WINDOW_MS) pendingSpawns.splice(i, 1)
+    if (now - pendingSpawns[i].at > SPAWN_MATCH_WINDOW_MS) {
+      pendingSpawnBySessionId.delete(pendingSpawns[i].spawnedSessionId)
+      pendingSpawns.splice(i, 1)
+    }
   }
   if (pendingSpawns.length === 0) return null
   return pendingSpawns.shift()
@@ -210,13 +291,16 @@ export const SessionLogPlugin = async ({ client, directory }) => {
           const res = await client.session.get({ path: { id: sessionId } })
           const session = res?.data
           const fallbackAgent = resolveAgentName(session)
-          const spawnMatch = matchPendingSpawn()
+          const model = resolveModel(session)
+          const spawnMatch = matchPendingSpawn(sessionId)
 
           const state = {
             agentName: spawnMatch?.member || fallbackAgent,
             member: spawnMatch?.member || null,
             agentType: spawnMatch?.agentType || null,
             teamName: spawnMatch?.teamName || null,
+            model,
+            intendedSkills: spawnMatch?.intendedSkills || [],
             editCount: 0,
             skills: new Set(),
             startedAtMs: nowMs(),
@@ -226,18 +310,56 @@ export const SessionLogPlugin = async ({ client, directory }) => {
             reportedInputTokens: 0,
             reportedOutputTokens: 0,
             reportedTotalTokens: 0,
+            // Track whether this session was matched to a spawn record
+            spawnMatched: !!spawnMatch,
           }
 
           sessionState.set(sessionId, state)
-          appendEntry(directory, {
+
+          const startedEntry = {
             ts: ts(),
             agent: state.agentName,
             member: state.member,
             agentType: state.agentType,
             team: state.teamName,
+            model: state.model,
             action: "started",
             sessionId,
-          })
+          }
+          appendEntry(directory, startedEntry)
+
+          // Emit explicit teammate-registered entry when a spawn is matched
+          if (spawnMatch) {
+            appendEntry(directory, {
+              ts: ts(),
+              agent: state.agentName,
+              member: state.member,
+              agentType: state.agentType,
+              team: state.teamName,
+              model: state.model,
+              intendedSkills: state.intendedSkills,
+              action: "teammate-registered",
+              sessionId,
+              correlationMethod: spawnMatch.spawnedSessionId === sessionId ? "direct" : "time-window",
+            })
+          } else {
+            // No spawn match — schedule an unmatched-session warning
+            const capturedSessionId = sessionId
+            setTimeout(() => {
+              const s = sessionState.get(capturedSessionId)
+              if (!s || s.spawnMatched) return
+              appendEntry(directory, {
+                ts: ts(),
+                agent: s.agentName,
+                member: s.member,
+                team: s.teamName,
+                model: s.model,
+                action: "unmatched-session",
+                sessionId: capturedSessionId,
+                warning: "Session started with no matching team_spawn record. Agent identity may be inaccurate.",
+              })
+            }, UNMATCHED_SESSION_WARN_MS)
+          }
         }
 
         if (event?.type === "file.edited") {
@@ -261,9 +383,11 @@ export const SessionLogPlugin = async ({ client, directory }) => {
             member: state.member,
             agentType: state.agentType,
             team: state.teamName,
+            model: state.model,
             action: "completed",
             filesEdited: state.editCount,
             skills,
+            intendedSkills: state.intendedSkills,
             usage,
           })
 
@@ -321,6 +445,7 @@ export const SessionLogPlugin = async ({ client, directory }) => {
               member: state.member,
               agentType: state.agentType,
               team: state.teamName,
+              model: state.model,
               action: "skill-loaded",
               skill: skillName,
               source: "skill-tool",
@@ -343,6 +468,7 @@ export const SessionLogPlugin = async ({ client, directory }) => {
                 member: state.member,
                 agentType: state.agentType,
                 team: state.teamName,
+                model: state.model,
                 action: "skill-loaded",
                 skill: skillName,
                 source: "read-skill-file",
@@ -362,6 +488,7 @@ export const SessionLogPlugin = async ({ client, directory }) => {
           member: state.member,
           agentType: state.agentType,
           team: state.teamName,
+          model: state.model,
           ...ensembleHandler(args),
         }
         appendEntry(directory, entry)
@@ -372,7 +499,7 @@ export const SessionLogPlugin = async ({ client, directory }) => {
         }
 
         if (tool === "team_spawn") {
-          enqueuePendingSpawn(sessionId, args)
+          enqueuePendingSpawn(sessionId, args, output)
         }
 
         if (tool === "team_cleanup") {
@@ -380,6 +507,7 @@ export const SessionLogPlugin = async ({ client, directory }) => {
           appendEntry(directory, {
             ts: ts(),
             agent: state.agentName,
+            model: state.model,
             action: "team-skills-summary",
             team: teamName || null,
             byAgent: teamName ? buildTeamSkillsSummary(teamName) : {},
