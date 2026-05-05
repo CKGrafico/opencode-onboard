@@ -51,11 +51,11 @@ const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 
       The spawn prompt must contain exactly:
       1. Their name and role on this team
-      2. Which tasks are theirs, list the task IDs and content from the board
+      2. Which tasks are theirs — include the LITERAL task IDs (e.g. "task-abc123") AND the task content for each. Copy them verbatim from the IDs returned by team_tasks_add. Do NOT paraphrase or omit IDs.
       3. Key context they need (summarized from context files, do NOT tell them to read files themselves)
       4. The 6 OpenCode tools they have available (these are OpenCode tools, NOT shell commands, call them directly as tools, never via bash):
          team_claim, team_tasks_complete, team_tasks_list, team_tasks_add, team_message, team_broadcast
-      5. How to proceed: call team_claim tool with the task_id to claim a task before starting it, call team_tasks_complete tool after finishing it, repeat until all their tasks are done, then call team_message tool to notify lead with results or blockers
+      5. How to proceed: for EACH task ID listed above, call team_claim tool with that exact task_id before starting it, call team_tasks_complete tool with that task_id after finishing it, then move to the next task. When all tasks are done or blocked, call team_message to notify lead with results or blockers.
       6. Which skills to load: list the skill names and paths they MUST read before implementing. Example: "Before starting, read \`.agents/skills/next-best-practices/SKILL.md\` and follow its rules for all Next.js code."
 
       Keep spawn prompts under 600 tokens. Do not describe team internals or how ensemble works.
@@ -71,12 +71,13 @@ const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
       (wait for result)
       \`\`\`
 
-      Then immediately send each spawned agent a start message to kick them off:
+      Then immediately send each spawned agent a start message that repeats their task IDs:
       \`\`\`
-      team_message to:"back" text:"Start now. Read all skills listed in your prompt first, confirm loaded skills, then claim your first task with team_claim."
-      team_message to:"front" text:"Start now. Read all skills listed in your prompt first, confirm loaded skills, then claim your first task with team_claim."
-      team_message to:"infra" text:"Start now. Read all skills listed in your prompt first, confirm loaded skills, then claim your first task with team_claim."
+      team_message to:"back" text:"Start now. Load skills first. Your tasks: [task-<id1>] <task1 text>, [task-<id2>] <task2 text>. Call team_claim task_id:<id> for each before starting it."
+      team_message to:"front" text:"Start now. Load skills first. Your tasks: [task-<id3>] <task3 text>. Call team_claim task_id:<id> before starting it."
+      team_message to:"infra" text:"Start now. Load skills first. Your tasks: [task-<id4>] <task4 text>. Call team_claim task_id:<id> before starting it."
       \`\`\`
+      Replace placeholders with REAL task IDs and content. Never send a generic "claim your first task" message without the actual IDs.
 
    **Step 6e.** After sending start messages, tell the user what is running, then STOP and wait.
       Do NOT call team_results, team_status, or team_broadcast in a loop.
@@ -124,7 +125,9 @@ const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 - NEVER call team_spawn before team_tasks_add, tasks must exist before agents are spawned
 - NEVER poll team_results or team_status in a loop, wait for teammates to message you
 - NEVER call team_claim or team_tasks_complete as lead, only agents call these tools
-- ALWAYS pass the task IDs returned by team_tasks_add to each agent's spawn prompt
+- ALWAYS pass the LITERAL task IDs returned by team_tasks_add into each agent's spawn prompt — copy the exact IDs, never paraphrase
+- ALWAYS repeat the same literal task IDs in the team_message start trigger — never send a generic "claim your first task" without the actual IDs
+- NEVER send a start message that omits task IDs; if a task ID is missing from the start message, the agent cannot claim
 - NEVER edit files between team_spawn and team_merge, team_merge blocks on overlapping local changes
 - ALWAYS add every task to the board with team_tasks_add before spawning
 - ALWAYS spawn agents sequentially (wait for each team_spawn result before the next), then send start messages to all of them together

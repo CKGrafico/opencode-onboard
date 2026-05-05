@@ -1,26 +1,25 @@
 #!/usr/bin/env node
 import chalk from 'chalk'
+import fse from 'fs-extra'
 import { createRequire } from 'node:module'
 import path from 'node:path'
-import fse from 'fs-extra'
 import { checkEnv } from './steps/check-env.js'
 import { checkPlatform } from './steps/check-platform.js'
 import { checkRtk } from './steps/check-rtk.js'
 import { chooseModels } from './steps/choose-models.js'
 import { choosePlatform } from './steps/choose-platform.js'
-import { chooseSourceScope } from './steps/choose-source-scope.js'
 import { chooseSkillsProvider } from './steps/choose-skills-provider.js'
+import { chooseSourceScope } from './steps/choose-source-scope.js'
 import { cleanAiFiles } from './steps/clean-ai-files.js'
 import { copyContentStep } from './steps/copy-content.js'
-import { initOpenspec } from './steps/init-openspec.js'
-import { patchAgentsMd } from './steps/patch-agents-md.js'
-import { installQuota } from './steps/install-quota.js'
-import { installCaveman } from './steps/install-caveman.js'
 import { enableCavemanGuidance } from './steps/enable-caveman-guidance.js'
+import { initOpenspec } from './steps/init-openspec.js'
 import { installBrowser } from './steps/install-browser.js'
-import { writeOnboardConfig } from './steps/write-onboard-config.js'
-import { loading } from './utils/exec.js'
+import { installCaveman } from './steps/install-caveman.js'
+import { installQuota } from './steps/install-quota.js'
+import { patchAgentsMd } from './steps/patch-agents-md.js'
 import { tokenOptimizationStep } from './steps/token-optimization.js'
+import { writeOnboardConfig } from './steps/write-onboard-config.js'
 
 function printHelp(version) {
   console.log(`opencode-onboard v${version}`)
@@ -70,78 +69,60 @@ async function runSingleCommand(command) {
   const platform = savedWizard?.platform
   const resolvedPlatform = platform === 'azure' || platform === 'github' ? platform : 'github'
 
-  if (command === 'clean') {
-    await cleanAiFiles()
-    return true
+  const handlers = {
+    clean: async () => {
+      await cleanAiFiles()
+    },
+    platform: async () => {
+      await choosePlatform()
+    },
+    copy: async () => {
+      await copyContentStep(resolvedPlatform, ctx)
+      await patchAgentsMd(ctx)
+    },
+    openspec: async () => {
+      await initOpenspec()
+    },
+    skills: async () => {
+      await chooseSkillsProvider()
+    },
+    models: async () => {
+      await chooseModels()
+    },
+    optimization: async () => {
+      await tokenOptimizationStep({ skillsProvider: savedWizard?.additionalSkillsProvider })
+    },
+    quota: async () => {
+      await installQuota()
+    },
+    rtk: async () => {
+      await checkRtk()
+    },
+    caveman: async () => {
+      const caveman = await installCaveman({ skillsProvider: savedWizard?.additionalSkillsProvider })
+      await enableCavemanGuidance(caveman)
+    },
+    browser: async () => {
+      await installBrowser()
+    },
+    metadata: async () => {
+      await writeOnboardConfig({
+        ...ctx,
+        platform: resolvedPlatform,
+        additionalSkillsProvider: savedWizard?.additionalSkillsProvider ?? 'none',
+        planModel: savedWizard?.models?.plan ?? null,
+        buildModel: savedWizard?.models?.build ?? null,
+        fastModel: savedWizard?.models?.fast ?? null,
+        optionalTools: savedWizard?.optionalTools ?? null,
+        cavemanGuidance: savedWizard?.cavemanGuidance ?? null,
+      })
+    },
   }
 
-  if (command === 'platform') {
-    await choosePlatform()
-    return true
-  }
-
-  if (command === 'copy') {
-    await copyContentStep(resolvedPlatform, ctx)
-    await patchAgentsMd(ctx)
-    return true
-  }
-
-  if (command === 'openspec') {
-    await initOpenspec()
-    return true
-  }
-
-  if (command === 'skills') {
-    await chooseSkillsProvider()
-    return true
-  }
-
-  if (command === 'models') {
-    await chooseModels()
-    return true
-  }
-
-  if (command === 'optimization') {
-    await tokenOptimizationStep({ skillsProvider: savedWizard?.additionalSkillsProvider })
-    return true
-  }
-
-  if (command === 'quota') {
-    await installQuota()
-    return true
-  }
-
-  if (command === 'rtk') {
-    await checkRtk()
-    return true
-  }
-
-  if (command === 'caveman') {
-    const caveman = await installCaveman({ skillsProvider: savedWizard?.additionalSkillsProvider })
-    await enableCavemanGuidance(caveman)
-    return true
-  }
-
-  if (command === 'browser') {
-    await installBrowser()
-    return true
-  }
-
-  if (command === 'metadata') {
-    await writeOnboardConfig({
-      ...ctx,
-      platform: resolvedPlatform,
-      additionalSkillsProvider: savedWizard?.additionalSkillsProvider ?? 'none',
-      planModel: savedWizard?.models?.plan ?? null,
-      buildModel: savedWizard?.models?.build ?? null,
-      fastModel: savedWizard?.models?.fast ?? null,
-      optionalTools: savedWizard?.optionalTools ?? null,
-      cavemanGuidance: savedWizard?.cavemanGuidance ?? null,
-    })
-    return true
-  }
-
-  return false
+  const handler = handlers[command]
+  if (!handler) return false
+  await handler()
+  return true
 }
 
 if (process.stdout.isTTY) console.clear()
@@ -205,57 +186,32 @@ if (process.stdin.isTTY) {
 }
 
 try {
-  // 1. Check Node + pnpm
   await checkEnv()
-  loading('preparing next step...')
 
-  // 2. Choose source code scope for init analysis
   const scope = await chooseSourceScope()
-  loading('preparing next step...')
 
-  // 3. Clean existing AI config files, detect preserved state
   const preserve = await cleanAiFiles()
   const ctx = { ...preserve, ...scope }
-  loading('preparing next step...')
 
-  // 4. Choose platform
   const platform = await choosePlatform()
-  loading('preparing next step...')
-
-  // 5. Check platform CLI (az or gh)
+  
   await checkPlatform(platform)
-  loading('preparing next step...')
 
-  // 6. Copy content
   await copyContentStep(platform, ctx)
-  loading('preparing next step...')
 
-  // 6b. Patch AGENTS.md to skip steps for already-existing files
   await patchAgentsMd(ctx)
-  loading('preparing next step...')
 
-  // 7. Init OpenSpec
   await initOpenspec()
-  loading('preparing next step...')
 
-  // 8. Install skills
   const skillsSelection = await chooseSkillsProvider()
-  loading('preparing next step...')
-
-  // 9. Choose models
+  
   const selectedModels = await chooseModels()
-  loading('preparing next step...')
 
-  // 10. Token optimization tools
   const tokenOpt = await tokenOptimizationStep({ skillsProvider: skillsSelection.additionalSkillsProvider })
   const { rtk, quota, caveman, cavemanGuidance } = tokenOpt
-  loading('preparing next step...')
 
-  // 11. Install opencode-browser
   await installBrowser()
-  loading('preparing next step...')
 
-  // 12. Write onboarding metadata
   await writeOnboardConfig({
     ...ctx,
     platform,
@@ -265,7 +221,6 @@ try {
     cavemanGuidance,
   })
 
-  // Done
   const toGenerate = [
     !ctx.hasDesign && 'DESIGN.md',
     !ctx.hasArchitecture && 'ARCHITECTURE.md',

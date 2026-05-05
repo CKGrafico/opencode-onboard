@@ -299,6 +299,8 @@ Skills are located in `.agents/skills/`. Each skill has a `SKILL.md` with a desc
 Format: `feature/{issue-id}-{slug}`
 Example: `feature/42-add-user-auth`
 
+When `## Source Roots` lists multiple roots, each root is an independent git repository. The same branch name must be created in every repo that will have changes. Git operations (`branch`, `commit`, `push`) run once per repository — there is no shared git history.
+
 ---
 
 ## Project Structure
@@ -348,6 +350,8 @@ Agents CANNOT:
 - ❌ Force push, FORBIDDEN
 - ❌ Merge PRs, human-only
 - ❌ Create or delete branches other than `feature/*`
+
+**Multi-repo**: When `## Source Roots` lists multiple roots, each is an independent git repository with its own history. All `rtk git` commands must be issued per repository. Never assume one `git` context covers all repos. Create the feature branch in each repo, commit per repo, push per repo, open one PR per repo.
 
 ### Platform CLI
 

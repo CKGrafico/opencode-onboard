@@ -1,6 +1,6 @@
+import fse from 'fs-extra'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import fse from 'fs-extra'
 import { copyContent } from '../utils/copy.js'
 import { error, header, success } from '../utils/exec.js'
 
@@ -12,7 +12,7 @@ function formatRootsForText(roots = [], cwd = process.cwd()) {
   return roots.map(r => {
     const rel = path.relative(cwd, r)
     if (!rel || rel === '') return 'current folder'
-    if (!rel.startsWith('..')) return `./${rel.replace(/\\/g, '/')}`
+    if (!rel.startsWith('..')) return rel
     return rel.replace(/\\/g, '/')
   })
 }

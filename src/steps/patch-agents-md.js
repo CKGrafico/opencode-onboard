@@ -18,9 +18,12 @@ const AGENT_FILES = [
 function buildSourceRootsBlock(sourceRoots, cwd) {
   const bullets = sourceRoots.map(r => {
     const rel = path.relative(cwd, r).replace(/\\/g, '/')
-    return `- \`${rel}\` (${r.replace(/\\/g, '/')})`
+    return `- \`${rel}\``
   }).join('\n')
-  return `## Source Roots\n\nThe user selected these source repositories during onboarding.\nSearch and read code ONLY from these roots — do not assume code lives in the current folder.\n\n${bullets}\n`
+  const multiRepoNote = sourceRoots.length > 1
+    ? `\nEach root is an independent git repository. When branching, committing, or pushing, ALL repositories must be operated separately — create the feature branch in each repo, commit changes per repo, and push each repo independently. There is no single repo; \`rtk git\` commands must be run once per repository root.\n`
+    : ''
+  return `## Source Roots\n\nThe user selected these source repositories during onboarding.\nSearch and read code ONLY from these roots — do not assume code lives in the current folder.\n${multiRepoNote}\n${bullets}\n`
 }
 
 /**

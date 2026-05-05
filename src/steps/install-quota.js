@@ -1,9 +1,9 @@
 import { confirm } from '@inquirer/prompts'
 import fse from 'fs-extra'
 import path from 'node:path'
-import { header, success, warn, error, loading, info } from '../utils/exec.js'
+import { error, header, info, loading, success, warn } from '../utils/exec.js'
 
-const PLUGIN = '@slkiser/opencode-quota'
+const PLUGIN = '@slkiser/opencode-quota@latest'
 
 function ensurePlugin(config) {
   if (!Array.isArray(config.plugin)) config.plugin = []

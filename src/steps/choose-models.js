@@ -131,9 +131,9 @@ export async function chooseModels() {
   const opencodeJsonPath = path.join(process.cwd(), '.opencode', 'opencode.json')
   if (await fse.pathExists(opencodeJsonPath)) {
     const config = await fse.readJson(opencodeJsonPath)
-    config.model = planModel
+    config.model = buildModel
     await fse.writeJson(opencodeJsonPath, config, { spaces: 2 })
-    success(`plan model -> ${planModel} (written to .opencode/opencode.json)`)
+    success(`default model -> ${buildModel} (written to .opencode/opencode.json)`)
   }
 
   // Write build and fast models to ensemble.json
@@ -143,10 +143,12 @@ export async function chooseModels() {
     delete ensemble.defaultModel
     ensemble.modelsByAgent = {
       ...ensemble.modelsByAgent,
+      plan: planModel,
       build: buildModel,
       explore: fastModel,
     }
     await fse.writeJson(ensembleJsonPath, ensemble, { spaces: 2 })
+    success(`plan model -> ${planModel} (written to .opencode/ensemble.json)`)
     success(`build model -> ${buildModel} (written to .opencode/ensemble.json)`)
     success(`fast model -> ${fastModel} (written to .opencode/ensemble.json)`)
   }
