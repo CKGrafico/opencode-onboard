@@ -2,6 +2,67 @@ import fse from 'fs-extra'
 import path from 'path'
 import { info, success } from '../utils/exec.js'
 
+// Agent files that receive a Source Roots injection when parent folders are selected
+const AGENT_FILES = [
+  '.agents/agents/front-engineer.md',
+  '.agents/agents/back-engineer.md',
+  '.agents/agents/infra-engineer.md',
+  '.agents/agents/quality-engineer.md',
+  '.agents/agents/security-auditor.md',
+  '.agents/agents/devops-manager.md',
+]
+
+/**
+ * Build a markdown Source Roots block from an array of absolute paths.
+ */
+function buildSourceRootsBlock(sourceRoots, cwd) {
+  const bullets = sourceRoots.map(r => {
+    const rel = path.relative(cwd, r).replace(/\\/g, '/')
+    return `- \`${rel}\` (${r.replace(/\\/g, '/')})`
+  }).join('\n')
+  return `## Source Roots\n\nThe user selected these source repositories during onboarding.\nSearch and read code ONLY from these roots — do not assume code lives in the current folder.\n\n${bullets}\n`
+}
+
+/**
+ * Inject source roots into AGENTS.md (replaces the generic Source Scope section)
+ * and into every agent file (inserts after the ## Domain section).
+ */
+async function patchSourceRootsIntoAgents(cwd, sourceRoots) {
+  const block = buildSourceRootsBlock(sourceRoots, cwd)
+
+  // --- AGENTS.md: replace the ## Source Scope section ---
+  const agentsMdPath = path.join(cwd, 'AGENTS.md')
+  if (await fse.pathExists(agentsMdPath)) {
+    let content = await fse.readFile(agentsMdPath, 'utf-8')
+    // Replace the generic section between ## Source Scope and the next ## heading
+    content = content.replace(
+      /## Source Scope\n[\s\S]*?(?=\n## )/,
+      `## Source Roots\n\n${block.replace('## Source Roots\n\n', '')}\n`
+    )
+    await fse.writeFile(agentsMdPath, content, 'utf-8')
+    info('AGENTS.md: Source Roots section injected')
+  }
+
+  // --- Agent files: insert ## Source Roots after ## Domain section ---
+  for (const relFile of AGENT_FILES) {
+    const agentPath = path.join(cwd, relFile)
+    if (!await fse.pathExists(agentPath)) continue
+
+    let content = await fse.readFile(agentPath, 'utf-8')
+
+    // Skip if already patched
+    if (content.includes('## Source Roots')) continue
+
+    // Insert after the ## Domain section (after its paragraph block, before next ##)
+    content = content.replace(
+      /(## Domain\n[\s\S]*?)(\n## )/,
+      `$1\n${block}\n## `
+    )
+    await fse.writeFile(agentPath, content, 'utf-8')
+    info(`${path.basename(agentPath)}: Source Roots section injected`)
+  }
+}
+
 // Each block is identified by its heading line. We remove from the heading up to (and including) the next `---` separator.
 const STEP1_HEADING = '### Step 1, Archive project history into OpenSpec'
 const STEP2_HEADING = '### Step 2, Generate DESIGN.md'
@@ -75,11 +136,15 @@ export async function patchAgentsMd(ctx) {
     patches.push('Step 3 (ARCHITECTURE.md) removed, ARCHITECTURE.md already exists')
   }
 
-  if (patches.length === 0) return
+  if (patches.length > 0) {
+    content = renumberSteps(content)
+    await fse.writeFile(agentsMdPath, content, 'utf-8')
+    for (const msg of patches) info(msg)
+    success('AGENTS.md patched for existing project state')
+  }
 
-  content = renumberSteps(content)
-  await fse.writeFile(agentsMdPath, content, 'utf-8')
-
-  for (const msg of patches) info(msg)
-  success('AGENTS.md patched for existing project state')
+  if (ctx.sourceMode === 'parent-selected' && Array.isArray(ctx.sourceRoots) && ctx.sourceRoots.length > 0) {
+    await patchSourceRootsIntoAgents(process.cwd(), ctx.sourceRoots)
+    success('Source roots injected into AGENTS.md and agent files')
+  }
 }
