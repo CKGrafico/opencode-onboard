@@ -92,7 +92,14 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
       DO NOT call team_claim yourself, only agents claim tasks.
       DO NOT proceed to 6d until team_tasks_add succeeds.
 
-   **Step 6d.** Spawn all needed specialists, then kick them off in parallel.
+   **Step 6d.** Discover relevant skills, then spawn specialists.
+
+      Before spawning, scan `.agents/skills/` and read each `SKILL.md` description line.
+      Match skills to agents by domain:
+      - front-engineer: UI, components, framework skills (e.g. next-best-practices, browser-automation)
+      - back-engineer: API, data, service skills
+      - infra-engineer: cloud, pipeline, deployment skills
+      - quality-engineer: testing, coverage skills
 
       Each team_spawn MUST include the agent field (required, causes NOT NULL error if omitted).
 
@@ -103,8 +110,9 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
       4. The 6 OpenCode tools they have available (these are OpenCode tools, NOT shell commands, call them directly as tools, never via bash):
          team_claim, team_tasks_complete, team_tasks_list, team_tasks_add, team_message, team_broadcast
       5. How to proceed: call team_claim tool with the task_id to claim a task before starting it, call team_tasks_complete tool after finishing it, repeat until all their tasks are done, then call team_message tool to notify lead with results or blockers
+      6. Which skills to load: list the skill names and paths they MUST read before implementing. Example: "Before starting, read `.agents/skills/next-best-practices/SKILL.md` and follow its rules for all Next.js code."
 
-      Keep spawn prompts under 500 tokens. Do not describe team internals or how ensemble works.
+      Keep spawn prompts under 600 tokens. Do not describe team internals or how ensemble works.
       Only spawn agents whose tasks are actually needed by this change. Skip agents with no tasks.
 
       First spawn all agents (wait for each team_spawn to confirm before the next):
@@ -119,9 +127,9 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 
       Then immediately send each spawned agent a start message to kick them off:
       ```
-      team_message to:"back" text:"Start now. Claim your first task with team_claim and begin implementing."
-      team_message to:"front" text:"Start now. Claim your first task with team_claim and begin implementing."
-      team_message to:"infra" text:"Start now. Claim your first task with team_claim and begin implementing."
+      team_message to:"back" text:"Start now. Read all skills listed in your prompt first, confirm loaded skills, then claim your first task with team_claim."
+      team_message to:"front" text:"Start now. Read all skills listed in your prompt first, confirm loaded skills, then claim your first task with team_claim."
+      team_message to:"infra" text:"Start now. Read all skills listed in your prompt first, confirm loaded skills, then claim your first task with team_claim."
       ```
 
    **Step 6e.** After sending start messages, tell the user what is running, then STOP and wait.

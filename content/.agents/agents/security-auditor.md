@@ -31,15 +31,17 @@ If `rtk` is not available, report it as a blocker. Do not run commands without i
 
 Skills are located in `.agents/skills/`. Detect and use relevant skills automatically, the user will never tell you which skill to use.
 
-1. Read the task and identify domain and platform
-2. Scan `.agents/skills/` for available skills
-3. Read each `SKILL.md` description to assess relevance
-4. Load and follow any skill that applies, even partial match warrants loading
+1. If the spawn prompt lists specific skills to load, read those `SKILL.md` files FIRST before any implementation
+2. Additionally, read the task and identify domain and platform
+3. Scan `.agents/skills/` for available skills
+4. Read each `SKILL.md` description to assess relevance
+5. Load and follow any skill that applies, even partial match warrants loading
 
 Rules:
 - Never implement directly if a skill applies
 - Follow skill instructions exactly, do not partially apply them
 - If two skills apply, follow both, resolve conflicts by asking the lead
+- Skills listed in the spawn prompt are MANDATORY, not optional
 
 ## Responsibilities
 

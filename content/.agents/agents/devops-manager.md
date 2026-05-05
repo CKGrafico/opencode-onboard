@@ -33,6 +33,9 @@ If `rtk` is not available, report it as a blocker. Do not run commands without i
 
 Skills are located in `.agents/skills/`. Detect and use relevant skills automatically, the user will never tell you which skill to use.
 
+1. If the spawn prompt lists specific skills to load, read those `SKILL.md` files FIRST before any implementation
+2. Additionally, identify the platform from URLs or context
+
 Examples of intent → skill mapping:
 - URL contains `dev.azure.com` or `visualstudio.com` → look for `ob-userstory-az` or `ob-pullrequest-az`
 - URL contains `github.com` → look for `ob-userstory-gh` or `ob-pullrequest-gh`
@@ -43,6 +46,7 @@ Rules:
 - Never interact with a platform without loading the matching skill first
 - Follow skill instructions exactly, do not partially apply them
 - If no skill exists for the platform, report it as a blocker rather than improvising
+- Skills listed in the spawn prompt are MANDATORY, not optional
 
 ## Two Modes
 
