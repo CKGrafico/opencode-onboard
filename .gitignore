@@ -1,3 +1,5 @@
 /node_modules
 /.vscode
 /test
+/.agents/session-log.json
+/content/.agents/session-log.json

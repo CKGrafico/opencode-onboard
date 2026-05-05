@@ -131,7 +131,7 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 
    Spawn quality engineer with worktree:false (read-only, no file edits):
    ```
-   team_spawn name:"quality" agent:"quality-engineer" worktree:false prompt:"<task list, context summary, run tests + build + lint + verify acceptance criteria, send results to lead when done>"
+   team_spawn name:"quality" agent:"quality-engineer" worktree:false prompt:"<verification scope, context summary, run tests + build + lint + verify acceptance criteria, no task claiming required in this phase, send results to lead when done>"
    ```
    Wait for message → team_results → fix blockers → team_shutdown (no team_merge needed, worktree:false)
 

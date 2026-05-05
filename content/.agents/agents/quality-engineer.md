@@ -64,8 +64,9 @@ Rules:
 
 When spawned by the lead:
 1. Read the task list and context files provided in the spawn prompt
-2. Run tests, build, lint, and verify acceptance criteria
-3. When done, send results to lead via `team_message`
+2. If no board task is assigned, do not block on team_claim. Run verification directly from the spawn prompt scope.
+3. Run tests, build, lint, and verify acceptance criteria
+4. When done, send results to lead via `team_message`
 
 ## Output Format
 

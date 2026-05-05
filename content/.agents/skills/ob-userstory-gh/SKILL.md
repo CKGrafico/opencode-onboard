@@ -80,16 +80,16 @@ rtk gh issue edit <number> --repo {owner}/{repo} --add-label "in-progress"
 
 ## Screenshot / Image Strategy
 
-**Never embed images as attachments.** Save to openspec change folder and reference via raw GitHub URL.
+**Never embed images as attachments.** Save to openspec change folder and reference via GitHub blob URL pinned to commit SHA.
 
 ### Save location
 ```
 openspec/changes/{change-name}/images/{screenshot}.png
 ```
 
-### Raw URL format (renders inline in PR comments)
+### Blob URL format (preferred)
 ```
-https://raw.githubusercontent.com/{owner}/{repo}/{branch}/openspec/changes/{change}/images/{file}.png
+https://github.com/{owner}/{repo}/blob/{sha}/openspec/changes/{change}/images/{file}.png
 ```
 
 ---
@@ -103,8 +103,8 @@ https://github.com/{owner}/{repo}/issues/{number}
 # PR
 https://github.com/{owner}/{repo}/pull/{number}
 
-# Raw file
-https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
+# Blob file
+https://github.com/{owner}/{repo}/blob/{sha}/{path}
 ```
 
 ---

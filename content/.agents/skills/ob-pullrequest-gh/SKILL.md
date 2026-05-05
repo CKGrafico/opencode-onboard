@@ -65,14 +65,19 @@ rtk gh pr create \
 
 ### Step 5: Post screenshot comment
 
-Build raw URL for each image:
+Resolve commit SHA (the commit that includes screenshots):
+```bash
+rtk git rev-parse HEAD
 ```
-https://raw.githubusercontent.com/{owner}/{repo}/feature/{slug}/openspec/changes/{change}/images/{file}.png
+
+Build blob URL for each image (preferred, stable in PR discussion):
+```
+https://github.com/{owner}/{repo}/blob/{sha}/openspec/changes/{change}/images/{file}.png
 ```
 
 Post comment:
 ```bash
-rtk gh pr comment {pr-number} --body $'## Screenshots\n\n![{feature}]({raw-url})'
+rtk gh pr comment {pr-number} --repo {owner}/{repo} --body $'## Screenshots\n\n![{feature}]({blob-url})'
 ```
 
 ---
