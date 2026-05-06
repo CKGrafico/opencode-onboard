@@ -1,5 +1,5 @@
 ---
-description: Basic Engineer Agent designed to handle development, testing, and infrastructure tasks with guardrails for safe operations.
+description: Basic Engineer Agent.
 mode: subagent
 color: #68A063
 temperature: 0.2

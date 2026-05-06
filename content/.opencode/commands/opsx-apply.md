@@ -58,7 +58,7 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 
 6. **Implement via ensemble team**
 
-   NEVER implement tasks directly. Always delegate to specialists via ensemble.
+   NEVER implement tasks directly. Always delegate to engineer workers via ensemble.
    Do NOT touch any source files before the team is running, not even a single edit.
 
    Steps MUST be followed in order. Do not skip any step.
@@ -86,20 +86,40 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
       DO NOT call team_claim yourself, only agents claim tasks.
       DO NOT proceed to 6d until team_tasks_add succeeds.
 
-   **Step 6d.** Discover relevant skills, then spawn specialists.
+   **Step 6d.** Discover available agents, assign tasks by best fit, then spawn workers.
 
-      Before spawning, scan `.agents/skills/` and read each `SKILL.md` description line.
-      Match skills to agents by domain:
-      - front-engineer: UI, components, framework skills (e.g. next-best-practices, browser-automation)
-      - back-engineer: API, data, service skills
-      - infra-engineer: cloud, pipeline, deployment skills
-      - quality-engineer: testing, coverage skills
+      Agent discovery and assignment rule:
+      - Read `.agents/agents/*.md` and use each agent's `description` and `## Abilities` to understand specialization.
+      - For each task ID, choose the best-fit agent based on task domain (backend, frontend, infra, testing, etc.).
+      - Prefer specialized agents when available; use `basic-engineer` as fallback only.
+      - Only spawn agents that have assigned task IDs.
+
+      REQUIRED assignment algorithm (do not skip):
+      1. Build candidate list from `.agents/agents/*.md` excluding `devops-manager`.
+      2. Classify each task by domain using task text (api/backend, ui/frontend, infra/devops, testing/qa).
+      3. For each task, score every candidate agent:
+         - +3 if agent description explicitly matches domain
+         - +2 if agent `## Abilities` include domain-relevant skills
+         - +1 if prior tasks of same domain already assigned to that agent (cohesion)
+      4. Assign task to highest-score agent.
+      5. Use `basic-engineer` ONLY when no specialized agent has positive score.
+      6. If all tasks go to `basic-engineer`, you MUST explain why no specialist matched.
+
+      HARD RULES:
+      - NEVER assign a task to `basic-engineer` if a specialized agent has higher score.
+      - NEVER skip agent discovery from `.agents/agents/*.md`.
+      - ALWAYS include assignment rationale in spawn prompt: "Selected because <domain match>".
+
+      Skill loading is worker-driven:
+      - The spawned agent MUST load `@ob-global` first.
+      - Then it MUST load skills from its own `## Abilities` for the claimed task domain.
 
       Each team_spawn MUST include the agent field (required, causes NOT NULL error if omitted).
 
       The spawn prompt must contain exactly:
       1. Their name and role on this team
       2. Which tasks are theirs, list the task IDs and content from the board
+      2.1 Why they were selected for those tasks (domain/abilities match)
       3. Key context they need (summarized from context files, do NOT tell them to read files themselves)
       4. The 6 OpenCode tools they have available (these are OpenCode tools, NOT shell commands, call them directly as tools, never via bash):
          team_claim, team_tasks_complete, team_tasks_list, team_tasks_add, team_message, team_broadcast
@@ -109,21 +129,18 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
       Keep spawn prompts under 600 tokens. Do not describe team internals or how ensemble works.
       Only spawn agents whose tasks are actually needed by this change. Skip agents with no tasks.
 
-      First spawn all agents (wait for each team_spawn to confirm before the next):
+      Spawn one or more best-fit workers (parallel when dependencies allow):
       ```
-      team_spawn name:"back" agent:"back-engineer" prompt:"..."
-      (wait for result)
-      team_spawn name:"front" agent:"front-engineer" prompt:"..."
-      (wait for result)
-      team_spawn name:"infra" agent:"infra-engineer" prompt:"..."
-      (wait for result)
+      team_spawn name:"eng-1" agent:"backend-engineer" prompt:"..."
+      team_spawn name:"eng-2" agent:"frontend-engineer" prompt:"..."
+      team_spawn name:"eng-3" agent:"basic-engineer" prompt:"..."
       ```
 
-      Then immediately send each spawned agent a start message to kick them off:
+      Then immediately send each spawned worker a start message with exact task IDs:
       ```
-      team_message to:"back" text:"Start now. Read all skills listed in your prompt first, confirm loaded skills, then claim your first task with team_claim."
-      team_message to:"front" text:"Start now. Read all skills listed in your prompt first, confirm loaded skills, then claim your first task with team_claim."
-      team_message to:"infra" text:"Start now. Read all skills listed in your prompt first, confirm loaded skills, then claim your first task with team_claim."
+      team_message to:"eng-1" text:"Start now. Load @ob-global first, then use your agent `## Abilities` for these tasks: [task-<id1>] ... Claim each task ID before starting."
+      team_message to:"eng-2" text:"Start now. Load @ob-global first, then use your agent `## Abilities` for these tasks: [task-<id2>] ... Claim each task ID before starting."
+      team_message to:"eng-3" text:"Start now. Load @ob-global first, then use your agent `## Abilities` for these tasks: [task-<id3>] ... Claim each task ID before starting."
       ```
 
    **Step 6e.** After sending start messages, tell the user what is running, then STOP and wait.
@@ -135,13 +152,13 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
       If team_merge blocks ("overlapping local changes"), commit or stash your local changes first, then retry.
       Fix any other blockers reported.
 
-7. **Quality check**
+7. **Verification check**
 
-   Spawn quality engineer with worktree:false (read-only, no file edits):
-   ```
-   team_spawn name:"quality" agent:"quality-engineer" worktree:false prompt:"<verification scope, context summary, run tests + build + lint + verify acceptance criteria, no task claiming required in this phase, send results to lead when done>"
-   ```
-   Wait for message → team_results → fix blockers → team_shutdown (no team_merge needed, worktree:false)
+   Run verification tasks (tests/build/lint) using a worker suited for verification scope:
+   - either same engineer workers
+   - or a dedicated verifier worker if your project defines one
+
+   Wait for results → fix blockers.
 
 8. **Mark tasks complete in openspec**
 
@@ -169,10 +186,10 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 - ALWAYS pass the task IDs returned by team_tasks_add to each agent's spawn prompt
 - NEVER edit files between team_spawn and team_merge, team_merge blocks on overlapping local changes
 - ALWAYS add every task to the board with team_tasks_add before spawning
-- ALWAYS spawn agents sequentially (wait for each team_spawn result before the next), then send start messages to all of them together
+- ALWAYS spawn workers based on dependencies: parallel when safe, sequential when required
 - ALWAYS instruct agents to call team_claim before each task and team_tasks_complete after
 - If teammates are stuck, use team_message to resend tasks, then wait, never implement directly
-- Mark tasks complete in openspec AFTER specialists finish, not before
+- Mark tasks complete in openspec AFTER worker implementation and verification finish, not before
 - Pause on errors, blockers, or unclear requirements. Do not guess
 - Use contextFiles from CLI output, do not assume specific file paths
 - Follow CLI rules from `@ob-global` when present
