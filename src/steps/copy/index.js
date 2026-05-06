@@ -3,7 +3,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { copyContent } from '../../utils/copy.js'
 import { error, header, success } from '../../utils/exec.js'
-import { patchAgentsMd } from './agents.js'
+import { patchAgentsMd, patchDevopsManagerMd } from './agents.js'
 import { installSkills } from './skills.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -22,6 +22,7 @@ export async function copyContentStep(platform, ctx = {}) {
       mode: ctx.sourceMode || 'current',
       roots: ctx.sourceRoots || [dest],
     }, { spaces: 2 })
+    await patchDevopsManagerMd(platform)
     await patchAgentsMd(ctx)
     await installSkills()
     success('Files copied to project root')

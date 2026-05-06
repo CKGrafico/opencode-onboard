@@ -33,8 +33,13 @@ export async function installSkills() {
   console.log()
 
   if (await fse.pathExists(CONTENT_SKILLS_LOCK)) {
-    await fse.copy(CONTENT_SKILLS_LOCK, path.join(process.cwd(), 'skills-lock.json'), { overwrite: true })
-    success('Installed skills-lock.json')
+    const destLock = path.join(process.cwd(), 'skills-lock.json')
+    if (await fse.pathExists(destLock)) {
+      info('skills-lock.json already exists, skipping')
+    } else {
+      await fse.copy(CONTENT_SKILLS_LOCK, destLock)
+      success('Installed skills-lock.json')
+    }
   }
 
   info('Installing npx skills from skills-lock.json...')

@@ -1,6 +1,6 @@
 {
   "name": "opencode-onboard",
-  "version": "0.4.0-",
+  "version": "0.4.0",
   "description": "Prepare any brownfield codebase for AI agent workflows using OpenCode, OpenSpec, and ensemble orchestration.",
   "keywords": [
     "opencode",

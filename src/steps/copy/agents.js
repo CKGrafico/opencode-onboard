@@ -36,6 +36,31 @@ function renumberSteps(content) {
   return content.replace(/^### Step \d+,/gm, () => `### Step ${++counter},`)
 }
 
+const PLATFORM_SKILLS_START = '<!-- OB-PLATFORM-SKILLS-START -->'
+const PLATFORM_SKILLS_END = '<!-- OB-PLATFORM-SKILLS-END -->'
+
+function buildPlatformSkillsSection(platform) {
+  if (platform === 'azure') {
+    return [
+      '- Selected platform: `azure` (from onboarding platform step).',
+      '- Load Azure DevOps skills: `ob-userstory-az`, `ob-pullrequest-az`.',
+      '- Use URL-based platform inference only if onboarding metadata is missing or ambiguous.',
+    ].join('\n')
+  }
+
+  return [
+    '- Selected platform: `github` (from onboarding platform step).',
+    '- Load GitHub skills: `ob-userstory-gh`, `ob-pullrequest-gh`.',
+    '- Use URL-based platform inference only if onboarding metadata is missing or ambiguous.',
+  ].join('\n')
+}
+
+function replaceBetween(content, start, end, replacement) {
+  if (!content.includes(start) || !content.includes(end)) return content
+  const pattern = new RegExp(`${start}[\\s\\S]*?${end}`)
+  return content.replace(pattern, `${start}\n${replacement.trim()}\n${end}`)
+}
+
 export async function patchAgentsMd(ctx) {
   const agentsMdPath = path.join(process.cwd(), 'AGENTS.md')
   if (!await fse.pathExists(agentsMdPath)) return
@@ -67,4 +92,15 @@ export async function patchAgentsMd(ctx) {
     for (const msg of patches) info(msg)
     success('AGENTS.md patched for existing project state')
   }
+}
+
+export async function patchDevopsManagerMd(platform) {
+  const devopsPath = path.join(process.cwd(), '.agents', 'agents', 'devops-manager.md')
+  if (!await fse.pathExists(devopsPath)) return
+
+  const resolved = platform === 'azure' ? 'azure' : 'github'
+  let content = await fse.readFile(devopsPath, 'utf-8')
+  content = replaceBetween(content, PLATFORM_SKILLS_START, PLATFORM_SKILLS_END, buildPlatformSkillsSection(resolved))
+  await fse.writeFile(devopsPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
+  success(`devops-manager.md patched for platform: ${resolved}`)
 }

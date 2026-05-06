@@ -10,6 +10,15 @@ vi.mock('../../utils/copy.js', () => ({
   copyContent: vi.fn(),
 }))
 
+vi.mock('./agents.js', () => ({
+  patchAgentsMd: vi.fn(),
+  patchDevopsManagerMd: vi.fn(),
+}))
+
+vi.mock('./skills.js', () => ({
+  installSkills: vi.fn(),
+}))
+
 import { copyContent } from '../../utils/copy.js'
 import { success, error } from '../../utils/exec.js'
 import { copyContentStep } from './index.js'
