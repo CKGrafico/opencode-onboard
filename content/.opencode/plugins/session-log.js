@@ -343,7 +343,7 @@ export const SessionLogPlugin = async ({ client, directory }) => {
               correlationMethod: spawnMatch.spawnedSessionId === sessionId ? "direct" : "time-window",
             })
           } else {
-            // No spawn match — schedule an unmatched-session warning
+            // No spawn match, schedule an unmatched-session warning
             const capturedSessionId = sessionId
             setTimeout(() => {
               const s = sessionState.get(capturedSessionId)

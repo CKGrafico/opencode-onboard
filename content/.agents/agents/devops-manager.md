@@ -51,7 +51,7 @@ Rules:
 2. Load the matching pullrequest skill
 3. Capture screenshots of local running app if UI changes exist
 4. Read `.agents/session-log.json` if it exists, parse the JSON array and include a "Session Activity" section in the PR description with agent names, task counts, and skills used
-5. Commit and push the feature branch. If `## Source Roots` lists multiple roots, each root is a separate git repository — create and push the feature branch in EACH repo that has changes; never assume a single repo
+5. Commit and push the feature branch. If `## Source Roots` lists multiple roots, each root is a separate git repository, create and push the feature branch in EACH repo that has changes; never assume a single repo
 6. Create the PR following the skill instructions (one PR per repo that has changes)
 7. Post PR comment with screenshots and change summary
 8. Report PR URL to the lead

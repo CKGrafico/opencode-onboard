@@ -35,7 +35,7 @@ Requires **Node.js 18+**.
 
 ### Run specific steps
 
-You can also run individual maintenance/setup steps without the full wizard:
+You can run individual setup/maintenance steps without running the full wizard:
 
 ```bash
 # Run one step directly
@@ -55,11 +55,17 @@ npx opencode-onboard -h
 
 When available, step commands reuse context from `.opencode/opencode-onboard.json`.
 
+Typical flow for reruns:
+- Run `clean` if you want to reset old AI files
+- Run `copy` if templates/skills changed in a new onboard release
+- Run `optimization` if you want to reconfigure RTK/quota/caveman + `ob-global`
+- Run `metadata` last to refresh `.opencode/opencode-onboard.json`
+
 ---
 
 ## How it works
 
-The CLI clears the screen, shows a welcome banner, and walks you through 10 steps. The screen always shows the last 2 completed steps + the current one so you always know where you are.
+The CLI runs a 10-step onboarding wizard. It keeps the current step visible, plus the last two completed steps, so progress is always clear.
 
 | Step | What happens |
 |------|-------------|
@@ -67,10 +73,10 @@ The CLI clears the screen, shows a welcome banner, and walks you through 10 step
 | **2. Clean AI files** | Detects existing `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, `.agents/` etc. and removes them, preserves your `.agents/skills/` |
 | **3. Choose platform** | GitHub or Azure DevOps |
 | **4. Check platform CLI** | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps) |
-| **5. Copy scaffolding** | Drops agents, built-in skills, `skills-lock.json`, and bootstrap docs into your project, then runs `npx skills` |
+| **5. Copy scaffolding** | Copies agents + built-in skills + bootstrap docs, writes source-roots metadata, applies AGENTS bootstrap patching, copies `skills-lock.json`, then runs `npx skills` |
 | **6. Init OpenSpec** | Runs `npx @fission-ai/openspec init` silently for structured change management |
 | **7. Choose models** | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing |
-| **8. Token optimization tools** | Optional (recommended). One checklist step for RTK check, opencode-quota setup, caveman install, and dynamic `@ob-global` configuration |
+| **8. Token optimization tools** | Optional (recommended). One checklist step for RTK check, opencode-quota setup, caveman install, and dynamic `ob-global` token-optimization rule injection |
 | **9. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
 | **10. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details |
 
@@ -90,27 +96,45 @@ opencode-onboard draws a hard line between two concepts:
 
 ### Agents, universal behaviors
 
-Agents define *how to work*. They are behavioral personas, the same for every project, every tech stack, every team. You never configure them or choose between them. All six are always installed.
+Agents define *how to work*. They are universal personas (same behavior across projects and stacks).
+
+Current baseline uses a generic execution model:
 
 ```
-devops-manager     reads work items, creates PRs, handles review feedback
-front-engineer     web, mobile, UI, anything visual
-back-engineer      APIs, services, data, AI, anything not UI
-infra-engineer     Terraform, pipelines, cloud infrastructure
-quality-engineer   unit, integration, e2e tests across all layers
-security-auditor   vulnerability audit, secrets, auth gaps
+devops-manager     lead/orchestrator, planning, PR lifecycle
+basic-engineer     implementation worker, ability-driven
 ```
 
-Each agent has a color in the OpenCode UI. Builder agents (`front-engineer`, `back-engineer`, `infra-engineer`) run at `temperature: 0.2` for deterministic output. `security-auditor` is read-only, edit is denied.
+`basic-engineer` behavior is composed by abilities, not hardcoded role silos.
 
 ### Skills, platform knowledge
 
-Skills define *what to know*. They provide the tech and platform-specific knowledge agents need. Agents detect and load relevant skills automatically, **you never tell an agent which skill to use**.
+Skills define *what to know*. They provide project rules, platform behavior, and task-specific execution guidance. Agents auto-detect/load relevant skills; **you do not manually choose skills per prompt**.
+
+Current loading model:
+- `ob-global` is baseline and should be loaded first
+- `ob-default` is fallback when nothing else matches
+- `ob-generic-guardrails` is a minimal base users can extend with custom guardrail skills
+
+Default `basic-engineer` abilities:
+
+```
+## Abilities
+- Guardrails: @ob-generic-guardrails, @ob-default
+- Development: @ob-default
+- Testing: @ob-default
+- Infrastructure: @ob-default
+```
+
+Users are expected to create additional skills and map them into abilities over time.
 
 Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 
 | Skill | Purpose |
 |-------|---------|
+| `ob-global` | Baseline skill loaded first: context rules, source-roots scope, git/secrets guardrails, token-optimization rules |
+| `ob-default` | Fallback, when no other skill matches. Still loads ob-global first |
+| `ob-generic-guardrails` | Foundation for user guardrails skills |
 | `ob-userstory-gh` | Parse a GitHub Issue URL into a structured work item |
 | `ob-userstory-az` | Parse an Azure DevOps work item URL |
 | `browser-automation` | Browser control via `@different-ai/opencode-browser` |
@@ -133,26 +157,36 @@ Models are fetched live from [models.dev](https://models.dev) (3000+ models, cac
 
 ## The pipeline
 
-When you give the lead agent a work item URL, it runs the full pipeline automatically:
+When you give the lead agent a work item URL, execution follows this pipeline:
 
 ```
-devops-manager  →  parse work item via skill  →  structured summary
-                                ↓
-                         openspec-propose
-                    proposal + specs + tasks
-                                ↓
-                        [confirm with user]
-                                ↓
-   front-engineer  +  back-engineer  +  infra-engineer   (parallel)
-                                ↓
-                        quality-engineer
-                    tests, build, lint, acceptance
-                                ↓
-                        security-auditor
-                      vulnerabilities, secrets
-                                ↓
-devops-manager  →  screenshots  →  commit  →  push  →  PR  →  comment
+devops-manager (load ob-global first)
+                  ↓
+         parse work item via userstory skill
+                  ↓
+              openspec-propose
+        proposal + specs + tasks
+                  ↓
+             [confirm with user]
+                  ↓
+ basic-engineer + custom-engineer-* (parallel)
+ claim tasks → load abilities → implement
+                  ↓
+       verify (tests/build/lint as needed)
+                  ↓
+    devops-manager (ship mode, if configured)
+  commit → push → PR → feedback loop
 ```
+
+1. Load `ob-global` baseline rules
+2. Load platform userstory skill (`ob-userstory-gh` or `ob-userstory-az`)
+3. Run `/opsx-propose` to produce `proposal.md`, specs, and `tasks.md`
+4. Confirm with user before implementation
+5. Run `/opsx-apply` to orchestrate implementation workers
+6. Spawn one or more engineers in parallel (`basic-engineer` and/or custom engineers)
+7. Each engineer claims tasks, loads relevant abilities, and executes
+8. Verify with tests/build/lint according to task scope
+9. Ship/update PR via devops-manager flow
 
 Each agent runs in its own isolated git worktree via [OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble), with a live dashboard at `http://localhost:4747`.
 
@@ -166,20 +200,23 @@ your-project/
 ├── ARCHITECTURE.md                  ← prompt for agents to fill in from your codebase
 ├── DESIGN.md                        ← prompt for agents to fill in from your codebase
 ├── .opencode/
-│   └── opencode.json                ← plan model + plugins configured
+│   ├── opencode.json                ← default model + plugin config
+│   ├── ensemble.json                ← model assignments for plan/build/fast roles
+│   └── opencode-onboard.json        ← onboarding metadata snapshot
 └── .agents/
     ├── agents/
     │   ├── devops-manager.md
-    │   ├── front-engineer.md
-    │   ├── back-engineer.md
-    │   ├── infra-engineer.md
-    │   ├── quality-engineer.md
-    │   └── security-auditor.md
+    │   └── basic-engineer.md
     └── skills/
-        ├── browser-automation/
-        ├── ob-userstory-gh/         ← or -az, depending on platform
-        └── ob-userstory-az/
+        ├── ob-global/              ← baseline skill, load FIRST
+        ├── ob-default/             ← fallback skill
+        ├── ob-generic-guardrails/  ← foundation for user guardrails
+        ├── ob-userstory-gh/      ← or -az, depending on platform
+        ├── ob-userstory-az/
+        └── browser-automation/
 ```
+
+`ob-global` is the baseline skill template. During onboarding, source-roots and token-optimization sections are injected into that template.
 
 ---
 
@@ -187,10 +224,11 @@ your-project/
 
 The first time you type `init` in OpenCode after onboarding:
 
-1. OpenCode reads your codebase and writes a real `ARCHITECTURE.md`
-2. OpenCode reads your design patterns and writes a real `DESIGN.md`
-3. `AGENTS.md` is replaced by the production version
-4. Your agent team is live
+1. Bootstrap-mode `AGENTS.md` triggers the initialization workflow
+2. OpenCode archives existing project context into OpenSpec (`project-history`)
+3. OpenCode generates real `DESIGN.md` and `ARCHITECTURE.md` from your codebase
+4. Bootstrap `AGENTS.md` is replaced with production guidance
+5. Team workflows become fully active for normal implementation tasks
 
 After this, every agent has accurate, persistent context about your project, no manual documentation required.
 

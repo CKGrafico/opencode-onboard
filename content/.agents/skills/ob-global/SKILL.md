@@ -1,4 +1,4 @@
-Generic skill — common project-level guidance loaded by all agents. Provides baseline rules; specialized skills add specific concerns.
+Generic skill, common project-level guidance loaded by all agents. Provides baseline rules; specialized skills add specific concerns.
 
 ## When loaded
 

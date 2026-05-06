@@ -49,7 +49,7 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 
       The spawn prompt must contain exactly:
       1. Their name and role on this team
-      2. Which tasks are theirs — include the LITERAL task IDs (e.g. "task-abc123") AND the task content for each. Copy them verbatim from the IDs returned by team_tasks_add. Do NOT paraphrase or omit IDs.
+      2. Which tasks are theirs, include the LITERAL task IDs (e.g. "task-abc123") AND the task content for each. Copy them verbatim from the IDs returned by team_tasks_add. Do NOT paraphrase or omit IDs.
       3. Key context they need (summarized from context files, do NOT tell them to read files themselves)
       4. The 6 OpenCode tools they have available (these are OpenCode tools, NOT shell commands, call them directly as tools, never via bash):
          team_claim, team_tasks_complete, team_tasks_list, team_tasks_add, team_message, team_broadcast
@@ -123,8 +123,8 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 - NEVER call team_spawn before team_tasks_add, tasks must exist before agents are spawned
 - NEVER poll team_results or team_status in a loop, wait for teammates to message you
 - NEVER call team_claim or team_tasks_complete as lead, only agents call these tools
-- ALWAYS pass the LITERAL task IDs returned by team_tasks_add into each agent's spawn prompt — copy the exact IDs, never paraphrase
-- ALWAYS repeat the same literal task IDs in the team_message start trigger — never send a generic "claim your first task" without the actual IDs
+- ALWAYS pass the LITERAL task IDs returned by team_tasks_add into each agent's spawn prompt, copy the exact IDs, never paraphrase
+- ALWAYS repeat the same literal task IDs in the team_message start trigger, never send a generic "claim your first task" without the actual IDs
 - NEVER send a start message that omits task IDs; if a task ID is missing from the start message, the agent cannot claim
 - NEVER edit files between team_spawn and team_merge, team_merge blocks on overlapping local changes
 - ALWAYS add every task to the board with team_tasks_add before spawning

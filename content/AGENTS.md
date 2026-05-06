@@ -112,17 +112,20 @@ This file provides guidance to AI agents when working in this repository.
 This is the agent orchestration layer for your project. It provides:
 - Universal agent team for development workflow
 - OpenSpec change management
-- Skills for platform-specific knowledge
+- Mandatory global baseline skill (`ob-global`) for all agents
+- Additional skills for platform/task-specific knowledge
 
 ## Source Scope
 
-- Read source scope from `.agents/source-roots.json`.
-- Use those roots for codebase analysis tasks (design, architecture, project-history, exploration).
-- If missing, default to current folder.
+Source scope is defined by mandatory `ob-global` skill.
+
+- Load `ob-global` first.
+- Follow the generated `## Source Roots` section from that skill.
+- Do not duplicate source-scope rules here.
 
 ## I Am the Lead, Full Workflow Ownership
 
-When the user provides a work item URL or says "implement the plan" or "I've added comments to the PR", **I own the full lifecycle**. I load the appropriate skill and use ensemble tools to coordinate the agent team.
+When the user provides a work item URL or says "implement the plan" or "I've added comments to the PR", **I own the full lifecycle**. I load `ob-global` skill first, then the appropriate userstory skill, and use ensemble tools to coordinate the agent team.
 
 Trigger patterns, I recognize ALL of these, exact wording does not matter:
 - User pastes or mentions a GitHub Issue URL → load `ob-userstory-gh` skill → parse issue → run `/opsx-propose` → confirm with user → run `/opsx-apply` → ship
@@ -140,21 +143,10 @@ Trigger patterns, I recognize ALL of these, exact wording does not matter:
 Parallel execution uses the `opencode-ensemble` plugin (`team_create`, `team_spawn`, etc.).
 Works on **all platforms** (Windows, macOS, Linux) via OpenCode's built-in worktree support.
 
-| Tool | What it does |
-|------|-------------|
-| `team_create` | Create a team (caller becomes lead) |
-| `team_spawn` | Start a teammate asynchronously |
-| `team_shutdown` | Stop a teammate, preserve their branch |
-| `team_merge` | Merge a teammate's branch into working dir |
-| `team_cleanup` | Tear down the team |
-| `team_results` | Retrieve full message content (delivery is a ping only) |
-| `team_message` | Send a direct message to a teammate or lead |
-| `team_broadcast` | Message all teammates |
-| `team_status` | View all members and task summary |
-| `team_tasks_list` | View the shared task board |
-| `team_tasks_add` | Add tasks to shared board |
-| `team_tasks_complete` | Mark task done, auto-unblocks dependents |
-| `team_claim` | Atomically claim a pending task (teammates use this) |
+Core tools used in this workflow:
+- `team_create`, `team_spawn`, `team_shutdown`, `team_merge`, `team_cleanup`
+- `team_tasks_add`, `team_tasks_list`, `team_claim`, `team_tasks_complete`
+- `team_message`, `team_results`, `team_status`
 
 **Dashboard**: Monitor running agents at **http://localhost:4747/**
 
@@ -174,24 +166,19 @@ If a teammate stalls due to model quota/rate-limit exhaustion:
 ## Pipeline
 
 ```
-devops-manager (read mode)
-  → parse work item via skill → structured summary
+devops-manager (lead mode)
+  → load ob-global + parse work item via skill
         ↓
   openspec-propose
   → proposal.md + specs + tasks
         ↓
   [confirm with user]
         ↓
-back-engineer → front-engineer → infra-engineer  ← sequential, one at a time, only spawn what the task needs
-        ↓
-quality-engineer (worktree:false)
-  → tests, build, lint, acceptance criteria
-        ↓
-security-auditor (worktree:false)
-  → vulnerability audit, secrets, auth gaps
+basic-engineer + custom-engineer-* (parallel as needed)
+  → claim tasks + load abilities + implement
         ↓
 devops-manager (ship mode)
-  → screenshots → commit → push → PR → post comment
+  → verify completion → commit → push → PR → post comment
 ```
 
 ### Phase 1, Parse & Propose
@@ -207,57 +194,41 @@ devops-manager (ship mode)
 ### Phase 2, Implement
 
 ```
-1. Run /opsx-apply, handles context reading, ensemble orchestration, and task marking.
-   - Lead adds all tasks to board, then spawns specialists ONE AT A TIME (not parallel)
-   - Each specialist claims tasks, implements, completes tasks, messages lead when done
-   - Lead merges each branch after shutdown, then marks tasks done in tasks.md
-2. After /opsx-apply completes, proceed to quality check.
+1. Run /opsx-apply.
+   - Lead adds all tasks to board.
+   - Lead spawns one or more engineers (`basic-engineer` and/or custom engineers) in parallel where safe.
+   - Each engineer must claim task IDs, load relevant abilities, implement, and complete tasks.
+   - Lead merges each engineer branch after shutdown, then marks tasks done in tasks.md.
+2. Verify with tests/build/lint according to task scope.
 ```
 
-### Phase 3, Quality
+### Phase 3, Ship
 
 ```
-3. team_spawn name:quality agent:quality-engineer worktree:false → tests, build, lint
-4. Wait → team_results → fix any blockers → team_shutdown (no merge, worktree:false)
+3. team_spawn name:devops agent:devops-manager (ship mode)
+   → commit & push → create PR → post comment
+4. Wait → team_results → report PR URL to user
+5. team_cleanup
 ```
 
-### Phase 4, Security
-
-```
-5. team_spawn name:security agent:security-auditor worktree:false → audit full change
-6. Wait → team_results → fix Critical findings → team_shutdown (no merge, worktree:false)
-```
-
-### Phase 5, Ship
-
-```
-11. team_spawn name:devops agent:devops-manager (ship mode)
-    → screenshots → commit & push → create PR → post comment
-12. Wait → team_results → report PR URL to user
-13. team_cleanup
-```
-
-### Phase 6, PR Feedback Loop
+### Phase 4, PR Feedback Loop
 
 ```
 When user says "I've added comments to the PR" or asks to fix PR comments from PR URLs:
 1. team_create "pr-feedback-<id>-<random>"
 2. team_tasks_add with at least these lead-managed tasks:
    - Parse and classify PR feedback (devops-manager)
-   - Implement Api feedback items (back-engineer, if needed)
-   - Implement App feedback items (front-engineer, if needed)
-   - Infra feedback items (infra-engineer, if needed)
-   - Verify with tests/build (quality-engineer)
+   - Implement feedback items (basic-engineer and/or custom engineers)
+   - Verify with tests/build/lint (implementation worker or dedicated verifier if available)
    - Push updates and post PR replies (devops-manager)
 3. team_spawn devops-manager (feedback mode) with explicit task IDs, then team_message "Start now"
 4. Wait for message → team_results
-5. Add/update implementation tasks on board from parsed checklist (Api/App/Infra), then spawn needed specialists in parallel with explicit task IDs + team_message "Start now"
-6. Wait for specialist results → team_shutdown + team_merge per specialist
-7. team_spawn quality-engineer worktree:false with verification task ID + team_message "Start now"
-8. Wait → team_results → fix blockers if any
-9. team_spawn devops-manager (ship mode) with "push + update PR threads" task ID + team_message "Start now"
-10. Wait → team_results → report what was updated
-11. team_cleanup
+5. Add/update implementation tasks on board, then spawn needed engineers in parallel with explicit task IDs + team_message "Start now"
+6. Wait for engineer results → team_shutdown + team_merge per engineer
+7. Run verification tasks (tests/build/lint) and fix blockers if any
+8. team_spawn devops-manager (ship mode) with "push + update PR threads" task ID + team_message "Start now"
+9. Wait → team_results → report what was updated
+10. team_cleanup
 ```
 
 ---
@@ -269,20 +240,33 @@ All agents are universal, no project-specific knowledge. Platform and tech knowl
 | Agent | File | Role |
 |-------|------|------|
 | `devops-manager` | .agents/agents/devops-manager.md | Reads work items, creates PRs, handles review feedback |
-| `front-engineer` | .agents/agents/front-engineer.md | Web, mobile, UI implementation |
-| `back-engineer` | .agents/agents/back-engineer.md | APIs, services, data, AI implementation |
-| `infra-engineer` | .agents/agents/infra-engineer.md | Terraform, pipelines, cloud infrastructure |
-| `quality-engineer` | .agents/agents/quality-engineer.md | Unit, integration, e2e tests across all layers |
-| `security-auditor` | .agents/agents/security-auditor.md | Vulnerability audit, secrets, auth gaps |
+| `basic-engineer` | .agents/agents/basic-engineer.md | Generic implementation worker using ability-loaded skills |
+
+User can add more custom engineer agents and run them in parallel. Keep behavior ability-driven via skill mappings.
+
+Default `basic-engineer` abilities:
+
+```
+## Abilities
+- Guardrails: @ob-generic-guardrails, @ob-default
+- Development: @ob-default
+- Testing: @ob-default
+- Infrastructure: @ob-default
+```
 
 ## Skills
 
-Skills provide platform and tech-specific knowledge. Agents detect and load them automatically, the user never specifies which skill to use.
+Skills provide platform and tech-specific knowledge. Agents detect and load them automatically, **you never tell an agent which skill to use**.
+
+`ob-global` is always loaded first, it provides baseline rules for all agents.
 
 Skills are located in `.agents/skills/`. Each skill has a `SKILL.md` with a description the agent reads to determine relevance.
 
 | Skill | Purpose |
 |-------|---------|
+| `ob-global` | Generic skill, baseline rules loaded by all agents. Context, source roots, git/secrets guardrails, token opt rules |
+| `ob-default` | Fallback skill, when no other skill matches |
+| `ob-generic-guardrails` | Minimal foundation for user guardrails skills |
 | `ob-userstory-az` | Parse Azure DevOps work item URL |
 | `ob-userstory-gh` | Parse GitHub Issue URL |
 | `ob-pullrequest-az` | Create PR on Azure DevOps |
@@ -292,6 +276,8 @@ Skills are located in `.agents/skills/`. Each skill has a `SKILL.md` with a desc
 | `openspec-archive-change` | Archive completed change |
 | `browser-automation` | Browser automation for localhost UI, screenshots, clicks, queries |
 
+Execution rules live in skills. Keep AGENTS.md focused on orchestration and routing.
+
 ---
 
 ## Branch Naming
@@ -299,7 +285,7 @@ Skills are located in `.agents/skills/`. Each skill has a `SKILL.md` with a desc
 Format: `feature/{issue-id}-{slug}`
 Example: `feature/42-add-user-auth`
 
-When `## Source Roots` lists multiple roots, each root is an independent git repository. The same branch name must be created in every repo that will have changes. Git operations (`branch`, `commit`, `push`) run once per repository — there is no shared git history.
+When `## Source Roots` lists multiple roots, each root is an independent git repository. The same branch name must be created in every repo that will have changes. Git operations (`branch`, `commit`, `push`) run once per repository, there is no shared git history.
 
 ---
 
@@ -309,7 +295,16 @@ When `## Source Roots` lists multiple roots, each root is an independent git rep
 [project-root]/
 ├── .agents/
 │   ├── agents/        # Agent definitions (universal, no project knowledge)
-│   └── skills/        # Skills (platform/tech specific knowledge)
+│   │   ├── devops-manager.md
+│   │   ├── basic-engineer.md
+│   │   └── custom-engineer-*.md   # optional, user-defined workers
+│   └── skills/      # Skills (platform/tech specific knowledge)
+│       ├── ob-global/              ← baseline skill, load first
+│       ├── ob-default/            ← fallback skill
+│       ├── ob-generic-guardrails/ ← foundation for user guardrails
+│       ├── ob-userstory-gh/
+│       ├── ob-userstory-az/
+│       └── browser-automation/
 ├── openspec/
 │   ├── specs/
 │   └── changes/
@@ -324,44 +319,14 @@ When `## Source Roots` lists multiple roots, each root is an independent git rep
 
 ## Guardrails
 
-### Git Operations
+Guardrails are mandatory via `ob-global` and ability-loaded skills.
 
-Agents CAN:
-- ✅ Commit to feature branches
-- ✅ Push to feature branches
-
-Agents CANNOT:
-- ❌ Commit or push to `main`, FORBIDDEN
-- ❌ Force push, FORBIDDEN
-- ❌ Merge PRs, human-only
-- ❌ Create or delete branches other than `feature/*`
-
-**Multi-repo**: When source roots list multiple roots, each is an independent git repository with its own history. Git commands must be issued per repository. Never assume one git context covers all repos. Create the feature branch in each repo, commit per repo, push per repo, open one PR per repo.
-
-### Platform CLI
-
-ALL platform interactions via CLI only. Browser MCP and webfetch FORBIDDEN for any DevOps or GitHub operation, use `gh` or `az` CLI exclusively, never fall back to HTTP requests.
-
-| Operation | Azure DevOps | GitHub |
-|-----------|-------------|--------|
-| Read issue | `az boards work-item show --id <id>` | `gh issue view <number>` |
-| Read PR threads | `az devops invoke ...` | `gh pr view <number> --comments` |
-| Create PR | `az repos pr create ...` | `gh pr create ...` |
-
-Browser MCP tools permitted only for screenshots of **local running app** on `localhost` URLs.
-
-### Security
-
-Agents CANNOT:
-- ❌ Access `.env` or config files with secrets
-- ❌ Log or output credentials, API keys, or tokens
-- ❌ Commit secrets to git
-
-### Scope
-
-- Max 10 files per change
-- No architecture changes without human approval
-- No pipeline modifications without human approval
+Minimal non-negotiables:
+- Never commit or push to `main`.
+- Never force push.
+- Never expose or commit secrets.
+- Use `gh`/`az` CLI for platform operations.
+- In multi-repo source scope, run git operations per repository.
 
 ---
 
