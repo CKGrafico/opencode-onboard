@@ -1,0 +1,33 @@
+{
+  "costTiers": [
+    { "max": 1, "label": "[$]" },
+    { "max": 10, "label": "[$$]" },
+    { "label": "[$$$]" }
+  ],
+  "roles": {
+    "plan": {
+      "prompt": "Plan model:",
+      "info": [
+        "PLAN model: used by the main agent to read issues, write proposals, coordinate the team.",
+        "This model needs to be strong. Use Claude Sonnet/Opus, GPT-4o, o3, or equivalent.",
+        "A weak model here will silently skip steps and break the workflow."
+      ]
+    },
+    "build": {
+      "prompt": "Build model:",
+      "info": [
+        "BUILD model: used by front-engineer, back-engineer, infra-engineer, quality-engineer, security-auditor.",
+        "Needs to be capable for implementation work. Claude Sonnet, GPT-4o, or equivalent."
+      ],
+      "agents": ["front-engineer", "back-engineer", "infra-engineer", "quality-engineer", "security-auditor"]
+    },
+    "fast": {
+      "prompt": "Fast model:",
+      "info": [
+        "FAST model: used by devops-manager for reading issues and classifying PR comments.",
+        "Something fast and cheap is fine here, no heavy reasoning needed."
+      ],
+      "agents": ["devops-manager"]
+    }
+  }
+}

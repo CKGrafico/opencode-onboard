@@ -1,0 +1,17 @@
+{
+  "message": "Source code location:",
+  "default": "current",
+  "choices": [
+    {
+      "name": "Current folder (default)",
+      "value": "current",
+      "description": "Use this repository only"
+    },
+    {
+      "name": "Select folders in parent (../)",
+      "value": "parent",
+      "description": "Use when this repo only contains agent config"
+    }
+  ],
+  "parentSelectionMessage": "Select source folders from parent directory:"
+}

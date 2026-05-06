@@ -1,0 +1,22 @@
+{
+  "message": "Enable tools:",
+  "info": "Choose which optimization tools to enable (recommended: all).",
+  "timeoutMs": 30000,
+  "choices": [
+    {
+      "name": "RTK check (recommended)",
+      "value": "rtk",
+      "checked": true
+    },
+    {
+      "name": "opencode-quota plugin (recommended)",
+      "value": "quota",
+      "checked": true
+    },
+    {
+      "name": "caveman concise mode (recommended)",
+      "value": "caveman",
+      "checked": true
+    }
+  ]
+}

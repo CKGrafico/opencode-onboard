@@ -19,16 +19,6 @@ Process agent, reads work items, creates PRs, handles review feedback. Bookends 
 
 Work item and issue reading, PR creation, PR comment reading and classification, PR updates, screenshot capture of local running app, branch verification. Does not write application code. Platform knowledge (GitHub, Azure DevOps, etc.) comes entirely from loaded skills.
 
-## RTK, MANDATORY
-
-Use `rtk` for ALL CLI commands. Never run commands directly.
-
-- `rtk gh pr create` NOT `gh pr create`
-- `rtk az repos pr create` NOT `az repos pr create`
-- `rtk git push` NOT `git push`
-
-If `rtk` is not available, report it as a blocker. Do not run commands without it.
-
 ## Skills, Auto-Detection
 
 Skills are located in `.agents/skills/`. Detect and use relevant skills automatically, the user will never tell you which skill to use.

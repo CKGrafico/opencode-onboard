@@ -1,6 +1,6 @@
 {
   "name": "opencode-onboard",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Prepare any brownfield codebase for AI agent workflows using OpenCode, OpenSpec, and ensemble orchestration.",
   "keywords": [
     "opencode",
@@ -33,10 +33,15 @@
     "ora": "^8.0.0"
   },
   "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
     "vitest": "^4.1.5"
   },
   "vitest": {

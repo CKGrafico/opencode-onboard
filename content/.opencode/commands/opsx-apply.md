@@ -13,14 +13,14 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
    If a name is provided, use it. Otherwise:
    - Infer from conversation context if the user mentioned a change
    - Auto-select if only one active change exists
-   - If ambiguous, run `rtk openspec list --json` to get available changes and use the **AskUserQuestion tool** to let the user select
+   - If ambiguous, run `openspec list --json` to get available changes and use the **AskUserQuestion tool** to let the user select
 
    Always announce: "Using change: <name>" and how to override (e.g., `/opsx-apply <other>`).
 
 2. **Check status to understand the schema**
 
    ```bash
-   rtk openspec status --change "<name>" --json
+   openspec status --change "<name>" --json
    ```
 
    Parse the JSON to understand:
@@ -30,7 +30,7 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 3. **Get apply instructions**
 
    ```bash
-   rtk openspec instructions apply --change "<name>" --json
+   openspec instructions apply --change "<name>" --json
    ```
 
    This returns:
@@ -146,7 +146,7 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 8. **Mark tasks complete in openspec**
 
    Update tasks.md: `- [ ]` → `- [x]` for each completed task.
-   Run `rtk openspec status --change "<name>" --json` to confirm.
+   Run `openspec status --change "<name>" --json` to confirm.
 
 9. **Show status, then cleanup**
 
@@ -175,4 +175,4 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 - Mark tasks complete in openspec AFTER specialists finish, not before
 - Pause on errors, blockers, or unclear requirements. Do not guess
 - Use contextFiles from CLI output, do not assume specific file paths
-- Use `rtk` wrapper for ALL CLI commands. Never run openspec, git, gh, or az directly
+- Follow CLI rules from `@ob-global` when present

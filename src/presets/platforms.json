@@ -1,10 +1,37 @@
 [
   {
     "value": "github",
-    "name": "GitHub"
+    "name": "GitHub",
+    "cli": {
+      "command": "gh",
+      "displayName": "GitHub CLI (gh)",
+      "installUrl": "https://cli.github.com",
+      "authCheck": {
+        "args": ["auth", "status"],
+        "notAuthenticatedMessage": "GitHub CLI not authenticated. Run:",
+        "commands": ["gh auth login"]
+      }
+    }
   },
   {
     "value": "azure",
-    "name": "Azure DevOps"
+    "name": "Azure DevOps",
+    "cli": {
+      "command": "az",
+      "displayName": "Azure CLI (az)",
+      "installUrl": "https://learn.microsoft.com/en-us/cli/azure/install-azure-cli",
+      "extensionCheck": {
+        "args": ["extension", "list", "--query", "[?name=='azure-devops']", "-o", "tsv"],
+        "expectedOutput": "azure-devops",
+        "missingMessage": "azure-devops extension not found. Run:",
+        "errorMessage": "Could not check azure-devops extension. Run:",
+        "commands": [
+          "az extension add --name azure-devops",
+          "az config set extension.dynamic_install_allow_preview=true",
+          "az login",
+          "az devops login --organization https://dev.azure.com/<your-org>"
+        ]
+      }
+    }
   }
 ]

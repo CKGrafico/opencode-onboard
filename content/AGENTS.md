@@ -97,7 +97,7 @@ After restarting you are ready to work.
 - Do NOT implement any features
 - Do NOT create branches or PRs
 - Do NOT modify any project source files
-- Do NOT create RTK files, scripts, or wrappers, RTK is already defined in AGENTS.md and agent files
+- Do NOT create CLI wrapper files or scripts
 - Only read source files for analysis, write only to ARCHITECTURE.md, DESIGN.md, AGENTS.md, and openspec/
 
 <!-- AGENTS-TEMPLATE-START -->
@@ -322,21 +322,6 @@ When `## Source Roots` lists multiple roots, each root is an independent git rep
 
 ---
 
-## RTK
-
-Use `rtk` wrapper for ALL CLI commands. Never run git, az, gh, or openspec commands directly.
-
-- `rtk git add` NOT `git add`
-- `rtk git commit` NOT `git commit`
-- `rtk git push` NOT `git push`
-- `rtk az boards work-item show` NOT `az boards work-item show`
-- `rtk az repos pr create` NOT `az repos pr create`
-- `rtk gh issue view` NOT `gh issue view`
-- `rtk gh pr create` NOT `gh pr create`
-- `rtk openspec new change` NOT `openspec new change`
-
----
-
 ## Guardrails
 
 ### Git Operations
@@ -351,7 +336,7 @@ Agents CANNOT:
 - ❌ Merge PRs, human-only
 - ❌ Create or delete branches other than `feature/*`
 
-**Multi-repo**: When `## Source Roots` lists multiple roots, each is an independent git repository with its own history. All `rtk git` commands must be issued per repository. Never assume one `git` context covers all repos. Create the feature branch in each repo, commit per repo, push per repo, open one PR per repo.
+**Multi-repo**: When source roots list multiple roots, each is an independent git repository with its own history. Git commands must be issued per repository. Never assume one git context covers all repos. Create the feature branch in each repo, commit per repo, push per repo, open one PR per repo.
 
 ### Platform CLI
 

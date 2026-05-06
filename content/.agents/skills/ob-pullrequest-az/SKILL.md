@@ -8,16 +8,6 @@ metadata:
   version: "1.0"
 ---
 
-**RTK - MANDATORY**
-
-Use `rtk` wrapper for ALL CLI commands:
-- `rtk git add` NOT `git add`
-- `rtk git commit` NOT `git commit`
-- `rtk git push` NOT `git push`
-- `rtk az repos pr create` NOT `az repos pr create`
-- `rtk az repos pr work-item add` NOT `az repos pr work-item add`
-- `rtk az devops invoke` NOT `az devops invoke`
-
 **Browser MCP tools are FORBIDDEN for all Azure DevOps operations.**
 Browser tools are ONLY permitted for screenshots of the LOCAL running app on `localhost` URLs.
 
@@ -30,7 +20,7 @@ Triggered when devops-manager is in ship mode after implementation is complete.
 ### Step 1: Verify feature branch
 
 ```bash
-rtk git branch --show-current
+git branch --show-current
 ```
 
 Branch must be `feature/{id}-{slug}`. NEVER push to `main`.
@@ -48,15 +38,15 @@ Save to: `openspec/changes/{change-name}/images/{feature}.png`
 ### Step 3: Commit and push
 
 ```bash
-rtk git add .
-rtk git commit -m "feat(#{id}): {description}"
-rtk git push origin feature/{id}-{slug}
+git add .
+git commit -m "feat(#{id}): {description}"
+git push origin feature/{id}-{slug}
 ```
 
 ### Step 4: Create PR
 
 ```bash
-rtk az repos pr create \
+az repos pr create \
   --repository {repo} \
   --source-branch feature/{id}-{slug} \
   --target-branch main \
@@ -67,7 +57,7 @@ rtk az repos pr create \
 ### Step 5: Link work item (MANDATORY, run sequentially, not in parallel)
 
 ```bash
-rtk az repos pr work-item add --id {pr-id} --work-items {workitem-id}
+az repos pr work-item add --id {pr-id} --work-items {workitem-id}
 ```
 
 ### Step 6: Post screenshot comment
@@ -79,7 +69,7 @@ https://dev.azure.com/{org}/{project}/_apis/git/repositories/{repo}/items?path=o
 
 Post via:
 ```bash
-rtk az devops invoke \
+az devops invoke \
   --area git --resource pullRequestThreads \
   --route-parameters project={project} repositoryId={repo} pullRequestId={pr-id} \
   --http-method POST --api-version 7.1 --in-file body.json
@@ -107,13 +97,13 @@ Triggered when user says "I've added comments to the PR" or "check PR feedback".
 
 If PR link provided, extract ID from URL. Otherwise:
 ```bash
-rtk az repos pr list --repository {repo} --status active --top 1
+az repos pr list --repository {repo} --status active --top 1
 ```
 
 ### Step 2: Read comment threads
 
 ```bash
-rtk az devops invoke \
+az devops invoke \
   --area git --resource pullRequestThreads \
   --route-parameters project={project} repositoryId={repo} pullRequestId={id} \
   --http-method GET --api-version 7.1
@@ -131,7 +121,7 @@ rtk az devops invoke \
 ### Step 4: Update openspec (if spec-update)
 
 ```bash
-rtk git branch --show-current
+git branch --show-current
 # feature/193208-roles-crud → change: us-193208-roles-crud
 ```
 
@@ -140,7 +130,7 @@ Update: `openspec/changes/{change}/proposal.md`, `design.md`, or `tasks.md` as a
 ### Step 5: Reply to each thread
 
 ```bash
-rtk az devops invoke \
+az devops invoke \
   --area git --resource pullRequestThreadComments \
   --route-parameters project={project} repositoryId={repo} pullRequestId={id} threadId={tid} \
   --http-method POST --api-version 7.1 --in-file reply.json

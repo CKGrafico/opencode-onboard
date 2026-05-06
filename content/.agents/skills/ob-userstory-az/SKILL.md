@@ -8,12 +8,6 @@ metadata:
   version: "3.1"
 ---
 
-**RTK - MANDATORY**
-
-Use `rtk` wrapper for ALL CLI commands:
-- `rtk az boards work-item show` NOT `az boards work-item show`
-- `rtk openspec new change` NOT `openspec new change`
-
 **Browser MCP tools are FORBIDDEN for all Azure DevOps operations.**
 
 ---
@@ -40,7 +34,7 @@ Create with scopes: **Work Items (Read & Write)** + **Code (Read & Write)**
 
 2. **Fetch Work Item**
    ```bash
-   rtk az boards work-item show --id 193208
+   az boards work-item show --id 193208
    ```
    Do NOT use `--organization` flag (uses default org).
 
@@ -54,7 +48,7 @@ Create with scopes: **Work Items (Read & Write)** + **Code (Read & Write)**
 
 4. **Create OpenSpec Change**
    ```bash
-   rtk openspec new change "us-{id}-{slug}"
+   openspec new change "us-{id}-{slug}"
    ```
 
 ---
@@ -66,28 +60,28 @@ Use these for ALL DevOps operations, browser MCP is FORBIDDEN.
 ### Work Items
 ```bash
 # Read work item
-rtk az boards work-item show --id <id>
+az boards work-item show --id <id>
 
 # Update work item state
-rtk az boards work-item update --id <id> --state "Active"
+az boards work-item update --id <id> --state "Active"
 ```
 
 ### PR Threads (Comments)
 ```bash
 # Read all threads
-rtk az devops invoke \
+az devops invoke \
   --area git --resource pullRequestThreads \
   --route-parameters project={project} repositoryId=<repo> pullRequestId=<id> \
   --http-method GET --api-version 7.1
 
 # Post new comment thread (requires body.json)
-rtk az devops invoke \
+az devops invoke \
   --area git --resource pullRequestThreads \
   --route-parameters project={project} repositoryId=<repo> pullRequestId=<id> \
   --http-method POST --api-version 7.1 --in-file body.json
 
 # Reply to existing thread
-rtk az devops invoke \
+az devops invoke \
   --area git --resource pullRequestThreadComments \
   --route-parameters project={project} repositoryId=<repo> pullRequestId=<id> threadId=<tid> \
   --http-method POST --api-version 7.1 --in-file reply.json
@@ -165,7 +159,7 @@ After outputting the above, the lead MUST run `/opsx-propose` to generate the pr
 ## Guardrails
 
 - ✅ Parse Azure DevOps URL and create OpenSpec change
-- ✅ Use `rtk` for all Azure CLI operations
+- ✅ Use `az` CLI for all Azure DevOps operations
 - ✅ Always run `/opsx-propose` after parsing, never skip to implementation
 - ✅ Always stop and confirm with user after propose, before running `/opsx-apply`
 - ❌ Browser MCP tools for Azure DevOps operations, FORBIDDEN

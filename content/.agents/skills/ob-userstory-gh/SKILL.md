@@ -8,14 +8,6 @@ metadata:
   version: "1.1"
 ---
 
-**RTK - MANDATORY**
-
-Use `rtk` wrapper for ALL CLI commands:
-- `rtk gh issue view` NOT `gh issue view`
-- `rtk gh issue list` NOT `gh issue list`
-- `rtk gh issue edit` NOT `gh issue edit`
-- `rtk openspec new change` NOT `openspec new change`
-
 **ALL GitHub data MUST come from `gh` CLI. NEVER use webfetch, HTTP requests, or browser MCP tools to fetch GitHub URLs, even if gh CLI fails. If `gh` is unavailable, report it as a blocker.**
 
 ---
@@ -41,7 +33,7 @@ gh auth status
 
 2. **Fetch Issue**, always pass `--repo` explicitly, never rely on git context:
    ```bash
-   rtk gh issue view 42 --repo {owner}/{repo} --json number,title,body,labels,milestone,state
+   gh issue view 42 --repo {owner}/{repo} --json number,title,body,labels,milestone,state
    ```
    If this returns an auth error or 404, report as a blocker, do NOT fall back to webfetch or web search.
 
@@ -55,7 +47,7 @@ gh auth status
 
 4. **Create OpenSpec Change**
    ```bash
-   rtk openspec new change "gh-{number}-{slug}"
+   openspec new change "gh-{number}-{slug}"
    ```
 
 ---
@@ -67,13 +59,13 @@ Use these for ALL GitHub operations, browser MCP and webfetch are FORBIDDEN. Alw
 ### Issues
 ```bash
 # Read issue
-rtk gh issue view <number> --repo {owner}/{repo}
+gh issue view <number> --repo {owner}/{repo}
 
 # List open issues
-rtk gh issue list --repo {owner}/{repo} --state open --limit 10
+gh issue list --repo {owner}/{repo} --state open --limit 10
 
 # Update issue
-rtk gh issue edit <number> --repo {owner}/{repo} --add-label "in-progress"
+gh issue edit <number> --repo {owner}/{repo} --add-label "in-progress"
 ```
 
 ---
@@ -129,7 +121,7 @@ After outputting the above, the lead MUST run `/opsx-propose` to generate the pr
 ## Guardrails
 
 - ✅ Parse GitHub Issue URL and create OpenSpec change
-- ✅ Use `rtk gh` for all GitHub CLI operations
+- ✅ Use `gh` CLI for all GitHub operations
 - ✅ Always run `/opsx-propose` after parsing, never skip to implementation
 - ✅ Always stop and confirm with user after propose, before running `/opsx-apply`
 - ❌ `webfetch` or HTTP requests to GitHub URLs, FORBIDDEN, use `gh` CLI only

@@ -3,23 +3,15 @@ import chalk from 'chalk'
 import fse from 'fs-extra'
 import { createRequire } from 'node:module'
 import path from 'node:path'
-import { checkEnv } from './steps/check-env.js'
-import { checkPlatform } from './steps/check-platform.js'
-import { checkRtk } from './steps/check-rtk.js'
-import { chooseModels } from './steps/choose-models.js'
-import { choosePlatform } from './steps/choose-platform.js'
-import { chooseSkillsProvider } from './steps/choose-skills-provider.js'
-import { chooseSourceScope } from './steps/choose-source-scope.js'
-import { cleanAiFiles } from './steps/clean-ai-files.js'
-import { copyContentStep } from './steps/copy-content.js'
-import { enableCavemanGuidance } from './steps/enable-caveman-guidance.js'
-import { initOpenspec } from './steps/init-openspec.js'
-import { installBrowser } from './steps/install-browser.js'
-import { installCaveman } from './steps/install-caveman.js'
-import { installQuota } from './steps/install-quota.js'
-import { patchAgentsMd } from './steps/patch-agents-md.js'
-import { tokenOptimizationStep } from './steps/token-optimization.js'
-import { writeOnboardConfig } from './steps/write-onboard-config.js'
+import { installBrowser } from './steps/browser/index.js'
+import { cleanAiFiles } from './steps/clean/index.js'
+import { copyContentStep } from './steps/copy/index.js'
+import { chooseModels } from './steps/models/index.js'
+import { initOpenspec } from './steps/openspec/index.js'
+import { tokenOptimizationStep } from './steps/optimization/index.js'
+import { choosePlatform } from './steps/platform/index.js'
+import { chooseSourceScope } from './steps/source/index.js'
+import { writeOnboardConfig } from './steps/metadata/index.js'
 
 function printHelp(version) {
   console.log(`opencode-onboard v${version}`)
@@ -33,12 +25,8 @@ function printHelp(version) {
   console.log('  platform        Run platform selection step')
   console.log('  copy            Run content copy step')
   console.log('  openspec        Run OpenSpec initialization step')
-  console.log('  skills          Run skills install step')
   console.log('  models          Run models selection step')
   console.log('  optimization    Run token optimization tools step')
-  console.log('  quota           Run opencode-quota installer step')
-  console.log('  rtk             Run rtk check step')
-  console.log('  caveman         Run caveman install + guidance steps')
   console.log('  browser         Run opencode-browser installer step')
   console.log('  metadata        Write onboarding metadata step')
   console.log()
@@ -78,29 +66,15 @@ async function runSingleCommand(command) {
     },
     copy: async () => {
       await copyContentStep(resolvedPlatform, ctx)
-      await patchAgentsMd(ctx)
     },
     openspec: async () => {
       await initOpenspec()
-    },
-    skills: async () => {
-      await chooseSkillsProvider()
     },
     models: async () => {
       await chooseModels()
     },
     optimization: async () => {
-      await tokenOptimizationStep({ skillsProvider: savedWizard?.additionalSkillsProvider })
-    },
-    quota: async () => {
-      await installQuota()
-    },
-    rtk: async () => {
-      await checkRtk()
-    },
-    caveman: async () => {
-      const caveman = await installCaveman({ skillsProvider: savedWizard?.additionalSkillsProvider })
-      await enableCavemanGuidance(caveman)
+      await tokenOptimizationStep({ ctx })
     },
     browser: async () => {
       await installBrowser()
@@ -109,7 +83,7 @@ async function runSingleCommand(command) {
       await writeOnboardConfig({
         ...ctx,
         platform: resolvedPlatform,
-        additionalSkillsProvider: savedWizard?.additionalSkillsProvider ?? 'none',
+        additionalSkillsProvider: 'npx-skills',
         planModel: savedWizard?.models?.plan ?? null,
         buildModel: savedWizard?.models?.build ?? null,
         fastModel: savedWizard?.models?.fast ?? null,
@@ -186,28 +160,20 @@ if (process.stdin.isTTY) {
 }
 
 try {
-  await checkEnv()
-
   const scope = await chooseSourceScope()
 
   const preserve = await cleanAiFiles()
   const ctx = { ...preserve, ...scope }
 
   const platform = await choosePlatform()
-  
-  await checkPlatform(platform)
 
   await copyContentStep(platform, ctx)
 
-  await patchAgentsMd(ctx)
-
   await initOpenspec()
 
-  const skillsSelection = await chooseSkillsProvider()
-  
   const selectedModels = await chooseModels()
 
-  const tokenOpt = await tokenOptimizationStep({ skillsProvider: skillsSelection.additionalSkillsProvider })
+  const tokenOpt = await tokenOptimizationStep({ ctx })
   const { rtk, quota, caveman, cavemanGuidance } = tokenOpt
 
   await installBrowser()
@@ -215,7 +181,7 @@ try {
   await writeOnboardConfig({
     ...ctx,
     platform,
-    ...skillsSelection,
+    additionalSkillsProvider: 'npx-skills',
     ...selectedModels,
     optionalTools: { rtk, quota, caveman },
     cavemanGuidance,

@@ -7,6 +7,13 @@ import fse from 'fs-extra'
 import { copyContent, findAiFiles } from '../copy.js'
 
 const tmpDir = () => fse.mkdtempSync(path.join(os.tmpdir(), 'ob-test-'))
+const aiFiles = [
+  'AGENTS.md',
+  'CLAUDE.md',
+  '.cursorrules',
+  '.clinerules',
+  '.github/copilot-instructions.md',
+]
 
 describe('copy utils', () => {
   describe('findAiFiles()', () => {
@@ -21,20 +28,20 @@ describe('copy utils', () => {
     })
 
     it('returns empty array when no AI files exist', async () => {
-      const found = await findAiFiles(dir)
+      const found = await findAiFiles(dir, aiFiles)
       expect(found).toEqual([])
     })
 
     it('detects AGENTS.md', async () => {
       await fse.writeFile(path.join(dir, 'AGENTS.md'), '# agents')
-      const found = await findAiFiles(dir)
+      const found = await findAiFiles(dir, aiFiles)
       expect(found).toHaveLength(1)
       expect(found[0]).toContain('AGENTS.md')
     })
 
     it('detects CLAUDE.md', async () => {
       await fse.writeFile(path.join(dir, 'CLAUDE.md'), '# claude')
-      const found = await findAiFiles(dir)
+      const found = await findAiFiles(dir, aiFiles)
       expect(found).toHaveLength(1)
       expect(found[0]).toContain('CLAUDE.md')
     })
@@ -43,7 +50,7 @@ describe('copy utils', () => {
       await fse.writeFile(path.join(dir, 'AGENTS.md'), '')
       await fse.writeFile(path.join(dir, '.cursorrules'), '')
       await fse.writeFile(path.join(dir, '.clinerules'), '')
-      const found = await findAiFiles(dir)
+      const found = await findAiFiles(dir, aiFiles)
       expect(found).toHaveLength(3)
     })
 
@@ -51,7 +58,7 @@ describe('copy utils', () => {
       const ghDir = path.join(dir, '.github')
       await fse.ensureDir(ghDir)
       await fse.writeFile(path.join(ghDir, 'copilot-instructions.md'), '')
-      const found = await findAiFiles(dir)
+      const found = await findAiFiles(dir, aiFiles)
       expect(found).toHaveLength(1)
       expect(found[0]).toContain('copilot-instructions.md')
     })

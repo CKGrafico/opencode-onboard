@@ -43,7 +43,6 @@ npx opencode-onboard clean
 npx opencode-onboard platform
 npx opencode-onboard copy
 npx opencode-onboard openspec
-npx opencode-onboard skills
 npx opencode-onboard models
 npx opencode-onboard optimization
 npx opencode-onboard browser
@@ -60,21 +59,20 @@ When available, step commands reuse context from `.opencode/opencode-onboard.jso
 
 ## How it works
 
-The CLI clears the screen, shows a welcome banner, and walks you through 12 steps. The screen always shows the last 2 completed steps + the current one so you always know where you are.
+The CLI clears the screen, shows a welcome banner, and walks you through 10 steps. The screen always shows the last 2 completed steps + the current one so you always know where you are.
 
 | Step | What happens |
 |------|-------------|
-| **1. Environment check** | Verifies Node.js ≥ 18 and pnpm are available |
+| **1. Source scope** | Choose current repo or sibling source roots for code analysis |
 | **2. Clean AI files** | Detects existing `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, `.agents/` etc. and removes them, preserves your `.agents/skills/` |
 | **3. Choose platform** | GitHub or Azure DevOps |
 | **4. Check platform CLI** | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps) |
-| **5. Copy scaffolding** | Drops agents, skills, and bootstrap docs into your project |
+| **5. Copy scaffolding** | Drops agents, built-in skills, `skills-lock.json`, and bootstrap docs into your project, then runs `npx skills` |
 | **6. Init OpenSpec** | Runs `npx @fission-ai/openspec init` silently for structured change management |
-| **7. Install skills** | Installs built-in `ob-` skills + optional additional skills provider |
-| **8. Choose models** | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing |
-| **9. Token optimization tools** | Optional (recommended). One checklist step for RTK check, opencode-quota setup, and caveman install (all preselected) |
-| **10. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
-| **11. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details |
+| **7. Choose models** | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing |
+| **8. Token optimization tools** | Optional (recommended). One checklist step for RTK check, opencode-quota setup, caveman install, and dynamic `@ob-global` configuration |
+| **9. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
+| **10. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details |
 
 When it finishes, open OpenCode in your project and type:
 
@@ -213,6 +211,16 @@ After this, every agent has accurate, persistent context about your project, no 
 
 ## Development
 
+Wizard choices and defaults live in `src/presets/` where possible:
+
+- `source.json` controls source-scope prompt options
+- `platforms.json` controls platform labels and CLI checks
+- `clean.json` controls AI file detection and preservation
+- `models.json` controls model role prompts and agent assignments
+- `optimization.json` controls RTK/quota/caveman checklist defaults
+- `quota.json` controls opencode-quota defaults
+- `browser.json` controls opencode-browser installer automation
+
 ```bash
 git clone https://github.com/ckgrafico/opencode-onboard.git
 cd opencode-onboard
@@ -224,11 +232,17 @@ node src/index.js
 # Run tests
 pnpm test
 
+# Run linting
+pnpm lint
+
+# Fix auto-fixable lint issues
+pnpm lint:fix
+
 # Watch mode
 pnpm test:watch
 ```
 
-Tests are written with [Vitest](https://vitest.dev).
+Tests are written with [Vitest](https://vitest.dev). Linting uses ESLint flat config with Node ESM defaults and stricter correctness rules.
 
 ---
 
