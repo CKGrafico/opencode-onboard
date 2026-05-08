@@ -44,7 +44,7 @@ describe('installBrowser()', () => {
 
     await installBrowser()
 
-    expect(execa).toHaveBeenCalledWith('npx', expect.arrayContaining('@different-ai/opencode-browser'), expect.any(Object))
+    expect(execa).toHaveBeenCalledWith('npx', expect.arrayContaining(['@different-ai/opencode-browser']), expect.any(Object))
   })
 
   it('logs success when exit code is 0', async () => {

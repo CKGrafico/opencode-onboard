@@ -20,6 +20,21 @@ vi.mock('./caveman.js', () => ({ installCaveman: vi.fn() }))
 vi.mock('./caveman-guidance.js', () => ({ enableCavemanGuidance: vi.fn() }))
 vi.mock('./global.js', () => ({ configureObGlobal: vi.fn() }))
 
+vi.mock('fs-extra', () => ({
+  default: {
+    readJson: vi.fn().mockResolvedValue({
+      info: 'Token optimization info',
+      message: 'Select tools',
+      timeoutMs: 5000,
+      choices: [
+        { value: 'rtk', checked: false },
+        { value: 'quota', checked: false },
+        { value: 'caveman', checked: false },
+      ],
+    }),
+  },
+}))
+
 import { checkbox } from '@inquirer/prompts'
 import { commandExists, warn } from '../../utils/exec.js'
 import { installQuota } from './quota.js'
@@ -34,6 +49,9 @@ describe('tokenOptimizationStep()', () => {
   })
 
   it('runs all optimizations by default selection', async () => {
+    const originalIsTTY = process.stdin.isTTY
+    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true })
+
     checkbox.mockResolvedValue(['rtk', 'quota', 'caveman'])
     commandExists.mockResolvedValue(true)
     installQuota.mockResolvedValue({ optedIn: true, installed: true })
@@ -42,6 +60,8 @@ describe('tokenOptimizationStep()', () => {
     configureObGlobal.mockResolvedValue({ configured: true })
 
     const result = await tokenOptimizationStep()
+
+    Object.defineProperty(process.stdin, 'isTTY', { value: originalIsTTY, configurable: true })
 
     expect(commandExists).toHaveBeenCalledWith('rtk')
     expect(installQuota).toHaveBeenCalledWith({ skipHeader: true, skipPrompt: true })

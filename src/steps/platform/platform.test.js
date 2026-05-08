@@ -54,7 +54,7 @@ describe('choosePlatform()', () => {
         await checkPlatform('github')
 
         expect(success).toHaveBeenCalledWith('GitHub CLI (gh) available')
-        expect(success).toHaveBeenCalledWith('GitHub CLI authenticated')
+        expect(success).toHaveBeenCalledWith('GitHub CLI (gh) authenticated')
       })
 
       it('warns when gh is installed but not authenticated', async () => {

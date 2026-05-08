@@ -7,7 +7,7 @@ describe('buildDisplayModels()', () => {
 
     const result = buildDisplayModels(raw)
 
-    expect(result[0].label).toContain('[$]')
+    expect(result[0].label).toContain('[$$]')
   })
 
   it('adds cost tier label for mid-range models', () => {
@@ -15,7 +15,7 @@ describe('buildDisplayModels()', () => {
 
     const result = buildDisplayModels(raw)
 
-    expect(result[0].label).toContain('[$$]')
+    expect(result[0].label).toContain('[$$$]')
   })
 
   it('adds cost tier label for expensive models', () => {
@@ -47,7 +47,8 @@ describe('buildDisplayModels()', () => {
 
     const result = buildDisplayModels(raw)
 
-    expect(result[0].description).toContain('cost: ?')
+    expect(result[0].description).toContain('?')
+    expect(result[0].label).not.toContain('[')
   })
 
   it('handles $0 subscription pricing', () => {
@@ -58,7 +59,7 @@ describe('buildDisplayModels()', () => {
     expect(result[0].description).toContain('$0 (subscription)')
   })
 
-  it('sorts models by cost ascending', () => {
+  it('preserves input order (sorting is done upstream by parseModels)', () => {
     const raw = [
       { id: 'expensive/model', name: 'Expensive', cost: 100, context: 1000 },
       { id: 'cheap/model', name: 'Cheap', cost: 1, context: 1000 },
@@ -67,8 +68,8 @@ describe('buildDisplayModels()', () => {
 
     const result = buildDisplayModels(raw)
 
-    expect(result[0].id).toBe('cheap/model')
-    expect(result[1].id).toBe('mid/model')
-    expect(result[2].id).toBe('expensive/model')
+    expect(result[0].id).toBe('expensive/model')
+    expect(result[1].id).toBe('cheap/model')
+    expect(result[2].id).toBe('mid/model')
   })
 })

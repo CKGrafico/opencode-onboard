@@ -7,16 +7,6 @@ vi.mock('../../utils/exec.js', () => ({
   success: vi.fn(),
 }))
 
-vi.mock('fs-extra', () => ({
-  default: {
-    readFile: vi.fn(),
-    writeFile: vi.fn(),
-    writeJson: vi.fn(),
-    pathExists: vi.fn(),
-  },
-}))
-
-import fse from 'fs-extra'
 import { success } from '../../utils/exec.js'
 import { writeModelToAgent, writeModelsToConfigs } from './write.js'
 
@@ -24,6 +14,7 @@ describe('writeModelToAgent()', () => {
   let tmpDir
 
   beforeEach(() => {
+    vi.clearAllMocks()
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'models-write-test-'))
   })
 
@@ -69,18 +60,22 @@ custom_field: custom_value
 })
 
 describe('writeModelsToConfigs()', () => {
-  let tmpDir, agentsDir, opencodeJsonPath, ensembleJsonPath
+  let tmpDir, agentsDir, opencodeJsonPath, ensembleJsonPath, originalCwd
 
   beforeEach(() => {
+    vi.clearAllMocks()
+    originalCwd = process.cwd()
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'models-config-test-'))
     agentsDir = path.join(tmpDir, '.agents', 'agents')
     fs.mkdirSync(agentsDir, { recursive: true })
     opencodeJsonPath = path.join(tmpDir, '.opencode', 'opencode.json')
     ensembleJsonPath = path.join(tmpDir, '.opencode', 'ensemble.json')
     fs.mkdirSync(path.dirname(opencodeJsonPath), { recursive: true })
+    process.chdir(tmpDir)
   })
 
   afterEach(() => {
+    process.chdir(originalCwd)
     fs.rmSync(tmpDir, { recursive: true, force: true })
   })
 
@@ -106,12 +101,15 @@ describe('writeModelsToConfigs()', () => {
   })
 
   it('reports success when writing configs', async () => {
+    const agentFile = path.join(agentsDir, 'back-engineer.md')
+    fs.writeFileSync(agentFile, '---\nname: Back\n---', 'utf-8')
+
     await writeModelsToConfigs({
       planModel: 'plan-model',
       buildModel: 'build-model',
       fastModel: 'fast-model',
-      agentsDir: '/nonexistent',
-      preset: { roles: { build: { agents: [] }, fast: { agents: [] } } },
+      agentsDir,
+      preset: { roles: { build: { agents: ['back-engineer'] }, fast: { agents: [] } } },
     })
 
     expect(success).toHaveBeenCalled()

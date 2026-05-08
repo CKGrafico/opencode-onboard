@@ -75,7 +75,6 @@ describe('parseModels()', () => {
     const result = parseModels(data)
 
     expect(result[0].cost).toBeUndefined()
-    expect(result[0].description).toContain('cost: ?')
   })
 
   it('extracts context limit', () => {

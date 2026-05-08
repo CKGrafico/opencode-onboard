@@ -25,14 +25,17 @@ import fse from 'fs-extra'
 import { writeOnboardConfig } from './index.js'
 
 describe('writeOnboardConfig()', () => {
-  let tmpDir
+  let tmpDir, originalCwd
 
   beforeEach(() => {
+    vi.clearAllMocks()
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'metadata-test-'))
+    originalCwd = process.cwd()
     process.chdir(tmpDir)
   })
 
   afterEach(() => {
+    process.chdir(originalCwd)
     fs.rmSync(tmpDir, { recursive: true, force: true })
   })
 
@@ -57,7 +60,7 @@ describe('writeOnboardConfig()', () => {
     expect(fse.ensureDir).toHaveBeenCalled()
     expect(fse.writeJson).toHaveBeenCalled()
     const call = fse.writeJson.mock.calls[0]
-    const payload = call[0]
+    const payload = call[1]
     expect(payload.schema).toBe(1)
     expect(payload.wizard.platform).toBe('github')
     expect(payload.wizard.models.build).toBe('build-model')
@@ -70,7 +73,7 @@ describe('writeOnboardConfig()', () => {
     await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [] })
 
     const call = fse.writeJson.mock.calls[0]
-    const payload = call[0]
+    const payload = call[1]
     expect(payload.opencodeVersion).toBe('2.0.0')
   })
 
@@ -80,7 +83,7 @@ describe('writeOnboardConfig()', () => {
     await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [] })
 
     const call = fse.writeJson.mock.calls[0]
-    const payload = call[0]
+    const payload = call[1]
     expect(payload.opencodeVersion).toBe(null)
   })
 
@@ -90,7 +93,7 @@ describe('writeOnboardConfig()', () => {
     await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [] })
 
     const call = fse.writeJson.mock.calls[0]
-    const payload = call[0]
+    const payload = call[1]
     expect(payload.note).toContain('Informational file only')
   })
 })

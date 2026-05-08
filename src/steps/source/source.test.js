@@ -27,7 +27,7 @@ vi.mock('fs-extra', () => ({
       parentSelectionMessage: 'Select sibling folders',
     }),
     readdir: vi.fn(),
-    stat: vi.fn(),
+    stat: vi.fn().mockResolvedValue({ isDirectory: () => true }),
   },
 }))
 
@@ -36,15 +36,17 @@ import fse from 'fs-extra'
 import { chooseSourceScope } from './index.js'
 
 describe('chooseSourceScope()', () => {
-  let tmpDir
+  let tmpDir, originalCwd
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'source-test-'))
+    originalCwd = process.cwd()
     process.chdir(tmpDir)
     vi.clearAllMocks()
   })
 
   afterEach(() => {
+    process.chdir(originalCwd)
     fs.rmSync(tmpDir, { recursive: true, force: true })
   })
 
@@ -61,7 +63,7 @@ describe('chooseSourceScope()', () => {
     select.mockResolvedValue('parent')
     const parentDir = path.dirname(tmpDir)
     const siblingDir = path.join(parentDir, 'sibling-project')
-    fs.mkdirSync(siblingDir)
+    fs.mkdirSync(siblingDir, { recursive: true })
     fse.readdir.mockResolvedValue(['sibling-project'])
 
     await chooseSourceScope()
