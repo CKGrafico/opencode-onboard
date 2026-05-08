@@ -47,6 +47,7 @@ npx opencode-onboard models
 npx opencode-onboard optimization
 npx opencode-onboard browser
 npx opencode-onboard metadata
+npx opencode-onboard join
 
 # Show CLI help and all commands
 npx opencode-onboard --help
@@ -60,6 +61,7 @@ Typical flow for reruns:
 - Run `copy` if templates/skills changed in a new onboard release
 - Run `optimization` if you want to reconfigure RTK/quota/caveman + `ob-global`
 - Run `metadata` last to refresh `.opencode/opencode-onboard.json`
+- Run `join` if you're a new member of an existing onboarded project and want to sync the latest onboarding metadata
 
 ---
 
