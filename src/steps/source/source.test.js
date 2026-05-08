@@ -23,8 +23,10 @@ vi.mock('fs-extra', () => ({
       choices: [
         { name: 'Current folder', value: 'current' },
         { name: 'Parent folder', value: 'parent' },
+        { name: 'Child folders', value: 'children' },
       ],
       parentSelectionMessage: 'Select sibling folders',
+      childrenSelectionMessage: 'Select child folders',
     }),
     readdir: vi.fn(),
     stat: vi.fn().mockResolvedValue({ isDirectory: () => true }),
@@ -82,6 +84,37 @@ describe('chooseSourceScope()', () => {
 
   it('falls back to current when no folders selected', async () => {
     select.mockResolvedValue('parent')
+    checkbox.mockResolvedValue([])
+
+    const result = await chooseSourceScope()
+
+    expect(result.sourceMode).toBe('current')
+  })
+
+  it('lists child folders when user selects children mode', async () => {
+    select.mockResolvedValue('children')
+    fse.readdir.mockResolvedValue(['packages', 'apps'])
+    checkbox.mockResolvedValue([path.join(tmpDir, 'packages')])
+
+    const result = await chooseSourceScope()
+
+    expect(checkbox).toHaveBeenCalled()
+    expect(result.sourceMode).toBe('children-selected')
+    expect(result.sourceRoots).toContain(path.join(tmpDir, 'packages'))
+  })
+
+  it('falls back to current when no child folders found', async () => {
+    select.mockResolvedValue('children')
+    fse.readdir.mockResolvedValue([])
+
+    const result = await chooseSourceScope()
+
+    expect(result.sourceMode).toBe('current')
+  })
+
+  it('falls back to current when no child folders selected', async () => {
+    select.mockResolvedValue('children')
+    fse.readdir.mockResolvedValue(['packages'])
     checkbox.mockResolvedValue([])
 
     const result = await chooseSourceScope()
