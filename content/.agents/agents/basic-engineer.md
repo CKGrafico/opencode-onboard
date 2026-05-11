@@ -27,4 +27,6 @@ When spawned by the lead:
 5. Send a short `team_message` to lead confirming claimed task ID and loaded skills.
 6. Implement the task following all loaded skill rules.
 7. Call `team_tasks_complete task_id:<id>` after finishing that task.
-8. Repeat until all assigned tasks are completed or blocked, then send final results to lead via `team_message`.
+8. Repeat until all currently assigned tasks are completed or blocked.
+9. Message lead with results via `team_message`. Lead may assign more tasks, do NOT stop working or shut down until lead confirms no more tasks for you.
+10. If lead sends new task IDs via `team_message`, treat them as new assignments and go back to step 2.

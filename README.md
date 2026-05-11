@@ -99,8 +99,8 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 | Command | Description |
 |---------|-------------|
 | `/init` | Initialize the project: generate `ARCHITECTURE.md`, `DESIGN.md`, archive history, activate agent team |
-| `/plan <url>` | Parse a user story URL and produce a plan — proposal, specs, and tasks. Stops before implementation. |
-| `/main <task>` | Quick direct implementation — no OpenSpec, no ensemble, no PRs. Just do it. |
+| `/plan <url>` | Parse a user story URL and produce a plan, proposal, specs, and tasks. Stops before implementation. |
+| `/main <task>` | Quick direct implementation, no OpenSpec, no ensemble, no PRs. Just do it. |
 
 ---
 

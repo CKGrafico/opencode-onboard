@@ -1,5 +1,5 @@
 ---
-description: Parse a user story URL and produce a plan — proposal, specs, and tasks. Stops before implementation.
+description: Parse a user story URL and produce a plan, proposal, specs, and tasks. Stops before implementation.
 ---
 
 Parse the work item at the URL provided after `/plan` and produce a full implementation plan.

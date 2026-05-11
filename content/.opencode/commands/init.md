@@ -1,5 +1,5 @@
 ---
-description: Initialize the project — runs the bootstrap sequence defined in AGENTS.md if not yet initialized.
+description: Initialize the project, runs the bootstrap sequence defined in AGENTS.md if not yet initialized.
 ---
 
 Check if `AGENTS.md` is in bootstrap mode (contains `<!-- AGENTS-TEMPLATE-START -->`).

@@ -33,6 +33,7 @@ export async function writeOnboardConfig(data) {
       platform: data.platform,
       sourceMode: data.sourceMode,
       sourceRoots: data.sourceRoots,
+      maxConcurrentAgents: data.maxConcurrentAgents ?? 4,
       preserved: {
         design: !!data.hasDesign,
         architecture: !!data.hasArchitecture,

@@ -61,15 +61,16 @@ When working as a spawned agent in an ensemble team, these rules are mandatory:
 - ONE task = ONE commit. No multi-task commits.
 
 **Communication discipline:**
-- NEVER message lead with "I'm reading" or "I'm planning". Only message when DONE or BLOCKED.
-- When DONE: report number of tasks completed + commit count.
+- NEVER message lead with "I'm reading" or "I'm planning". Only message when BATCH DONE or BLOCKED.
+- When BATCH DONE: report number of tasks completed + commit count. Lead may assign more tasks, stay active until lead confirms no more.
 - When BLOCKED: report which task, what's blocking, what you tried.
-- NEVER ask lead for permission to proceed, skip, or reorder tasks. Task sequencing and dependency resolution are YOUR responsibility. Only message lead when DONE or genuinely BLOCKED (no unblocked tasks remain).
+- NEVER ask lead for permission to proceed, skip, or reorder tasks. Task sequencing and dependency resolution are YOUR responsibility. Only message lead when BATCH DONE or genuinely BLOCKED (no unblocked tasks remain).
+- When lead sends new task IDs via team_message, treat them as new assignments and continue working.
 
 **Stall prevention:**
 - If a build fails, fix it immediately (max 3 attempts). Then report blocker.
 - If you don't understand a task, message lead asking for clarification. Do NOT guess.
-- If a file you need doesn't exist yet (dependency on another agent), report as blocked — don't create stubs.
+- If a file you need doesn't exist yet (dependency on another agent), report as blocked, don't create stubs.
 - NEVER use sleep loops or polling to wait for a dependency. Waiting is always a blocker: report it and stop.
 
 ## Token Optimization Rules

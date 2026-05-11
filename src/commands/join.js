@@ -1,15 +1,15 @@
 import chalk from 'chalk'
-import { header, info } from '../utils/exec.js'
 import { installBrowser } from '../steps/browser/index.js'
 import { checkRtk } from '../steps/optimization/index.js'
-import { choosePlatform, checkPlatform } from '../steps/platform/index.js'
+import { checkPlatform, choosePlatform } from '../steps/platform/index.js'
+import { header, info } from '../utils/exec.js'
 import { readOnboardConfig } from './shared.js'
 
 export async function runJoin() {
   const logo = chalk.hex('#fe3d57')
   console.log()
   console.log(logo('  🤝 opencode-onboard join'))
-  console.log(chalk.dim('  New team member setup — checks & local installs only'))
+  console.log(chalk.dim('  New team member setup, checks & local installs only'))
   console.log(chalk.dim('  This will NOT modify any project files.'))
   console.log()
 

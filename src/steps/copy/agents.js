@@ -61,6 +61,34 @@ function replaceBetween(content, start, end, replacement) {
   return content.replace(pattern, `${start}\n${replacement.trim()}\n${end}`)
 }
 
+const CONCURRENCY_PLACEHOLDER = '{{MAX_CONCURRENT_AGENTS}}'
+const DEFAULT_MAX_CONCURRENT_AGENTS = 4
+
+export async function patchConcurrency(ctx) {
+  const maxAgents = String(ctx.maxConcurrentAgents ?? DEFAULT_MAX_CONCURRENT_AGENTS)
+  const cwd = process.cwd()
+
+  const filesToPatch = [
+    'AGENTS.md',
+    path.join('.opencode', 'commands', 'opsx-apply.md'),
+    path.join('.opencode', 'skills', 'openspec-apply-change', 'SKILL.md'),
+  ]
+
+  let patched = 0
+  for (const rel of filesToPatch) {
+    const abs = path.join(cwd, rel)
+    if (!await fse.pathExists(abs)) continue
+    const content = await fse.readFile(abs, 'utf-8')
+    if (!content.includes(CONCURRENCY_PLACEHOLDER)) continue
+    await fse.writeFile(abs, content.replaceAll(CONCURRENCY_PLACEHOLDER, maxAgents), 'utf-8')
+    patched++
+  }
+
+  if (patched > 0) {
+    success(`Concurrency limit set to ${maxAgents} agents in ${patched} file(s)`)
+  }
+}
+
 export async function patchAgentsMd(ctx) {
   const agentsMdPath = path.join(process.cwd(), 'AGENTS.md')
   if (!await fse.pathExists(agentsMdPath)) return

@@ -12,6 +12,7 @@ vi.mock('../../utils/copy.js', () => ({
 
 vi.mock('./agents.js', () => ({
   patchAgentsMd: vi.fn(),
+  patchConcurrency: vi.fn(),
   patchDevopsManagerMd: vi.fn(),
 }))
 

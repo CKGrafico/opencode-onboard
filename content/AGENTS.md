@@ -63,13 +63,30 @@ The output must be a real, populated `ARCHITECTURE.md` based on what you found i
 
 ---
 
-### Step 4, Rewrite this file
+### Step 4, Populate OpenSpec config
+
+Read `openspec/config.yaml`. It contains a template with commented-out examples. Fill in the `context:` field with real project information discovered during steps 1-3:
+
+```yaml
+context: |
+  Tech stack: <languages, frameworks, libraries found in the codebase>
+  Build system: <build tools, package managers>
+  Architecture: <monolith, microservices, monorepo, etc.>
+  Conventions: <coding style, commit conventions, branching strategy if found>
+  Domain: <what this project does, in one line>
+```
+
+Keep the `schema: spec-driven` line. Add `rules:` only if the codebase has clear conventions worth enforcing (e.g., max task size, proposal format). Do not invent rules that aren't evidenced by the codebase.
+
+---
+
+### Step 5, Rewrite this file
 
 Replace the entire contents of this file (`AGENTS.md`) with everything below the line `<!-- AGENTS-TEMPLATE-START -->` in this same file. Delete the bootstrap section and the template marker, the file should contain only the template content when done.
 
 ---
 
-### Step 5, Confirm
+### Step 6, Confirm
 
 Tell the user:
 
@@ -80,6 +97,7 @@ Tell the user:
 
 - ARCHITECTURE.md generated
 - DESIGN.md generated
+- openspec/config.yaml populated
 - Project history archived in openspec
 - AGENTS.md updated with real guidance
 
@@ -98,7 +116,7 @@ After restarting you are ready to work.
 - Do NOT create branches or PRs
 - Do NOT modify any project source files
 - Do NOT create CLI wrapper files or scripts
-- Only read source files for analysis, write only to ARCHITECTURE.md, DESIGN.md, AGENTS.md, and openspec/
+- Only read source files for analysis, write only to ARCHITECTURE.md, DESIGN.md, AGENTS.md, openspec/config.yaml, and openspec/
 
 <!-- AGENTS-TEMPLATE-START -->
 # AGENTS.md
@@ -151,9 +169,10 @@ Core tools used in this workflow:
 **Dashboard**: Monitor running agents at **http://localhost:4747/**
 
 **Hard limits:**
-- **Max 3 concurrent agents.** Spawn in waves if more needed. Wait for wave N to finish before spawning wave N+1.
+- **Max {{MAX_CONCURRENT_AGENTS}} truly concurrent agents.** All {{MAX_CONCURRENT_AGENTS}} must be spawned and running simultaneously, not sequentially. Spawn in waves if more than {{MAX_CONCURRENT_AGENTS}} are needed. Wait for wave N to finish before spawning wave N+1.
 - **Non-overlapping file domains.** Each agent owns exclusive directories. Two agents must NEVER touch the same file.
-- **Immediate shutdown on completion.** The moment an agent reports done → `team_shutdown` → `team_merge`. Never leave idle agents running.
+- **Immediate shutdown on completion.** The moment an agent's domain has no more pending tasks → `team_shutdown` → `team_merge`. Keep agents alive if more tasks in their domain are pending (rolling batch).
+- **Rolling batch assignment.** Agents receive up to 3 tasks initially. When they complete a batch, lead assigns the next batch of up to 3 from the board. Never leave pending tasks orphaned.
 - **Stall detection at 5 minutes.** No commits after 5 min → nudge message → 2 min grace → force shutdown + respawn.
 
 **Progress inspection commands (tell user explicitly after spawning):**
@@ -202,8 +221,9 @@ devops-manager (ship mode)
 ```
 1. Run /opsx-apply.
    - Lead adds all tasks to board.
-   - Lead spawns one or more engineers (`basic-engineer` and/or custom engineers) in parallel where safe.
-   - Each engineer must claim task IDs, load relevant abilities, implement, and complete tasks.
+   - Lead spawns engineers with initial batch of up to 3 tasks each (rolling batch model).
+   - Each engineer claims tasks, implements, completes, messages lead.
+   - Lead assigns next batch (up to 3) to agents that report done. Repeat until board empty.
    - Lead merges each engineer branch after shutdown, then marks tasks done in tasks.md.
 2. Verify with tests/build/lint according to task scope.
 ```

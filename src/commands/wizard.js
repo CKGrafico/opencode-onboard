@@ -1,3 +1,4 @@
+import { select as wizardSelect } from '@inquirer/prompts'
 import chalk from 'chalk'
 import { chooseSourceScope } from '../steps/source/index.js'
 import { cleanAiFiles } from '../steps/clean/index.js'
@@ -50,8 +51,20 @@ export async function runWizard(version) {
 
   const scope = await chooseSourceScope()
 
+  const maxConcurrentAgents = await wizardSelect({
+    message: 'Max concurrent agents:',
+    default: 4,
+    choices: [
+      { name: '2', value: 2, description: 'Conservative — lower resource usage' },
+      { name: '3', value: 3, description: 'Moderate parallelism' },
+      { name: '4 (default)', value: 4, description: 'Recommended for most projects' },
+      { name: '5', value: 5, description: 'High parallelism — requires more resources' },
+      { name: '6', value: 6, description: 'Maximum parallelism' },
+    ],
+  })
+
   const preserve = await cleanAiFiles()
-  const ctx = { ...preserve, ...scope }
+  const ctx = { ...preserve, ...scope, maxConcurrentAgents }
 
   const platform = await choosePlatform()
 
@@ -69,6 +82,7 @@ export async function runWizard(version) {
   await writeOnboardConfig({
     ...ctx,
     platform,
+    maxConcurrentAgents,
     additionalSkillsProvider: 'npx-skills',
     ...selectedModels,
     optionalTools: { rtk, quota, caveman },

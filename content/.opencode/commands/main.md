@@ -1,5 +1,5 @@
 ---
-description: Quick direct implementation — no OpenSpec, no ensemble, no PRs. Just do it.
+description: Quick direct implementation, no OpenSpec, no ensemble, no PRs. Just do it.
 ---
 
 Implement the task described after `/main` directly and immediately.
