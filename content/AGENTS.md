@@ -150,6 +150,12 @@ Core tools used in this workflow:
 
 **Dashboard**: Monitor running agents at **http://localhost:4747/**
 
+**Hard limits:**
+- **Max 3 concurrent agents.** Spawn in waves if more needed. Wait for wave N to finish before spawning wave N+1.
+- **Non-overlapping file domains.** Each agent owns exclusive directories. Two agents must NEVER touch the same file.
+- **Immediate shutdown on completion.** The moment an agent reports done → `team_shutdown` → `team_merge`. Never leave idle agents running.
+- **Stall detection at 5 minutes.** No commits after 5 min → nudge message → 2 min grace → force shutdown + respawn.
+
 **Progress inspection commands (tell user explicitly after spawning):**
 - `team_status` for live team snapshot
 - `team_tasks_list` for task board state

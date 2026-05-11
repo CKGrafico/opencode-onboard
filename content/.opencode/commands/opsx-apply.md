@@ -88,6 +88,16 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 
    **Step 6d.** Discover available agents, assign tasks by best fit, then spawn workers.
 
+      **CONCURRENCY LIMIT: Maximum 3 agents at a time.**
+      If more than 3 agents are needed, spawn in waves: first 3, wait for them to finish, merge, then spawn next batch.
+      This prevents file contention, context exhaustion, and stalled agents.
+
+      **FILE DOMAIN SEPARATION (mandatory):**
+      Each agent MUST own a non-overlapping set of files/directories. Examples:
+      - Agent A owns `src/backend/Application/Commands/` — Agent B owns `src/backend/Application/Queries/`
+      - Agent A owns `src/frontend/app/(auth)/events/` — Agent B owns `src/frontend/app/(auth)/admin/`
+      Never assign two agents tasks that touch the same file or controller.
+
       Agent discovery and assignment rule:
       - Read `.agents/agents/*.md` and use each agent's `description` and `## Abilities` to understand specialization.
       - For each task ID, choose the best-fit agent based on task domain (backend, frontend, infra, testing, etc.).
@@ -116,49 +126,74 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 
       Each team_spawn MUST include the agent field (required, causes NOT NULL error if omitted).
 
-      The spawn prompt must contain exactly:
-      1. Their name and role on this team
-      2. Which tasks are theirs, list the task IDs and content from the board
-      2.1 Why they were selected for those tasks (domain/abilities match)
-      3. Key context they need (summarized from context files, do NOT tell them to read files themselves)
-      4. The 6 OpenCode tools they have available (these are OpenCode tools, NOT shell commands, call them directly as tools, never via bash):
-         team_claim, team_tasks_complete, team_tasks_list, team_tasks_add, team_message, team_broadcast
-      5. How to proceed: call team_claim tool with the task_id to claim a task before starting it, call team_tasks_complete tool after finishing it, repeat until all their tasks are done, then call team_message tool to notify lead with results or blockers
-      6. Which skills to load: list the skill names and paths they MUST read before implementing. Example: "Before starting, read `.agents/skills/next-best-practices/SKILL.md` and follow its rules for all Next.js code."
+      **Spawn prompt format (strict, max 400 tokens):**
 
-      Keep spawn prompts under 600 tokens. Do not describe team internals or how ensemble works.
-      Only spawn agents whose tasks are actually needed by this change. Skip agents with no tasks.
+      ```
+      You are {name}, {role}. Your file domain: {list of directories you own exclusively}.
 
-      Spawn one or more best-fit workers (parallel when dependencies allow):
+      Tasks (claim each with team_claim before starting, team_tasks_complete after commit):
+      - {task_id_1}: {one-line description}
+      - {task_id_2}: {one-line description}
+
+      Context: {2-3 sentences of essential context from the specs, NOT full file contents}
+
+      Build command: {e.g., "dotnet build TechEvents.slnx" or "pnpm build"}
+      After each task: git add -A && git commit -m "feat: <description>"
+
+      Start with team_claim on your first task NOW. Do not read files or plan first.
+      ```
+
+      DO NOT include:
+      - Full file contents or code snippets in the prompt
+      - Descriptions of how ensemble works
+      - Lists of available tools (the agent already knows from its agent.md)
+      - Instructions to "message lead when planning" — agents should only message when DONE or BLOCKED
+
+      Spawn workers:
       ```
       team_spawn name:"eng-1" agent:"backend-engineer" prompt:"..."
       team_spawn name:"eng-2" agent:"frontend-engineer" prompt:"..."
-      team_spawn name:"eng-3" agent:"basic-engineer" prompt:"..."
       ```
 
-      Then immediately send each spawned worker a start message with exact task IDs:
+      Then immediately send each spawned worker a start message:
       ```
-      team_message to:"eng-1" text:"Start now. Load @ob-global first, then use your agent `## Abilities` for these tasks: [task-<id1>] ... Claim each task ID before starting."
-      team_message to:"eng-2" text:"Start now. Load @ob-global first, then use your agent `## Abilities` for these tasks: [task-<id2>] ... Claim each task ID before starting."
-      team_message to:"eng-3" text:"Start now. Load @ob-global first, then use your agent `## Abilities` for these tasks: [task-<id3>] ... Claim each task ID before starting."
+      team_message to:"eng-1" text:"Start now. First action: team_claim {first_task_id}. Go."
+      team_message to:"eng-2" text:"Start now. First action: team_claim {first_task_id}. Go."
       ```
 
    **Step 6e.** After sending start messages, tell the user what is running, then STOP and wait.
       Do NOT call team_results, team_status, or team_broadcast in a loop.
       Teammates will message you when done or blocked. Wait for those messages.
 
-   **Step 6f.** When a teammate messages back, you receive a ping only, the full content is NOT in the notification.
-      Call team_results to read the full message and mark it read. Then for each teammate: team_shutdown → team_merge.
-      If team_merge blocks ("overlapping local changes"), commit or stash your local changes first, then retry.
-      Fix any other blockers reported.
+      Tell the user: "Agents spawned. Check dashboard at http://localhost:4747/. I'll report when they finish."
+
+   **Step 6f.** When a teammate messages back:
+      1. Call `team_results from:"<name>"` to read full message
+      2. Call `team_shutdown member:"<name>"` immediately
+      3. Call `team_merge member:"<name>"` immediately
+      4. If team_merge blocks on local changes: `git stash`, retry merge, `git stash pop`
+      5. Mark their tasks complete in the board if they didn't already
+      6. If more waves are needed, spawn next batch (back to step 6d)
+
+      **IMMEDIATE SHUTDOWN RULE:** Never leave a finished agent running. The moment they report done, shut them down and merge. Idle agents waste slots and cause naming collisions on respawn.
+
+   **Step 6g. Stall detection (if agent has no commits after 5 minutes):**
+      1. `team_message to:"<name>" text:"Status? If stuck, report blocker. If not started, run team_claim {task_id} now."`
+      2. Wait 2 more minutes
+      3. If still no response: `team_shutdown member:"<name>" force:true`
+      4. Respawn with same tasks, fresh prompt
+      5. Log stall in session-log for post-mortem
 
 7. **Verification check**
 
-   Run verification tasks (tests/build/lint) using a worker suited for verification scope:
-   - either same engineer workers
-   - or a dedicated verifier worker if your project defines one
-
-   Wait for results → fix blockers.
+   After ALL agents are merged, run verification on the lead branch directly:
+   ```bash
+   # Backend
+   dotnet build <solution>
+   # Frontend
+   pnpm build
+   ```
+   Fix any errors yourself (small fixes only). If large fixes needed, spawn one more agent.
 
 8. **Mark tasks complete in openspec**
 
@@ -188,7 +223,10 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 - ALWAYS add every task to the board with team_tasks_add before spawning
 - ALWAYS spawn workers based on dependencies: parallel when safe, sequential when required
 - ALWAYS instruct agents to call team_claim before each task and team_tasks_complete after
-- If teammates are stuck, use team_message to resend tasks, then wait, never implement directly
+- ALWAYS enforce max 3 concurrent agents
+- ALWAYS enforce non-overlapping file domains per agent
+- ALWAYS shut down + merge agents immediately when they report done
+- If teammates are stuck, use team_message to nudge, then stall detection (step 6g)
 - Mark tasks complete in openspec AFTER worker implementation and verification finish, not before
 - Pause on errors, blockers, or unclear requirements. Do not guess
 - Use contextFiles from CLI output, do not assume specific file paths
