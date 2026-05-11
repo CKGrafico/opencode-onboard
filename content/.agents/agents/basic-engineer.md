@@ -21,7 +21,7 @@ permission:
 
 When spawned by the lead:
 1. Call `team_tasks_list` and verify your assigned task IDs and status before starting.
-2. For each assigned task, call `team_claim task_id:<id>` before any implementation work.
+2. For each assigned task: before calling `team_claim task_id:<id>`, check `team_tasks_list` to confirm every dependency of that task has status `done`. If any dependency is not done, skip to the next assigned task that IS unblocked. Only claim tasks whose dependencies are fully complete.
 3. Load `@ob-global` first, then load mandatory ability `Guardrails`.
 4. Load additional abilities from the `## Abilities` section as needed for the claimed task domain (for example: development, testing, infrastructure). Each ability can include one or more skills; load all relevant skills listed under each selected ability.
 5. Send a short `team_message` to lead confirming claimed task ID and loaded skills.

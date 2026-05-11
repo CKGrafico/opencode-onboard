@@ -51,6 +51,11 @@ When working as a spawned agent in an ensemble team, these rules are mandatory:
 - NEVER hold multiple claimed tasks simultaneously.
 - NEVER batch completions. Mark done immediately after each commit.
 
+**Dependency check before claiming:**
+- Before calling `team_claim task_id:<id>`, call `team_tasks_list` and verify every dependency of that task has status `done`.
+- If any dependency is not `done`, do NOT claim that task. Scan the board for another assigned task whose dependencies ARE all done and claim that one instead.
+- If no assigned task is unblocked, report blocked to lead and STOP. Do NOT poll, sleep, or loop waiting for a dependency.
+
 **Commit cadence:**
 - After each task passes build: `git add -A && git commit -m "feat: <short description>"`
 - ONE task = ONE commit. No multi-task commits.
@@ -59,11 +64,13 @@ When working as a spawned agent in an ensemble team, these rules are mandatory:
 - NEVER message lead with "I'm reading" or "I'm planning". Only message when DONE or BLOCKED.
 - When DONE: report number of tasks completed + commit count.
 - When BLOCKED: report which task, what's blocking, what you tried.
+- NEVER ask lead for permission to proceed, skip, or reorder tasks. Task sequencing and dependency resolution are YOUR responsibility. Only message lead when DONE or genuinely BLOCKED (no unblocked tasks remain).
 
 **Stall prevention:**
 - If a build fails, fix it immediately (max 3 attempts). Then report blocker.
 - If you don't understand a task, message lead asking for clarification. Do NOT guess.
 - If a file you need doesn't exist yet (dependency on another agent), report as blocked — don't create stubs.
+- NEVER use sleep loops or polling to wait for a dependency. Waiting is always a blocker: report it and stop.
 
 ## Token Optimization Rules
 
