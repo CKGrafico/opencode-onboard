@@ -37,7 +37,7 @@ function appendEntry(directory, entry) {
 
   let entries = []
   if (fs.existsSync(logPath)) {
-    try { entries = JSON.parse(fs.readFileSync(logPath, "utf8")) } catch (_) {}
+    try { entries = JSON.parse(fs.readFileSync(logPath, "utf8")) } catch { /* ignore parse errors */ }
   }
   entries.push(entry)
   fs.writeFileSync(logPath, JSON.stringify(entries, null, 2), "utf8")
@@ -394,7 +394,9 @@ export const SessionLogPlugin = async ({ client, directory }) => {
           trackCompletedByTeam(buildCompletedSnapshot(state, sessionId))
           sessionState.delete(sessionId)
         }
-      } catch (_) {}
+      } catch  {
+        // ignore
+      }
     },
 
     "tool.execute.after": async (input, output) => {
@@ -513,7 +515,9 @@ export const SessionLogPlugin = async ({ client, directory }) => {
             byAgent: teamName ? buildTeamSkillsSummary(teamName) : {},
           })
         }
-      } catch (_) {}
-    },
+      } catch { 
+        // ignore
+      }
+    }
   }
 }

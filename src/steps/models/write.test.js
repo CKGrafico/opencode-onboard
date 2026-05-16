@@ -60,7 +60,7 @@ custom_field: custom_value
 })
 
 describe('writeModelsToConfigs()', () => {
-  let tmpDir, agentsDir, opencodeJsonPath, ensembleJsonPath, originalCwd
+  let tmpDir, agentsDir, opencodeJsonPath, originalCwd
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -69,7 +69,7 @@ describe('writeModelsToConfigs()', () => {
     agentsDir = path.join(tmpDir, '.agents', 'agents')
     fs.mkdirSync(agentsDir, { recursive: true })
     opencodeJsonPath = path.join(tmpDir, '.opencode', 'opencode.json')
-    ensembleJsonPath = path.join(tmpDir, '.opencode', 'ensemble.json')
+    path.join(tmpDir, '.opencode', 'ensemble.json')
     fs.mkdirSync(path.dirname(opencodeJsonPath), { recursive: true })
     process.chdir(tmpDir)
   })

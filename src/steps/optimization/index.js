@@ -64,7 +64,7 @@ export async function tokenOptimizationStep(options = {}) {
         message: optimizationPreset.message,
         choices: optimizationPreset.choices,
       }),
-      new Promise(resolve => setTimeout(() => resolve(defaultSelected), timeoutMs)),
+      new Promise(resolve => { setTimeout(() => resolve(defaultSelected), timeoutMs) }),
     ])
     selected = Array.isArray(choice) ? choice : defaultSelected
   }

@@ -29,7 +29,7 @@ export async function installQuota(options = {}) {
         message: quotaPreset.prompt.message,
         default: quotaPreset.prompt.default,
       }),
-      new Promise(resolve => setTimeout(() => resolve(true), timeoutMs)),
+      new Promise(resolve => { setTimeout(() => resolve(true), timeoutMs) }),
     ])
     shouldInstall = choice !== false
   }

@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import { execa } from 'execa'
 import ora from 'ora'
 import { appendLine, redraw, rotateStep, startSpinner, stopSpinner } from './exec-spinner.js'
+import { MARKERS } from './terminal.js';
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
@@ -69,7 +70,7 @@ export function loading(text = 'working...') {
  */
 export function success(text) {
   stopSpinner();
-  const line = chalk.green('✓ ') + text;
+  const line = chalk.green(`${MARKERS.OK_PREFIX}${text}`);
   appendLine(line);
   console.log(line);
 }
@@ -79,7 +80,7 @@ export function success(text) {
  */
 export function warn(text) {
   stopSpinner();
-  const line = chalk.yellow('⚠ ') + text;
+  const line = chalk.yellow(`${MARKERS.WARN_PREFIX}${text}`);
   appendLine(line);
   console.log(line);
 }
@@ -89,7 +90,7 @@ export function warn(text) {
  */
 export function error(text) {
   stopSpinner();
-  const line = chalk.red('✗ ') + text;
+  const line = chalk.red(`${MARKERS.ERROR_PREFIX}${text}`);
   appendLine(line);
   console.log(line);
 }
@@ -99,7 +100,7 @@ export function error(text) {
  */
 export function info(text) {
   stopSpinner();
-  const line = chalk.dim('  ' + text);
+  const line = chalk.dim(`${MARKERS.EMPTY}${text}`);
   appendLine(line);
   console.log(line);
 }
@@ -109,7 +110,7 @@ export function info(text) {
  */
 export function prompt(text) {
   stopSpinner();
-  const line = chalk.bold('  ' + text);
+  const line = chalk.bold(`${MARKERS.EMPTY}${text}`);
   appendLine(line);
   console.log(line);
 }
@@ -122,7 +123,9 @@ export function code(lines) {
   appendLine('');
   console.log();
   for (const line of lines) {
-    const formatted = chalk.bgGray.white('  ' + line + '  ');
+    const formatted = chalk.bgGray.white(
+      `${MARKERS.EMPTY}${line}${MARKERS.EMPTY}`,
+    );
     appendLine(formatted);
     console.log(formatted);
   }
