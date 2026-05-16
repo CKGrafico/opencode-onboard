@@ -57,6 +57,7 @@ npx opencode-onboard -h
 When available, step commands reuse context from `.opencode/opencode-onboard.json`.
 
 Typical flow for reruns:
+
 - Run `clean` if you want to reset old AI files
 - Run `copy` if templates/skills changed in a new onboard release
 - Run `optimization` if you want to reconfigure RTK/quota/caveman + `ob-global`
@@ -69,18 +70,18 @@ Typical flow for reruns:
 
 The CLI runs a 10-step onboarding wizard. It keeps the current step visible, plus the last two completed steps, so progress is always clear.
 
-| Step | What happens |
-|------|-------------|
-| **1. Source scope** | Choose current repo or sibling source roots for code analysis |
-| **2. Clean AI files** | Detects existing `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, `.agents/` etc. and removes them, preserves your `.agents/skills/` |
-| **3. Choose platform** | GitHub or Azure DevOps |
-| **4. Check platform CLI** | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps) |
-| **5. Copy scaffolding** | Copies agents + built-in skills + bootstrap docs, writes source-roots metadata, applies AGENTS bootstrap patching, copies `skills-lock.json`, then runs `npx skills` |
-| **6. Init OpenSpec** | Runs `npx @fission-ai/openspec init` silently for structured change management |
-| **7. Choose models** | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing |
-| **8. Token optimization tools** | Optional (recommended). One checklist step for RTK check, opencode-quota setup, caveman install, and dynamic `ob-global` token-optimization rule injection |
-| **9. Install browser plugin** | Installs `@different-ai/opencode-browser` globally for agent browser automation |
-| **10. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details |
+| Step                              | What happens                                                                                                                                                         |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Source scope**               | Choose current repo or sibling source roots for code analysis                                                                                                        |
+| **2. Clean AI files**             | Detects existing `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, `.agents/` etc. and removes them, preserves your `.agents/skills/`                                        |
+| **3. Choose platform**            | GitHub or Azure DevOps                                                                                                                                               |
+| **4. Check platform CLI**         | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps)                                                                                                       |
+| **5. Copy scaffolding**           | Copies agents + built-in skills + bootstrap docs, writes source-roots metadata, applies AGENTS bootstrap patching, copies `skills-lock.json`, then runs `npx skills` |
+| **6. Init OpenSpec**              | Runs `npx @fission-ai/openspec init` silently for structured change management                                                                                       |
+| **7. Choose models**              | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing                   |
+| **8. Token optimization tools**   | Optional (recommended). One checklist step for RTK check, opencode-quota setup, caveman install, and dynamic `ob-global` token-optimization rule injection           |
+| **9. Install browser plugin**     | Installs `@different-ai/opencode-browser` globally for agent browser automation                                                                                      |
+| **10. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details                                                                                                 |
 
 When it finishes, open OpenCode in your project and type:
 
@@ -96,11 +97,11 @@ OpenCode generates `ARCHITECTURE.md` and `DESIGN.md` from your actual codebase, 
 
 Custom slash commands are installed into `.opencode/commands/` and are available directly in OpenCode.
 
-| Command | Description |
-|---------|-------------|
-| `/init` | Initialize the project: generate `ARCHITECTURE.md`, `DESIGN.md`, archive history, activate agent team |
-| `/plan <url>` | Parse a user story URL and produce a plan, proposal, specs, and tasks. Stops before implementation. |
-| `/main <task>` | Quick direct implementation, no OpenSpec, no ensemble, no PRs. Just do it. |
+| Command        | Description                                                                                           |
+| -------------- | ----------------------------------------------------------------------------------------------------- |
+| `/init`        | Initialize the project: generate `ARCHITECTURE.md`, `DESIGN.md`, archive history, activate agent team |
+| `/plan <url>`  | Parse a user story URL and produce a plan, proposal, specs, and tasks. Stops before implementation.   |
+| `/main <task>` | Quick direct implementation, no OpenSpec, no ensemble, no PRs. Just do it.                            |
 
 ---
 
@@ -110,7 +111,7 @@ opencode-onboard draws a hard line between two concepts:
 
 ### Agents, universal behaviors
 
-Agents define *how to work*. They are universal personas (same behavior across projects and stacks).
+Agents define _how to work_. They are universal personas (same behavior across projects and stacks).
 
 Current baseline uses a generic execution model:
 
@@ -123,9 +124,10 @@ basic-engineer     implementation worker, ability-driven
 
 ### Skills, platform knowledge
 
-Skills define *what to know*. They provide project rules, platform behavior, and task-specific execution guidance. Agents auto-detect/load relevant skills; **you do not manually choose skills per prompt**.
+Skills define _what to know_. They provide project rules, platform behavior, and task-specific execution guidance. Agents auto-detect/load relevant skills; **you do not manually choose skills per prompt**.
 
 Current loading model:
+
 - `ob-global` is baseline and should be loaded first
 - `ob-default` is fallback when nothing else matches
 - `ob-generic-guardrails` is a minimal base users can extend with custom guardrail skills
@@ -144,14 +146,14 @@ Users are expected to create additional skills and map them into abilities over 
 
 Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 
-| Skill | Purpose |
-|-------|---------|
-| `ob-global` | Baseline skill loaded first: context rules, source-roots scope, git/secrets guardrails, token-optimization rules |
-| `ob-default` | Fallback, when no other skill matches. Still loads ob-global first |
-| `ob-generic-guardrails` | Foundation for user guardrails skills |
-| `ob-userstory-gh` | Parse a GitHub Issue URL into a structured work item |
-| `ob-userstory-az` | Parse an Azure DevOps work item URL |
-| `browser-automation` | Browser control via `@different-ai/opencode-browser` |
+| Skill                   | Purpose                                                                                                          |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `ob-global`             | Baseline skill loaded first: context rules, source-roots scope, git/secrets guardrails, token-optimization rules |
+| `ob-default`            | Fallback, when no other skill matches. Still loads ob-global first                                               |
+| `ob-generic-guardrails` | Foundation for user guardrails skills                                                                            |
+| `ob-userstory-gh`       | Parse a GitHub Issue URL into a structured work item                                                             |
+| `ob-userstory-az`       | Parse an Azure DevOps work item URL                                                                              |
+| `browser-automation`    | Browser control via `@different-ai/opencode-browser`                                                             |
 
 Skills live in `.agents/skills/`. Any `SKILL.md` file in a subdirectory is automatically discoverable, write your own and agents will pick them up.
 
@@ -159,11 +161,11 @@ Skills live in `.agents/skills/`. Any `SKILL.md` file in a subdirectory is autom
 
 During onboarding you pick three models:
 
-| Role | Used by | Pick |
-|------|---------|------|
-| **plan** | Main OpenCode session | Something capable with strong reasoning |
-| **build** | All builder agents | Something capable for implementation |
-| **fast** | `devops-manager` | Something fast and cheap |
+| Role      | Used by               | Pick                                    |
+| --------- | --------------------- | --------------------------------------- |
+| **plan**  | Main OpenCode session | Something capable with strong reasoning |
+| **build** | All builder agents    | Something capable for implementation    |
+| **fast**  | `devops-manager`      | Something fast and cheap                |
 
 Models are fetched live from [models.dev](https://models.dev) (3000+ models, cached weekly). Cost tiers `[$]` `[$$]` `[$$$]` always reflect the canonical provider price, so `github-copilot/claude-opus-4.7` shows `[$$]` not `[$]`.
 
@@ -250,14 +252,12 @@ After this, every agent has accurate, persistent context about your project, no 
 
 ## Prerequisites
 
-| Requirement | Notes |
-|-------------|-------|
-| **Node.js 18+** | Required |
-| **[OpenCode](https://opencode.ai)** | The agent runtime |
-| **[OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble)** | Multi-agent parallel execution |
-| **[rtk](https://github.com/rtk-ai/rtk#pre-built-binaries)** | Recommended for safer agent CLI command execution |
-| **[gh CLI](https://cli.github.com)** | GitHub platform, must be authenticated |
-| **[az CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)** + azure-devops extension | Azure DevOps platform |
+| Requirement                                                                                          | Notes                                  |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| **Node.js 18+**                                                                                      | Required                               |
+| **[OpenCode](https://opencode.ai)**                                                                  | The agent runtime                      |
+| **[gh CLI](https://cli.github.com)**                                                                 | GitHub platform, must be authenticated |
+| **[az CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)** + azure-devops extension | Azure DevOps platform                  |
 
 ---
 

@@ -39,6 +39,7 @@ export async function writeOnboardConfig(data) {
         architecture: !!data.hasArchitecture,
         openspec: !!data.hasOpenspec,
       },
+      openspec: data.openspec,
       additionalSkillsProvider: data.additionalSkillsProvider,
       models: {
         plan: data.planModel,

@@ -79,7 +79,7 @@ export async function runWizard(version) {
 
   await copyContentStep(platform, ctx)
 
-  await initOpenspec()
+  const openspec = await initOpenspec()
 
   const selectedModels = await chooseModels()
 
@@ -91,6 +91,7 @@ export async function runWizard(version) {
   await writeOnboardConfig({
     ...ctx,
     platform,
+    openspec,
     maxConcurrentAgents,
     installScope,
     additionalSkillsProvider: 'npx-skills',
