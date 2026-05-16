@@ -29,14 +29,14 @@ export function redraw() {
   // Show up to 2 previous steps dimmed
   for (const stepLines of previousSteps) {
     for (const line of stepLines) {
-      process.stdout.write(chalk.dim(line) + '\n');
+      process.stdout.write(`${chalk.dim(line)}\n`);
     }
     process.stdout.write('\n');
   }
 
   // Current step output
   for (const line of currentStepLines) {
-    process.stdout.write(line + '\n');
+    process.stdout.write(`${line}\n`);
   }
 }
 

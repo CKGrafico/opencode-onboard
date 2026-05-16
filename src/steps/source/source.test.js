@@ -41,7 +41,7 @@ describe('chooseSourceScope()', () => {
   let tmpDir, originalCwd
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'source-test-'))
+    tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'source-test-')))
     originalCwd = process.cwd()
     process.chdir(tmpDir)
     vi.clearAllMocks()

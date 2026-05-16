@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { installBrowser } from './index.js'
 
 vi.mock('../../utils/exec.js', () => ({
   header: vi.fn(),
@@ -23,9 +24,6 @@ vi.mock('fs-extra', () => ({
 vi.mock('execa', () => ({
   execa: vi.fn(),
 }))
-
-import fse from 'fs-extra'
-import { installBrowser } from './index.js'
 
 describe('installBrowser()', () => {
   beforeEach(() => {

@@ -1,6 +1,6 @@
 import { execa } from 'execa'
 import fse from 'fs-extra'
-import { header, info, success, warn, error } from '../../utils/exec.js'
+import { header, success, warn, error } from '../../utils/exec.js'
 import os from 'os'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -32,7 +32,7 @@ export async function installBrowser() {
 
       for (let i = 0; i < pendingTriggers.length; i++) {
         if (text.includes(pendingTriggers[i].trigger)) {
-          child.stdin.write(pendingTriggers[i].response + '\n')
+          child.stdin.write(`${pendingTriggers[i].response}\n`)
           pendingTriggers.splice(i, 1)
           break
         }

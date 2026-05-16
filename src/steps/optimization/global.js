@@ -31,7 +31,7 @@ function buildRtkSection(rtkEnabled) {
 
 function buildCavemanSection(cavemanEnabled) {
   if (!cavemanEnabled) return 'Caveman was not selected during onboarding. Use normal concise style.'
-  return `## Caveman\n\ncaveman mode. Active now. Every response. No revert unless user asks \"stop caveman\" or \"normal mode\".`
+  return `## Caveman\n\ncaveman mode. Active now. Every response. No revert unless user asks "stop caveman" or "normal mode".`
 }
 
 function replaceBetween(content, start, end, replacement) {

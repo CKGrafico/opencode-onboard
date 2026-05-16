@@ -4,6 +4,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { findAiFiles } from '../../utils/copy.js'
 import { header, info, success, warn } from '../../utils/exec.js'
+import { MARKERS } from '../../utils/terminal.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CLEAN_PRESET_PATH = path.resolve(__dirname, '../../presets/clean.json')
@@ -98,7 +99,7 @@ export async function cleanAiFiles() {
 
   warn('Removing selected AI config files:')
   for (const f of selected) {
-    info('  ' + f.replace(cwd + path.sep, ''))
+    info(`${MARKERS.EMPTY}${f.replace(cwd + path.sep, '')}`)
     await fse.remove(f)
   }
   success('Removed existing AI config files')

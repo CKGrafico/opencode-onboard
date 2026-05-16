@@ -29,16 +29,17 @@ export function buildDisplayModels(rawModels) {
     const canonicalNote = m.canonicalCost !== undefined
       ? ` · official price: ${formatPrice(m.canonicalCost)}/M`
       : '';
+    const context = m.context ? `${m.context / 1000}k` : '?';
     return {
       ...m,
       label: `${m.name}${costTierDisplay(m.cost, m.canonicalCost)}, ${m.id}`,
-      description: `${priceStr}${canonicalNote} · context: ${m.context ? (m.context / 1000) + 'k' : '?'}`,
+      description: `${priceStr}${canonicalNote} · context: ${context}`,
     };
   });
 }
 
-export async function pickModel(message, models) {
-  return await search({
+export function pickModel(message, models) {
+  return search({
     message,
     source: (input) => {
       const q = (input || '').toLowerCase();

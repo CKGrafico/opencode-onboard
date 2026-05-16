@@ -50,9 +50,8 @@ export default [
       'object-shorthand': ['error', 'always'],
       'prefer-const': ['error', { destructuring: 'all' }],
       'prefer-template': 'error',
-      'require-atomic-updates': 'error',
-      'semi': ['error', 'always'],
-    },
+      'require-atomic-updates': 'error'
+    }
   },
   {
     files: ['src/**/*.test.js'],
@@ -65,4 +64,15 @@ export default [
       'no-console': 'off',
     },
   },
+  {
+    files: ['content/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-console': 'off',
+    },
+  }
 ]
