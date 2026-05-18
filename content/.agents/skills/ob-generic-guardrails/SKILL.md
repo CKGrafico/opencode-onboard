@@ -1,4 +1,8 @@
-Generic guardrails, foundational rules that all agents follow. Users add specialized guardrails skills for specific concerns.
+---
+name: ob-generic-guardrails
+description: Generic guardrails, foundational rules that all agents follow. Users add specialized guardrails skills for specific concerns. Covers git, secrets, code quality, and security rules.
+license: MIT
+---
 
 ## Git
 

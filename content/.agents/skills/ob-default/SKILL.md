@@ -1,4 +1,8 @@
-Fallback skill, used when no other skill matches. Still loads ob-global for baseline rules.
+---
+name: ob-default
+description: Fallback skill, used when no other skill matches. Still loads ob-global for baseline rules. Use when task is unclear or no specialized skill applies.
+license: MIT
+---
 
 ## When used
 

@@ -46,7 +46,7 @@ Rules:
 - If no skill exists for the platform, report it as a blocker rather than improvising
 - Skills listed in the spawn prompt are MANDATORY, not optional
 
-## Two Modes
+## Working Modes
 
 ### Read Mode (pipeline start)
 1. Load `@ob-global` first

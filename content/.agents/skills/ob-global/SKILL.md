@@ -1,4 +1,8 @@
-Generic skill, common project-level guidance loaded by all agents. Provides baseline rules; specialized skills add specific concerns.
+---
+name: ob-global
+description: Generic skill, common project-level guidance loaded by all agents. Provides baseline rules; specialized skills add specific concerns. Load this skill first in any session.
+license: MIT
+---
 
 ## When loaded
 
