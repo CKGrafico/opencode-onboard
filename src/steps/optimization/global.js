@@ -11,6 +11,8 @@ const CAVEMAN_END = '<!-- OB-CAVEMAN-END -->'
 
 const CODEGRAPH_START = '<!-- OB-CODEGRAPH-START -->'
 const CODEGRAPH_END = '<!-- OB-CODEGRAPH-END -->'
+
+function relRoot(cwd, abs) {
   const rel = path.relative(cwd, abs).replace(/\\/g, '/')
   return rel || '.'
 }
