@@ -4,12 +4,14 @@ import { header, success, warn, error, loading } from '../../utils/exec.js'
 export async function installCodegraph(options = {}) {
   if (!options.skipHeader) header('Installing codegraph')
 
-  loading('configuring codegraph for opencode (project-local)...')
+  const location = options.installScope === 'global' ? 'global' : 'local'
+
+  loading(`configuring codegraph for opencode (${location})...`)
 
   try {
     const installResult = await execa(
       'npx',
-      ['@colbymchenry/codegraph', 'install', '--target=opencode', '--location=local', '--yes'],
+      ['@colbymchenry/codegraph', 'install', '--target=opencode', `--location=${location}`, '--yes'],
       {
         cwd: process.cwd(),
         reject: false,
@@ -21,7 +23,7 @@ export async function installCodegraph(options = {}) {
       warn('codegraph install exited with non-zero code')
       return { optedIn: true, installed: false }
     }
-    success('codegraph configured for opencode (project-local)')
+    success(`codegraph configured for opencode (${location})`)
   } catch (err) {
     error(`Failed to install codegraph: ${err.message}`)
     return { optedIn: true, installed: false }

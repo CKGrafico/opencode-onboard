@@ -63,8 +63,17 @@ export async function runWizard(version) {
     ],
   })
 
+  const installScope = await wizardSelect({
+    message: 'Install dependencies:',
+    default: 'local',
+    choices: [
+      { name: 'Locally (default)', value: 'local', description: 'Install tools project-locally where possible' },
+      { name: 'Globally', value: 'global', description: 'Install tools globally (affects all projects on this machine)' },
+    ],
+  })
+
   const preserve = await cleanAiFiles()
-  const ctx = { ...preserve, ...scope, maxConcurrentAgents }
+  const ctx = { ...preserve, ...scope, maxConcurrentAgents, installScope }
 
   const platform = await choosePlatform()
 
@@ -77,12 +86,13 @@ export async function runWizard(version) {
   const tokenOpt = await tokenOptimizationStep({ ctx })
   const { rtk, quota, caveman, cavemanGuidance } = tokenOpt
 
-  await installBrowser()
+  await installBrowser(ctx)
 
   await writeOnboardConfig({
     ...ctx,
     platform,
     maxConcurrentAgents,
+    installScope,
     additionalSkillsProvider: 'npx-skills',
     ...selectedModels,
     optionalTools: { rtk, quota, caveman },

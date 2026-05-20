@@ -69,8 +69,8 @@ describe('tokenOptimizationStep()', () => {
 
     expect(commandExists).toHaveBeenCalledWith('rtk')
     expect(installQuota).toHaveBeenCalledWith({ skipHeader: true, skipPrompt: true })
-    expect(installCaveman).toHaveBeenCalledWith({ skipHeader: true, skipPrompt: true })
-    expect(installCodegraph).toHaveBeenCalledWith({ skipHeader: true })
+    expect(installCaveman).toHaveBeenCalledWith(expect.objectContaining({ skipHeader: true, skipPrompt: true }))
+    expect(installCodegraph).toHaveBeenCalledWith(expect.objectContaining({ skipHeader: true }))
     expect(enableCavemanGuidance).toHaveBeenCalledWith({ optedIn: true, installed: true })
     expect(configureObGlobal).toHaveBeenCalled()
     expect(result.rtk.available).toBe(true)

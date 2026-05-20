@@ -14,8 +14,10 @@ vi.mock('fs-extra', () => ({
     readJson: vi.fn().mockResolvedValue({
       installer: { command: 'npx', args: ['@different-ai/opencode-browser', 'install'] },
       output: { showAfter: '===', hideAfter: '===' },
+      locationChoices: { local: '2', global: '1' },
       autoAnswers: [
         { trigger: 'Install', response: 'y' },
+        { trigger: 'Choose config location', response: '__LOCATION__' },
       ],
     }),
   },
@@ -75,5 +77,39 @@ describe('installBrowser()', () => {
     await installBrowser()
 
     expect(warn).toHaveBeenCalledWith('opencode-browser install exited with non-zero code')
+  })
+
+  it('resolves __LOCATION__ to local answer by default', async () => {
+    const { execa } = await import('execa')
+    let capturedTriggers = null
+    const mockChild = {
+      stdout: { on: vi.fn((_, cb) => { capturedTriggers = cb }) },
+      stderr: { on: vi.fn() },
+      stdin: { write: vi.fn() },
+      then: (cb) => cb({ exitCode: 0 }),
+    }
+    execa.mockReturnValue(mockChild)
+
+    await installBrowser()
+
+    if (capturedTriggers) capturedTriggers(Buffer.from('Choose config location'))
+    expect(mockChild.stdin.write).toHaveBeenCalledWith('2\n')
+  })
+
+  it('resolves __LOCATION__ to global answer when installScope is global', async () => {
+    const { execa } = await import('execa')
+    let capturedTriggers = null
+    const mockChild = {
+      stdout: { on: vi.fn((_, cb) => { capturedTriggers = cb }) },
+      stderr: { on: vi.fn() },
+      stdin: { write: vi.fn() },
+      then: (cb) => cb({ exitCode: 0 }),
+    }
+    execa.mockReturnValue(mockChild)
+
+    await installBrowser({ installScope: 'global' })
+
+    if (capturedTriggers) capturedTriggers(Buffer.from('Choose config location'))
+    expect(mockChild.stdin.write).toHaveBeenCalledWith('1\n')
   })
 })

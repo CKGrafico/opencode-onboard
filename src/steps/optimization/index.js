@@ -72,6 +72,8 @@ export async function tokenOptimizationStep(options = {}) {
 
   loading('applying token optimization selections...')
 
+  const installScope = options.ctx?.installScope || 'local'
+
   const has = value => selected.includes(value)
 
   const rtk = has('rtk')
@@ -86,6 +88,7 @@ export async function tokenOptimizationStep(options = {}) {
     ? await installCaveman({
       skipHeader: true,
       skipPrompt: true,
+      installScope,
     })
     : { optedIn: false, installed: false }
 
@@ -94,7 +97,7 @@ export async function tokenOptimizationStep(options = {}) {
     : { enabled: false }
 
   const codegraph = has('codegraph')
-    ? await installCodegraph({ skipHeader: true })
+    ? await installCodegraph({ skipHeader: true, installScope })
     : { optedIn: false, installed: false }
 
   const obGlobal = await configureObGlobal(options.ctx || {}, { rtk, quota, caveman, cavemanGuidance, codegraph })

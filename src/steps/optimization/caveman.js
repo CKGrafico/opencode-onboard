@@ -6,9 +6,14 @@ export async function installCaveman(options = {}) {
 
   loading('installing caveman...')
 
+  const isGlobal = options.installScope === 'global'
+  const skillsArgs = isGlobal
+    ? ['skills', 'add', 'JuliusBrussee/caveman/caveman', '-a', 'opencode', '--yes', '-g']
+    : ['skills', 'add', 'JuliusBrussee/caveman/caveman', '-a', 'opencode', '--yes']
+
   try {
     info('Installing caveman via npx skills')
-    const result = await execa('npx', ['skills', 'add', 'JuliusBrussee/caveman/caveman', '-a', 'opencode', '--yes'], {
+    const result = await execa('npx', skillsArgs, {
       reject: false,
       timeout: 600000,
       stdio: 'pipe',
