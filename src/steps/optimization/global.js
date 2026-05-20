@@ -56,6 +56,7 @@ When spawning Explore agents, include in the prompt:
 }
 
 
+function replaceBetween(content, start, end, replacement) {
   if (!content.includes(start) || !content.includes(end)) return content
   const pattern = new RegExp(`${start}[\\s\\S]*?${end}`)
   return content.replace(pattern, `${start}\n${replacement.trim()}\n${end}`)
