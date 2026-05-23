@@ -1,15 +1,6 @@
-import { confirm } from "@inquirer/prompts"
 import { execa } from "execa"
 import path from "node:path"
-import {
-  commandExists,
-  error,
-  header,
-  info,
-  loading,
-  success,
-  warn,
-} from "../../utils/exec.js"
+import { commandExists, error, header, info, loading, success, warn} from "../../utils/exec.js"
 import { APPLY_TARGETS, patchApplyFile } from "./ensemble.js"
 
 export const openspecSteps = {
@@ -50,31 +41,24 @@ export async function initOpenspec() {
 }
 
 async function install() {
-  const install = await confirm({
-    message: "OpenSpec is not installed. Install it now?",
-    default: true,
-  })
-
-  if (install) {
-    info("Installing OpenSpec...")
-    try {
-      const result = await execa(
-        "npm",
-        ["install", "@fission-ai/openspec", "--global"],
-        {
-          cwd: process.cwd(),
-          stdio: "pipe",
-          reject: false,
-        },
-      )
-      if (result.exitCode !== 0) {
-        warn("OpenSpec install failed, check output above")
-      }
-      success("OpenSpec installed")
-    } catch (err) {
-      error(`Failed to run openspec install: ${err.message}`)
+  info("Installing OpenSpec...")
+  try {
+    const result = await execa(
+      "npm",
+      ["install", "@fission-ai/openspec", "--global"],
+      {
+        cwd: process.cwd(),
+        stdio: "pipe",
+        reject: false,
+      },
+    )
+    if (result.exitCode !== 0) {
+      warn("OpenSpec install failed, check output above")
     }
-  }
+    success("OpenSpec installed")
+  } catch (err) {
+    error(`Failed to run openspec install: ${err.message}`)
+  }  
 }
 
 async function check() {
