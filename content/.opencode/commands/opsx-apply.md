@@ -56,6 +56,22 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
    - Progress: "N/M tasks complete"
    - Remaining tasks overview
 
+5b. **Scope & cost confirmation gate**
+
+   Before spawning any agents, always run this check:
+
+   1. Count remaining (incomplete) tasks from the apply instructions output.
+   2. Classify cost tier:
+      - **Low**: 1–3 tasks — short session, fast models likely sufficient
+      - **Medium**: 4–7 tasks — meaningful cost, consider splitting across sessions
+      - **High**: 8+ tasks — significant cost, strongly consider splitting the change
+   3. Run `/quota` if the opencode-quota plugin is available to surface current budget state.
+   4. **Always announce** before proceeding: cost tier, remaining task count, and current quota (if available).
+   5. If cost tier is **Medium or High** (≥ 4 remaining tasks): use **AskUserQuestion tool** to ask the user: "About to spawn agents for N tasks (cost tier: MEDIUM/HIGH). Continue with implementation? (yes/no)"
+      - If **no**: stop here. Suggest splitting the change into smaller pieces with `openspec` or reducing scope. Do not proceed to step 6.
+      - If **yes**: proceed to step 6.
+   6. If cost tier is **Low** (≤ 3 tasks): proceed automatically to step 6 (no confirmation needed).
+
 6. **Implement via ensemble team**
 
    NEVER implement tasks directly. Always delegate to engineer workers via ensemble.
@@ -232,6 +248,9 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 
 **Guardrails**
 - NEVER skip or reorder steps 6a-6f
+- NEVER skip step 5b scope & cost check before spawning
+- NEVER spawn agents for Medium or High cost sessions (≥4 tasks) without explicit user confirmation from step 5b
+- ALWAYS run `/quota` at session start (step 5b) when the opencode-quota plugin is available
 - NEVER implement tasks directly. Always use team_create + team_spawn, no exceptions
 - NEVER touch source files before team_create is called, not even one edit
 - NEVER call team_spawn without the agent field, it is required and will fail without it
@@ -249,6 +268,8 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 - ALWAYS enforce max {{MAX_CONCURRENT_AGENTS}} truly concurrent agents (all running simultaneously, not sequentially)
 - ALWAYS enforce non-overlapping file domains per agent
 - ALWAYS shut down + merge agents only when no more tasks remain for their domain
+- Stop and report to user after 3 failed retries on any task — never retry indefinitely
+- Stop and report if 10 minutes pass with no agent commits
 - If teammates are stuck, use team_message to nudge, then stall detection (step 6g)
 - Mark tasks complete in openspec AFTER worker implementation and verification finish, not before
 - Pause on errors, blockers, or unclear requirements. Do not guess

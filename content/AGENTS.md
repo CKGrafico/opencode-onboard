@@ -171,11 +171,13 @@ Core tools used in this workflow:
 **Dashboard**: Monitor running agents at **http://localhost:4747/**
 
 **Hard limits:**
+- **Sequential by default.** Default `{{MAX_CONCURRENT_AGENTS}}` to `1`. Raise only when tasks are provably independent and user approves. More concurrency = more tokens burned in parallel.
 - **Max {{MAX_CONCURRENT_AGENTS}} truly concurrent agents.** All {{MAX_CONCURRENT_AGENTS}} must be spawned and running simultaneously, not sequentially. Spawn in waves if more than {{MAX_CONCURRENT_AGENTS}} are needed. Wait for wave N to finish before spawning wave N+1.
 - **Non-overlapping file domains.** Each agent owns exclusive directories. Two agents must NEVER touch the same file.
 - **Immediate shutdown on completion.** The moment an agent's domain has no more pending tasks → `team_shutdown` → `team_merge`. Keep agents alive if more tasks in their domain are pending (rolling batch).
 - **Rolling batch assignment.** Agents receive up to 3 tasks initially. When they complete a batch, lead assigns the next batch of up to 3 from the board. Never leave pending tasks orphaned.
 - **Stall detection at 5 minutes.** No commits after 5 min → nudge message → 2 min grace → force shutdown + respawn.
+- **Retry limit.** Max 3 retries per failing task → stop-and-report to user. Never retry indefinitely.
 
 **Progress inspection commands (tell user explicitly after spawning):**
 - `team_status` for live team snapshot
@@ -221,13 +223,16 @@ devops-manager (ship mode)
 ### Phase 2, Implement
 
 ```
+0. Run /quota to check remaining budget before spawning.
 1. Run /opsx-apply.
+   - Step 5b: classify cost tier, announce scope, ask user to confirm if ≥4 tasks.
    - Lead adds all tasks to board.
    - Lead spawns engineers with initial batch of up to 3 tasks each (rolling batch model).
    - Each engineer claims tasks, implements, completes, messages lead.
    - Lead assigns next batch (up to 3) to agents that report done. Repeat until board empty.
    - Lead merges each engineer branch after shutdown, then marks tasks done in tasks.md.
 2. Verify with tests/build/lint according to task scope.
+3. Run /quota after all agents are merged.
 ```
 
 ### Phase 3, Ship
@@ -355,6 +360,57 @@ Minimal non-negotiables:
 - Never expose or commit secrets.
 - Use `gh`/`az` CLI for platform operations.
 - In multi-repo source scope, run git operations per repository.
+
+---
+
+## Token Budget & Safety
+
+Prevent runaway token spend from unattended sessions. Apply in this priority order.
+
+### 1. Provider-side caps (primary safety layer)
+
+Set monthly soft-limit + hard usage cap in your provider dashboard **before** running any agent session:
+- **OpenAI**: [platform.openai.com/account/limits](https://platform.openai.com/account/limits)
+- **Anthropic**: [console.anthropic.com](https://console.anthropic.com)
+- **Google AI Studio**: [aistudio.google.com/app/usage](https://aistudio.google.com/app/usage)
+
+Provider caps are the only guarantees that survive agent bugs, infinite loops, or runaway retries.
+
+### 2. Model-cost routing
+
+| Task type | Model tier |
+|-----------|-----------|
+| Orchestration loops, task classification, status checks, PR parsing, triage | Fast / cheap (e.g. `haiku`, `gpt-4o-mini`) |
+| Implementation, code review, hard reasoning | Expensive (e.g. `sonnet`, `opus`, `gpt-4o`) |
+
+devops-manager orchestrates — use fast model for it. Engineers implement — use expensive model there only.
+
+### 3. Sequential-by-default concurrency
+
+Default: **1 agent at a time**. Set `{{MAX_CONCURRENT_AGENTS}}` to `1` unless tasks are provably independent and the user approves higher concurrency. More agents = more tokens burned in parallel; slow down unless scope justifies it.
+
+### 4. Retry limits
+
+Max **3 retries** per failing task. On the third failure:
+1. Shut down the stuck agent.
+2. Summarize what failed and why.
+3. Stop — wait for user guidance before retrying.
+
+Never silently retry indefinitely. Repeated failures = a design problem, not a retry problem.
+
+### 5. Inactivity and time cutoffs
+
+- **No commits after 10 minutes** of cumulative agent runtime → auto-stop, summarize blockers to user.
+- **Max 1 hour** total runtime per `/opsx-apply` session → stop and report at the limit, regardless of remaining tasks.
+
+### 6. Quota checkpoints
+
+Use the `opencode-quota` plugin (`/quota` command) to surface real-time token usage:
+- Run `/quota` at **session start** (before spawning any agents) and **after each agent wave**.
+- "When to stop" thresholds:
+  - **50% consumed** → review remaining scope; consider reducing
+  - **75% consumed** → pause; summarize completed work; ask user whether to continue
+  - **90% consumed** → stop immediately; ship what's done; open follow-up change for remainder
 
 ---
 

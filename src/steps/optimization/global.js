@@ -29,7 +29,27 @@ function buildSourceRootsSection(sourceRoots, cwd) {
 
 function buildRtkSection(rtkEnabled) {
   if (!rtkEnabled) return 'RTK was not selected during onboarding. Do not assume `rtk` exists.'
-  return `## RTK, MANDATORY\n\nUse \`rtk\` for ALL CLI commands. Never run commands directly.\n\n- \`rtk git\` NOT \`git\`\n- \`rtk gh\` NOT \`gh\`\n- \`rtk az\` NOT \`az\`\n- \`rtk openspec\` NOT \`openspec\`\n\nIf \`rtk\` is not available, report blocker and stop CLI execution.`
+  return [
+    '## RTK, MANDATORY',
+    '',
+    'RTK has NO automatic hook in OpenCode. You MUST explicitly prefix every CLI command with `rtk`. It does not happen automatically.',
+    '',
+    'Prefix ALL shell commands with `rtk`:',
+    '- `rtk git diff` NOT `git diff`',
+    '- `rtk git log` NOT `git log`',
+    '- `rtk gh` NOT `gh`',
+    '- `rtk az` NOT `az`',
+    '- `rtk openspec` NOT `openspec`',
+    '- `rtk npx tsc --noEmit` NOT `npx tsc --noEmit`',
+    '- `rtk pnpm build` NOT `pnpm build`',
+    '- `rtk pnpm test` NOT `pnpm test`',
+    '- `rtk pnpm lint` NOT `pnpm lint`',
+    '- `rtk dotnet build` NOT `dotnet build`',
+    '',
+    'Light read-only commands that produce minimal output (e.g. `cat`, `ls`, `Get-Content`, `Select-String`) do not need `rtk`.',
+    '',
+    'If `rtk` is not available, report blocker and stop CLI execution.',
+  ].join('\n')
 }
 
 function buildCavemanSection(cavemanEnabled) {

@@ -64,6 +64,9 @@ describe('configureObGlobal()', () => {
     await configureObGlobal({}, { rtk: { optedIn: true } })
     const content = fs.readFileSync(skillPath, 'utf-8')
     expect(content).toContain('RTK, MANDATORY')
+    expect(content).toContain('NO automatic hook in OpenCode')
+    expect(content).toContain('rtk pnpm build')
+    expect(content).toContain('rtk npx tsc')
   })
 
   it('injects RTK not-selected note when rtk is not opted in', async () => {

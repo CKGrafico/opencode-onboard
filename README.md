@@ -248,6 +248,25 @@ After this, every agent has accurate, persistent context about your project, no 
 
 ---
 
+## Token Budget Controls
+
+Long unattended agent sessions can consume significant tokens. Set these controls up **before** first use:
+
+1. **Set provider-side limits first** — monthly soft-limit + hard usage cap in your provider dashboard:
+   - OpenAI: [platform.openai.com/account/limits](https://platform.openai.com/account/limits)
+   - Anthropic: [console.anthropic.com](https://console.anthropic.com)
+   - Google AI Studio: [aistudio.google.com/app/usage](https://aistudio.google.com/app/usage)
+
+2. **Route models by task type** — use a fast/cheap model (e.g. `haiku`, `gpt-4o-mini`) for orchestration and status loops; reserve expensive models (e.g. `sonnet`, `opus`, `gpt-4o`) for implementation tasks only.
+
+3. **Install the quota plugin** — the [`opencode-quota`](https://github.com/opencode-ai/opencode-quota) plugin adds `/quota` and `/quota_status` commands that surface real-time token usage inside OpenCode sessions.
+
+4. **Use `/quota` checkpoints** — run `/quota` before starting any `/opsx-apply` session and after each agent wave. Pause at 75% consumed; stop at 90%.
+
+5. **Confirm before large runs** — the onboarded `/opsx-apply` workflow will ask for your confirmation before spawning agents for Medium (4–7 tasks) or High (8+ tasks) scope sessions.
+
+---
+
 ## Prerequisites
 
 | Requirement | Notes |
