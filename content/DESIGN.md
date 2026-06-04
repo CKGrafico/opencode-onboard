@@ -1,26 +1,16 @@
-> Execute this command
-
-Analyze the design system of this codebase with the goal of creating a DESIGN.md file in the project root and giving the user a file for easy copy & pasting.
-
-Reference material:
-  Overview : https://stitch.withgoogle.com/docs/design-md/overview/
-  Format   : https://stitch.withgoogle.com/docs/design-md/format/
-  Spec     : https://github.com/google-labs-code/design.md
-
-Examples from the spec repo:
-  https://github.com/google-labs-code/design.md/blob/main/examples/atmospheric-glass/DESIGN.md
-  https://github.com/google-labs-code/design.md/blob/main/examples/paws-and-paths/DESIGN.md
-
-Requirements:
-- Begin with YAML frontmatter containing all structured design tokens
-  (colors, typography, spacing, elevation, motion, radii, shadows, etc.)
-- Follow with free-form Markdown that describes the look & feel and
-  captures design intent that token values alone cannot convey
-- The file must be entirely self-contained, do not reference any
-  files, variables, or paths from the codebase
-- All token values must use valid YAML design token format
-
-If you have access to a running local server or screenshots of the
-product, compare your DESIGN.md against the rendered UI. Revise until
-both the YAML tokens and the written description faithfully capture
-the product's visual identity.
+> NOT GENERATED YET
+>
+> This file has not been populated yet. It is intentionally empty.
+>
+> **If this is a greenfield project** (no UI exists yet): skip this for now.
+> Come back and run `/ob-create-design` once you have a design system, UI components, or styles in place.
+>
+> **If this is a brownfield project** (existing UI/styles): run this command now to generate the design documentation:
+>
+> ```
+> /ob-create-design
+> ```
+>
+> This command analyzes your CSS, Tailwind config, component files, and design tokens,
+> then writes a complete DESIGN.md with structured YAML tokens and written design intent.
+> It is safe to rerun any time your design system changes.

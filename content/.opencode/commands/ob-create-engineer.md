@@ -4,15 +4,15 @@ description: Create a custom engineer agent from a description, with skills from
 
 Create a new custom engineer agent based on the `basic-engineer.md` template.
 
-**Usage**: `/create-engineer <name> "<description>"`
+**Usage**: `/ob-create-engineer <name> "<description>"`
 
-Example: `/create-engineer frontend-engineer "A frontend engineer specialized in React, Next.js, and CSS"`
+Example: `/ob-create-engineer frontend-engineer "A frontend engineer specialized in React, Next.js, and CSS"`
 
 **Steps**
 
 1. **Parse input**
 
-   Extract `<name>` and `<description>` from the arguments after `/create-engineer`.
+   Extract `<name>` and `<description>` from the arguments after `/ob-create-engineer`.
    - Name should be kebab-case (e.g., `frontend-engineer`)
    - Description is the quoted string explaining the agent's specialty
    - If no input provided, use the AskUserQuestion tool to ask for both.

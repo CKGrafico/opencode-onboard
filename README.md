@@ -86,10 +86,10 @@ The CLI runs a 10-step onboarding wizard. It keeps the current step visible, plu
 When it finishes, open OpenCode in your project and type:
 
 ```
-init
+/ob-init
 ```
 
-OpenCode generates `ARCHITECTURE.md` and `DESIGN.md` from your actual codebase, then activates the full agent team.
+OpenCode asks if this is a greenfield or brownfield project. For brownfield projects it generates `ARCHITECTURE.md` and `DESIGN.md` from your actual codebase, archives project history, then activates the full agent team. For greenfield projects it skips doc generation and leaves placeholder files you can populate later with `/ob-create-architecture` and `/ob-create-design`.
 
 ---
 
@@ -99,10 +99,12 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 
 | Command        | Description                                                                                           |
 | -------------- | ----------------------------------------------------------------------------------------------------- |
-| `/init`        | Initialize the project: generate `ARCHITECTURE.md`, `DESIGN.md`, archive history, activate agent team |
-| `/plan <url>`  | Parse a user story URL and produce a plan, proposal, specs, and tasks. Stops before implementation.   |
-| `/main <task>` | Quick direct implementation, no OpenSpec, no ensemble, no PRs. Just do it.                            |
-| `/create-engineer <name> "<description>"` | Create a custom engineer agent from a description, with skills auto-installed from [skills.sh](https://www.skills.sh/) |
+| `/ob-init`        | Initialize the project. Asks greenfield vs brownfield, then activates the agent team. Supports skipping doc generation for new projects. |
+| `/ob-plan <url>`  | Parse a user story URL and produce a plan, proposal, specs, and tasks. Stops before implementation.   |
+| `/ob-main <task>` | Quick direct implementation, no OpenSpec, no ensemble, no PRs. Just do it.                            |
+| `/ob-create-engineer <name> "<description>"` | Create a custom engineer agent from a description, with skills auto-installed from [skills.sh](https://www.skills.sh/) |
+| `/ob-create-architecture` | Generate or regenerate `ARCHITECTURE.md` from the codebase. Safe to rerun any time the architecture changes. |
+| `/ob-create-design` | Generate or regenerate `DESIGN.md` from the codebase design system. Safe to rerun any time the design system changes. |
 
 ---
 
@@ -239,15 +241,30 @@ your-project/
 
 ## The bootstrap sequence
 
-The first time you type `init` in OpenCode after onboarding:
+The first time you type `init` in OpenCode after onboarding, the agent asks whether this is a **greenfield** or **brownfield** project:
+
+### Brownfield (existing codebase)
 
 1. Bootstrap-mode `AGENTS.md` triggers the initialization workflow
 2. OpenCode archives existing project context into OpenSpec (`project-history`)
-3. OpenCode generates real `DESIGN.md` and `ARCHITECTURE.md` from your codebase
-4. Bootstrap `AGENTS.md` is replaced with production guidance
-5. Team workflows become fully active for normal implementation tasks
+3. OpenCode runs `/ob-create-architecture` → generates real `ARCHITECTURE.md` from your codebase
+4. OpenCode runs `/ob-create-design` → generates real `DESIGN.md` from your design system
+5. OpenSpec `config.yaml` is populated with discovered tech stack and domain context
+6. Bootstrap `AGENTS.md` is replaced with production guidance
+7. Team workflows become fully active for normal implementation tasks
 
-After this, every agent has accurate, persistent context about your project, no manual documentation required.
+### Greenfield (new project, little or no existing code)
+
+1. Bootstrap-mode `AGENTS.md` triggers the initialization workflow
+2. OpenSpec `config.yaml` is populated with what is known (intended stack, domain)
+3. Bootstrap `AGENTS.md` is replaced with production guidance
+4. `ARCHITECTURE.md` and `DESIGN.md` are left as placeholder files
+
+Once your codebase has meaningful content, run:
+- `/ob-create-architecture` to generate architecture docs
+- `/ob-create-design` to generate design system docs
+
+Both commands are safe to rerun at any time as the project evolves.
 
 ---
 

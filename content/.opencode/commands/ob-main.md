@@ -2,7 +2,7 @@
 description: Quick direct implementation, no OpenSpec, no ensemble, no PRs. Just do it.
 ---
 
-Implement the task described after `/main` directly and immediately.
+Implement the task described after `/ob-main` directly and immediately.
 
 **Rules:**
 - No OpenSpec artifacts (no proposal, no specs, no tasks.md)
@@ -14,4 +14,4 @@ Implement the task described after `/main` directly and immediately.
 - After editing, run `pnpm run typecheck` to catch type errors; fix any that are caused by your changes
 - Do NOT run lint or tests unless the user asks
 
-**Input**: Everything after `/main` is the task. Execute it now. 
+**Input**: Everything after `/ob-main` is the task. Execute it now. 

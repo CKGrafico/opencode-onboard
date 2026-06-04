@@ -2,9 +2,9 @@
 description: Parse a user story URL and produce a plan, proposal, specs, and tasks. Stops before implementation.
 ---
 
-Parse the work item at the URL provided after `/plan` and produce a full implementation plan.
+Parse the work item at the URL provided after `/ob-plan` and produce a full implementation plan.
 
-**Input**: A GitHub Issue URL or Azure DevOps work item URL. Example: `/plan https://github.com/org/repo/issues/42`
+**Input**: A GitHub Issue URL or Azure DevOps work item URL. Example: `/ob-plan https://github.com/org/repo/issues/42`
 
 **Steps:**
 

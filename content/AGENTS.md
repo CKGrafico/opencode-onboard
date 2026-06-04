@@ -6,13 +6,36 @@
 
 ## Trigger
 
-When the user says anything resembling initialization, "init", "initialize", "setup", "start", "bootstrap", "get started", "prepare", execute all steps below in order. Do not ask for confirmation before starting.
+When the user says anything resembling initialization, "init", "initialize", "setup", "start", "bootstrap", "get started", "prepare", execute the steps below. Follow the greenfield/brownfield branching exactly.
 
 ---
 
 ## Initialization Sequence
 
-### Step 1, Archive project history into OpenSpec
+### Step 1, Detect project type
+
+Ask the user exactly this question before doing anything else:
+
+> "Is this a **greenfield** project (starting from scratch, little or no existing code) or a **brownfield** project (existing codebase)?"
+>
+> - Reply **greenfield** to skip architecture/design/history analysis
+> - Reply **brownfield** to generate docs from your existing code
+
+Wait for the answer. Then follow the matching path below.
+
+---
+
+### Greenfield path
+
+Skip steps 2, 3, and 4. Jump directly to Step 5.
+
+Greenfield note: `ARCHITECTURE.md` and `DESIGN.md` are left as placeholders. Run `/ob-create-architecture` and `/ob-create-design` once the codebase has meaningful content.
+
+---
+
+### Brownfield path
+
+#### Step 2, Archive project history into OpenSpec
 
 Scan the codebase for any existing documentation, changelogs, ADRs, README files, or notable history that describes decisions already made in this project. Create an OpenSpec archive entry that captures this history so agents have context going forward.
 
@@ -35,37 +58,23 @@ openspec archive "project-history"
 
 ---
 
-### Step 2, Generate DESIGN.md
+#### Step 3, Generate ARCHITECTURE.md
 
-`DESIGN.md` contains a prompt. You MUST follow this exact sequence, do not skip or reorder steps:
-
-1. **Read `DESIGN.md` now** using a file read tool. The file contains a prompt with instructions and an output format.
-2. **Store the full prompt text** in your context.
-3. **Overwrite `DESIGN.md` with an empty string** (zero bytes). Do this before generating any content.
-4. **Analyze the actual codebase**: use `.agents/source-roots.json` as source roots when present, then read CSS files, Tailwind config, component files, token definitions. Do not rely on prior knowledge, read the files.
-5. **Write the result into `DESIGN.md`** following exactly the format and sections described in the stored prompt.
-
-The output must be a real, populated `DESIGN.md` based on what you found in the codebase, not from memory or assumptions.
+Run `/ob-create-architecture` now. Follow every step defined in that command.
 
 ---
 
-### Step 3, Generate ARCHITECTURE.md
+#### Step 4, Generate DESIGN.md
 
-`ARCHITECTURE.md` contains a prompt. You MUST follow this exact sequence, do not skip or reorder steps:
-
-1. **Read `ARCHITECTURE.md` now** using a file read tool. The file contains a prompt with instructions and an output format.
-2. **Store the full prompt text** in your context.
-3. **Overwrite `ARCHITECTURE.md` with an empty string** (zero bytes). Do this before generating any content.
-4. **Analyze the actual codebase**: use `.agents/source-roots.json` as source roots when present, then read folder structure, config files, route definitions, data models, integration points. Do not rely on prior knowledge, read the files.
-5. **Write the result into `ARCHITECTURE.md`** following exactly the format and sections described in the stored prompt.
-
-The output must be a real, populated `ARCHITECTURE.md` based on what you found in the codebase, covering all sections the prompt describes.
+Run `/ob-create-design` now. Follow every step defined in that command.
 
 ---
 
-### Step 4, Populate OpenSpec config
+### Step 5, Populate OpenSpec config
 
-Write `openspec/config.yaml` with the real project information discovered during steps 1-3. Overwrite whatever is currently in the file. The output must contain `schema: spec-driven` and a populated `context:` block. Do not leave placeholder text.
+Write `openspec/config.yaml` with real project information. For greenfield projects, use what little is known (language choice, intended stack, domain). For brownfield, use what was discovered in steps 2–4.
+
+The output must contain `schema: spec-driven` and a populated `context:` block. Do not leave placeholder text.
 
 ```yaml
 schema: spec-driven
@@ -78,19 +87,19 @@ context: |
   Domain: <what this project does, in one line>
 ```
 
-Replace every `<…>` with real values from the codebase. Add a `rules:` section only if the codebase has clear conventions worth enforcing (e.g., max task size, proposal format). Do not invent rules that aren't evidenced by the codebase.
+Replace every `<…>` with real values. Add a `rules:` section only if the codebase has clear conventions worth enforcing. Do not invent rules that aren't evidenced by the codebase.
 
 ---
 
-### Step 5, Rewrite this file
+### Step 6, Rewrite this file
 
 Replace the entire contents of this file (`AGENTS.md`) with everything below the line `<!-- AGENTS-TEMPLATE-START -->` in this same file. Delete the bootstrap section and the template marker, the file should contain only the template content when done.
 
 ---
 
-### Step 6, Confirm
+### Step 7, Confirm
 
-Tell the user:
+For **brownfield**, tell the user:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -102,6 +111,28 @@ Tell the user:
 - openspec/config.yaml populated
 - Project history archived in openspec
 - AGENTS.md updated with real guidance
+
+!! RESTART OPENCODE NOW !!
+
+Quit and reopen OpenCode before doing anything else.
+Nothing will work correctly until you do.
+After restarting you are ready to work.
+```
+
+For **greenfield**, tell the user:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Initialization complete (greenfield).
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- openspec/config.yaml populated
+- AGENTS.md updated with real guidance
+- ARCHITECTURE.md and DESIGN.md left as placeholders
+
+Once your codebase has meaningful content, run:
+  /ob-create-architecture   → generate architecture docs
+  /ob-create-design         → generate design system docs
 
 !! RESTART OPENCODE NOW !!
 
