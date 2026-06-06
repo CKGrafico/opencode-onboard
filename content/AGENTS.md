@@ -258,6 +258,7 @@ devops-manager (ship mode)
 1. Run /opsx-apply.
    - Step 5b: classify cost tier, announce scope, ask user to confirm if ≥4 tasks.
    - Lead adds all tasks to board.
+   - When dependencies exist, lead uses multiple `team_tasks_add` waves so later tasks can reference real task IDs returned by earlier waves.
    - Lead spawns engineers with initial batch of up to 3 tasks each (rolling batch model).
    - Each engineer claims tasks, implements, completes, messages lead.
    - Lead assigns next batch (up to 3) to agents that report done. Repeat until board empty.

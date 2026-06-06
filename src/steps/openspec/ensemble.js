@@ -21,18 +21,23 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
       \`\`\`
       Announce: "Team running. Monitor at http://localhost:4747/"
 
-   **Step 6c.** Add ALL tasks to the shared board BEFORE spawning anyone.
+   **Step 6c.** Add ALL tasks to the shared board BEFORE spawning anyone, using as many \`team_tasks_add\` calls as needed to wire dependencies correctly.
       Schema: { content: string, priority: "high"|"medium"|"low", depends_on?: string[] }
-      Use depends_on to block tasks that require other tasks first, pass the IDs returned by team_tasks_add.
+      You cannot reference returned task IDs until an earlier \`team_tasks_add\` call finishes, so add tasks in dependency order.
       \`\`\`
       team_tasks_add tasks:[
         { content: "1.1 <exact task text from tasks.md>", priority: "high" },
-        { content: "1.2 <exact task text>", priority: "high" },
-        { content: "3.1 <task that needs 1.x done first>", priority: "medium", depends_on: ["<id-of-1.1>"] },
-        ...every task, one entry each...
+        { content: "1.2 <exact task text>", priority: "high" }
       ]
       \`\`\`
-      Save the task IDs returned. Pass them to agents in step 6d.
+      Save the returned IDs for root tasks.
+      \`\`\`
+      team_tasks_add tasks:[
+        { content: "2.1 <task that depends on 1.1>", priority: "high", depends_on: ["<real-id-of-1.1>"] },
+        { content: "3.1 <task that depends on 1.2>", priority: "medium", depends_on: ["<real-id-of-1.2>"] }
+      ]
+      \`\`\`
+      Repeat until every OpenSpec task is on the board, then pass the literal IDs returned by those calls to agents in step 6d.
       DO NOT call team_claim yourself, only agents claim tasks.
       DO NOT proceed to 6d until team_tasks_add succeeds.
 
@@ -139,7 +144,7 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 - NEVER implement tasks directly. Always use team_create + team_spawn, no exceptions
 - NEVER touch source files before team_create is called, not even one edit
 - NEVER call team_spawn without the agent field, it is required and will fail without it
-- NEVER call team_spawn before team_tasks_add, tasks must exist before agents are spawned
+- NEVER call team_spawn before all tasks are on the board; use multiple \`team_tasks_add\` calls when dependencies require real IDs from earlier calls
 - NEVER poll team_results or team_status in a loop, wait for teammates to message you
 - NEVER call team_claim or team_tasks_complete as lead, only agents call these tools
 - NEVER leave pending tasks orphaned, always verify board is empty before proceeding to step 7
@@ -149,7 +154,7 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 - ALWAYS repeat the same literal task IDs in the team_message start trigger, never send a generic "claim your first task" without the actual IDs
 - NEVER send a start message that omits task IDs; if a task ID is missing from the start message, the agent cannot claim
 - NEVER edit files between team_spawn and team_merge, team_merge blocks on overlapping local changes
-- ALWAYS add every task to the board with team_tasks_add before spawning
+- ALWAYS add every task to the board before spawning, using multiple \`team_tasks_add\` calls when dependency wiring requires it
 - ALWAYS spawn agents sequentially (wait for each team_spawn result before the next), then send start messages to all of them together
 - ALWAYS instruct agents to call team_claim before each task and team_tasks_complete after
 - ALWAYS shut down + merge agents only when no more tasks remain for their domain

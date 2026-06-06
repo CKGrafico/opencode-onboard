@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
-import { patchApplyFile, APPLY_TARGETS } from './ensemble.js'
+import { patchApplyFile, APPLY_TARGETS, ENSEMBLE_SECTION } from './ensemble.js'
 
 describe('patchApplyFile()', () => {
   let tmpDir
@@ -75,5 +75,18 @@ describe('APPLY_TARGETS', () => {
     expect(APPLY_TARGETS).toHaveLength(2)
     expect(APPLY_TARGETS).toContain(path.join('.opencode', 'commands', 'opsx-apply.md'))
     expect(APPLY_TARGETS).toContain(path.join('.opencode', 'skills', 'openspec-apply-change', 'SKILL.md'))
+  })
+})
+
+describe('ENSEMBLE_SECTION dependency guidance', () => {
+  it('instructs multi-call task creation for dependent tasks', () => {
+    expect(ENSEMBLE_SECTION).toContain('using as many `team_tasks_add` calls as needed')
+    expect(ENSEMBLE_SECTION).toContain('Save the returned IDs for root tasks.')
+    expect(ENSEMBLE_SECTION).toContain('Repeat until every OpenSpec task is on the board')
+  })
+
+  it('does not include the impossible same-call dependency example', () => {
+    expect(ENSEMBLE_SECTION).not.toContain('{ content: "3.1 <task that needs 1.x done first>", priority: "medium", depends_on: ["<id-of-1.1>"] }')
+    expect(ENSEMBLE_SECTION).not.toContain('Use depends_on to block tasks that require other tasks first, pass the IDs returned by team_tasks_add.')
   })
 })
