@@ -1,5 +1,8 @@
 {
   "dependencies": {
-    "@opencode-ai/plugin": "1.14.19"
+    "@opencode-ai/plugin": "latest",
+    "opencode-plugin-openspec": "latest",
+    "@different-ai/opencode-browser": "latest",
+    "@hueyexe/opencode-ensemble": "latest"
   }
 }

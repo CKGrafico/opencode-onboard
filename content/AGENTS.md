@@ -91,13 +91,27 @@ Replace every `<…>` with real values. Add a `rules:` section only if the codeb
 
 ---
 
-### Step 6, Rewrite this file
+### Step 6, Install OpenCode plugins
+
+OpenCode plugins declared in `.opencode/opencode.json` (under the `plugin` key) must be present in `.opencode/node_modules/` or OpenCode will fail to load them. The plugins are also listed in `.opencode/package.json` as dependencies.
+
+```bash
+cd .opencode
+npm install
+cd ..
+```
+
+This installs all plugin packages into `.opencode/node_modules/`. If you ever see "Plugin X not found" errors after init, run `npm install` in `.opencode/` again.
+
+---
+
+### Step 7, Rewrite this file
 
 Replace the entire contents of this file (`AGENTS.md`) with everything below the line `<!-- AGENTS-TEMPLATE-START -->` in this same file. Delete the bootstrap section and the template marker, the file should contain only the template content when done.
 
 ---
 
-### Step 7, Confirm
+### Step 8, Confirm
 
 For **brownfield**, tell the user:
 
@@ -110,6 +124,7 @@ For **brownfield**, tell the user:
 - DESIGN.md generated
 - openspec/config.yaml populated
 - Project history archived in openspec
+- OpenCode plugins installed
 - AGENTS.md updated with real guidance
 
 !! RESTART OPENCODE NOW !!
@@ -127,6 +142,7 @@ For **greenfield**, tell the user:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 - openspec/config.yaml populated
+- OpenCode plugins installed
 - AGENTS.md updated with real guidance
 - ARCHITECTURE.md and DESIGN.md left as placeholders
 
@@ -150,6 +166,7 @@ After restarting you are ready to work.
 - Do NOT modify any project source files
 - Do NOT create CLI wrapper files or scripts
 - Only read source files for analysis, write only to ARCHITECTURE.md, DESIGN.md, AGENTS.md, openspec/config.yaml, and openspec/
+- `npm install` (step 6) is allowed to modify `.opencode/package-lock.json` and `.opencode/node_modules/`
 
 <!-- AGENTS-TEMPLATE-START -->
 # AGENTS.md

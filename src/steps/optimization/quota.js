@@ -44,6 +44,7 @@ export async function installQuota(options = {}) {
   try {
     const opencodeDir = path.join(process.cwd(), '.opencode')
     const opencodePath = path.join(opencodeDir, 'opencode.json')
+    const pkgPath = path.join(opencodeDir, 'package.json')
     const tuiPath = path.join(opencodeDir, 'tui.json')
     const quotaDir = path.join(opencodeDir, 'opencode-quota')
     const quotaPath = path.join(quotaDir, 'quota-toast.json')
@@ -52,6 +53,10 @@ export async function installQuota(options = {}) {
       ? await fse.readJson(opencodePath)
       : { $schema: 'https://opencode.ai/config.json' }
 
+    const pkg = await fse.pathExists(pkgPath)
+      ? await fse.readJson(pkgPath)
+      : {}
+
     const tui = await fse.pathExists(tuiPath)
       ? await fse.readJson(tuiPath)
       : { $schema: 'https://opencode.ai/tui.json' }
@@ -59,8 +64,15 @@ export async function installQuota(options = {}) {
     ensurePlugin(opencode)
     ensurePlugin(tui)
 
+    if (!pkg.dependencies) pkg.dependencies = {}
+    const pkgName = PLUGIN.replace(/@latest$/, '')
+    if (!(pkgName in pkg.dependencies)) {
+      pkg.dependencies[pkgName] = 'latest'
+    }
+
     await fse.ensureDir(opencodeDir)
     await fse.writeJson(opencodePath, opencode, { spaces: 2 })
+    await fse.writeJson(pkgPath, pkg, { spaces: 2 })
     await fse.writeJson(tuiPath, tui, { spaces: 2 })
 
     const quotaConfig = await fse.pathExists(quotaPath)
