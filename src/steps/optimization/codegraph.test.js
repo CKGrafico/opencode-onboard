@@ -38,7 +38,7 @@ describe('fixCodegraphConfig()', () => {
   it('merges mcpServers from opencode.jsonc into .opencode/opencode.json as mcp', async () => {
     const rogueContent = {
       mcpServers: {
-        codegraph: { command: 'codegraph', args: ['mcp'] }
+        codegraph: { command: ['codegraph', 'serve', '--mcp'] }
       }
     }
     fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), JSON.stringify(rogueContent))
@@ -55,14 +55,14 @@ describe('fixCodegraphConfig()', () => {
     expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
     const readResult = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
-    expect(readResult.mcp.codegraph).toEqual({ command: 'codegraph', args: ['mcp'] })
+    expect(readResult.mcp.codegraph).toEqual({ command: ['npx', 'codegraph', 'serve', '--mcp'] })
     expect(readResult.plugin).toEqual(["opencode-plugin-openspec@latest"])
   })
 
   it('handles rogue file with mcp key directly', async () => {
     const rogueContent = {
       mcp: {
-        codegraph: { command: 'codegraph', args: ['mcp'] }
+        codegraph: { command: ['codegraph', 'serve', '--mcp'] }
       }
     }
     fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), JSON.stringify(rogueContent))
@@ -74,14 +74,14 @@ describe('fixCodegraphConfig()', () => {
     expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
     const readResult = await fse.readJson(path.join(tmpDir, '.opencode', 'opencode.json'))
-    expect(readResult.mcp.codegraph.command).toBe('codegraph')
+    expect(readResult.mcp.codegraph.command).toEqual(['npx', 'codegraph', 'serve', '--mcp'])
   })
 
   it('handles JSONC with comments', async () => {
     const rogueRaw = `{
   // This is a comment
   "mcpServers": {
-    "codegraph": { "command": "codegraph", "args": ["mcp"] }
+    "codegraph": { "command": ["codegraph", "serve", "--mcp"] }
   }
 }`
     fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), rogueRaw)
@@ -95,14 +95,14 @@ describe('fixCodegraphConfig()', () => {
     expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
     const readResult = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
-    expect(readResult.mcp.codegraph.command).toBe('codegraph')
+    expect(readResult.mcp.codegraph.command).toEqual(['npx', 'codegraph', 'serve', '--mcp'])
   })
 
   it('handles JSONC with URLs containing //', async () => {
     const rogueRaw = `{
   "url": "https://example.com/path",
   "mcpServers": {
-    "codegraph": { "command": "codegraph", "args": ["mcp"] }
+    "codegraph": { "command": ["codegraph", "serve", "--mcp"] }
   }
 }`
     fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), rogueRaw)
@@ -118,7 +118,7 @@ describe('fixCodegraphConfig()', () => {
     expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
     const readResult = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
-    expect(readResult.mcp.codegraph.command).toBe('codegraph')
+    expect(readResult.mcp.codegraph.command).toEqual(['npx', 'codegraph', 'serve', '--mcp'])
   })
 
   it('removes unparseable opencode.jsonc, warns, and returns false', async () => {
@@ -134,7 +134,7 @@ describe('fixCodegraphConfig()', () => {
   it('creates .opencode/opencode.json if it does not exist', async () => {
     const rogueContent = {
       mcpServers: {
-        codegraph: { command: 'codegraph', args: ['mcp'] }
+        codegraph: { command: ['codegraph', 'serve', '--mcp'] }
       }
     }
     fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), JSON.stringify(rogueContent))
@@ -143,7 +143,24 @@ describe('fixCodegraphConfig()', () => {
 
     expect(result).toBe(true)
     const readResult = await fse.readJson(path.join(tmpDir, '.opencode', 'opencode.json'))
-    expect(readResult.mcp.codegraph.command).toBe('codegraph')
+    expect(readResult.mcp.codegraph.command).toEqual(['npx', 'codegraph', 'serve', '--mcp'])
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
+  })
+
+  it('does not prepend npx to non-codegraph commands', async () => {
+    const rogueContent = {
+      mcpServers: {
+        myMcp: { command: ['my-own-mcp', 'serve'] }
+      }
+    }
+    fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), JSON.stringify(rogueContent))
+    fs.mkdirSync(path.join(tmpDir, '.opencode'), { recursive: true })
+    fs.writeFileSync(path.join(tmpDir, '.opencode', 'opencode.json'), '{}')
+
+    const result = await fixCodegraphConfig()
+
+    expect(result).toBe(true)
+    const readResult = await fse.readJson(path.join(tmpDir, '.opencode', 'opencode.json'))
+    expect(readResult.mcp.myMcp.command).toEqual(['my-own-mcp', 'serve'])
   })
 })

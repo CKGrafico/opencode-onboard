@@ -43,6 +43,11 @@ export async function fixCodegraphConfig() {
 
   const rogueMcp = rogueContent.mcpServers || rogueContent.mcp
   if (rogueMcp) {
+    for (const entry of Object.values(rogueMcp)) {
+      if (Array.isArray(entry.command) && entry.command[0] === 'codegraph') {
+        entry.command = ['npx', ...entry.command]
+      }
+    }
     correctContent.mcp = { ...(correctContent.mcp || {}), ...rogueMcp }
   }
 
