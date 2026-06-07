@@ -8,8 +8,8 @@ export async function installCaveman(options = {}) {
 
   const isGlobal = options.installScope === 'global'
   const skillsArgs = isGlobal
-    ? ['skills', 'add', 'JuliusBrussee/caveman/caveman', '-a', 'opencode', '--yes', '-g']
-    : ['skills', 'add', 'JuliusBrussee/caveman/caveman', '-a', 'opencode', '--yes']
+    ? ['skills', 'add', 'https://github.com/juliusbrussee/caveman', '--skill', 'caveman', '-a', 'opencode', '--yes', '-g']
+    : ['skills', 'add', 'https://github.com/juliusbrussee/caveman', '--skill', 'caveman', '-a', 'opencode', '--yes']
 
   try {
     info('Installing caveman via npx skills')
