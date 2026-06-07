@@ -16,10 +16,10 @@
     "build": {
       "prompt": "Build model:",
       "info": [
-        "BUILD model: used by front-engineer, back-engineer, infra-engineer, quality-engineer, security-auditor.",
+        "BUILD model: used by basic-engineer and any custom engineer created in the project.",
         "Needs to be capable for implementation work. Claude Sonnet, GPT-4o, or equivalent."
       ],
-      "agents": ["front-engineer", "back-engineer", "infra-engineer", "quality-engineer", "security-auditor"]
+      "agents": ["basic-engineer"]
     },
     "fast": {
       "prompt": "Fast model:",

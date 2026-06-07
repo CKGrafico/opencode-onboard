@@ -189,6 +189,16 @@ Trigger patterns, I recognize ALL of these, exact wording does not matter:
 
 **Never delegate without a plan. Default to specialists for implementation. If ensemble is clearly non-functional in the current session (idle teammate, no claim, or repeated spawn failure after one retry), stop forcing it: report the failure, then continue in the main session or ask the user whether to retry later.**
 
+## Engineer Selection
+
+Before spawning implementation workers:
+- Inspect `.agents/agents/*.md` and build the list of engineers that actually exist in this project.
+- Exclude `devops-manager` from implementation selection.
+- Prefer the most specialized custom engineer whose description and abilities clearly match the task domain.
+- Use `basic-engineer` only when no custom engineer is a clear fit or as a recovery fallback.
+- Never spawn engineer names that are not present in `.agents/agents/`.
+- When multiple engineers could fit, choose the narrower specialist before the generalist.
+
 ## Multi-Agent Execution, opencode-ensemble
 
 Parallel execution uses the `opencode-ensemble` plugin (`team_create`, `team_spawn`, etc.).
@@ -208,7 +218,7 @@ Core tools used in this workflow:
 - **Immediate shutdown on completion.** The moment an agent's domain has no more pending tasks → `team_shutdown` → `team_merge`. Keep agents alive if more tasks in their domain are pending (rolling batch).
 - **Rolling batch assignment.** Agents receive up to 3 tasks initially. When they complete a batch, lead assigns the next batch of up to 3 from the board. Never leave pending tasks orphaned.
 - **Stall detection at 5 minutes.** No commits after 5 min → nudge message → 2 min grace → force shutdown + respawn.
-- **Idle-without-claim is an earlier stall.** If a spawned teammate sits idle with no claimed task after a short wait, resend the exact task IDs once. If still idle, force shutdown + respawn with a shorter prompt. If the retry repeats the same failure, treat ensemble as unavailable for that session.
+- **Idle-without-claim is an earlier stall.** If a spawned teammate sits idle with no claimed task after a short wait, resend one short claim-only message with the exact task IDs. If still idle, force shutdown + respawn once with a shorter prompt. If the retry repeats the same failure, treat ensemble as unavailable for that session and stop recycling equivalent workers.
 - **Retry limit.** Max 3 retries per failing task → stop-and-report to user. Never retry indefinitely.
 
 **Progress inspection commands (tell user explicitly after spawning):**
@@ -260,7 +270,7 @@ devops-manager (ship mode)
    - Step 5b: classify cost tier, announce scope, ask user to confirm if ≥4 tasks.
    - Lead adds all tasks to board.
    - When dependencies exist, lead uses multiple `team_tasks_add` waves so later tasks can reference real task IDs returned by earlier waves.
-   - Lead spawns engineers with initial batch of up to 3 tasks each (rolling batch model).
+   - Lead discovers available engineers from `.agents/agents/*.md`, prefers matching custom engineers, then spawns engineers with initial batch of up to 3 tasks each (rolling batch model).
    - Each engineer claims tasks, implements, completes, messages lead.
    - Lead assigns next batch (up to 3) to agents that report done. Repeat until board empty.
    - Lead merges each engineer branch after shutdown, then marks tasks done in tasks.md.
@@ -308,7 +318,7 @@ All agents are universal, no project-specific knowledge. Platform and tech knowl
 | `devops-manager` | .agents/agents/devops-manager.md | Reads work items, creates PRs, handles review feedback |
 | `basic-engineer` | .agents/agents/basic-engineer.md | Generic implementation worker using ability-loaded skills |
 
-User can add more custom engineer agents and run them in parallel. Keep behavior ability-driven via skill mappings.
+User can add more custom engineer agents and run them in parallel. Keep behavior ability-driven via skill mappings. Custom engineers are the primary specialization mechanism; `basic-engineer` is the general fallback when no custom engineer is a clear fit.
 
 Default `basic-engineer` abilities:
 

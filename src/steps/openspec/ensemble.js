@@ -41,7 +41,7 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
       DO NOT call team_claim yourself, only agents claim tasks.
       DO NOT proceed to 6d until team_tasks_add succeeds.
 
-   **Step 6d.** Discover relevant skills, then spawn specialists with an INITIAL BATCH of tasks.
+   **Step 6d.** Discover available engineers, then spawn specialists with an INITIAL BATCH of tasks.
 
       **ROLLING BATCH MODEL:**
       Agents do NOT receive all their tasks upfront. Instead:
@@ -50,43 +50,59 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
       - Repeat until no pending tasks remain on the board.
       - Only shut down an agent when the board has no more tasks for its domain.
 
-      Before spawning, scan \`.agents/skills/\` and read each \`SKILL.md\` description line.
-      Match skills to agents by domain:
-      - front-engineer: UI, components, framework skills (e.g. next-best-practices, browser-automation)
-      - back-engineer: API, data, service skills
-      - infra-engineer: cloud, pipeline, deployment skills
-      - quality-engineer: testing, coverage skills
+      Before spawning:
+      - scan \`.agents/agents/\` and list the engineers that actually exist in this project
+      - exclude \`devops-manager\` from implementation selection
+      - read each engineer's description and abilities
+      - prefer the most specialized custom engineer whose description and abilities match the task
+      - use \`basic-engineer\` only when no custom engineer is a clear fit or as a recovery fallback
+      - never spawn an engineer name that is not present in \`.agents/agents/\`
 
-      Each team_spawn MUST include the agent field (required, causes NOT NULL error if omitted).
+      Each \`team_spawn\` MUST include the agent field (required, causes NOT NULL error if omitted).
 
-      The spawn prompt must contain:
-      1. Their name and role on this team
-      2. Their initial batch of tasks (up to 3): include the LITERAL task IDs (e.g. "task-abc123") AND the task content. Copy them verbatim from the IDs returned by team_tasks_add. Do NOT paraphrase or omit IDs.
-      3. Key context they need (summarized from context files, do NOT tell them to read files themselves)
-      4. Task-specific verification commands or acceptance checks
-      5. Any mandatory skill names or repo-specific rules that are not already guaranteed by the agent definition
+      The spawn prompt must be short and operational. It must contain:
+      1. Their name and engineer file on this team
+      2. Their initial batch of tasks (up to 3): include the LITERAL task IDs AND the task content. Copy them verbatim from the IDs returned by \`team_tasks_add\`. Do NOT paraphrase or omit IDs.
+      3. Key context they need, summarized from context files
+      4. Exact verification commands or acceptance checks
+      5. Only the mandatory skill names or repo-specific rules they still need after claim
 
-      Keep spawn prompts short and concrete. Prefer 200-350 tokens. Do NOT paste a generic tool list or long workflow boilerplate the plugin and agent file already provide.
+      Keep spawn prompts short and concrete. Prefer 120-220 tokens. Do NOT paste a generic tool list or long workflow boilerplate the plugin and agent file already provide.
       ALWAYS set \`claim_task\` to the first unblocked task in that agent's initial batch.
       Only spawn agents whose tasks are actually needed by this change. Skip agents with no tasks.
 
-      First spawn all agents (wait for each team_spawn to confirm before the next):
+      Prompt shape:
       \`\`\`
-      team_spawn name:"back" agent:"back-engineer" prompt:"..."
-      (wait for result)
-      team_spawn name:"front" agent:"front-engineer" prompt:"..."
-      (wait for result)
-      team_spawn name:"infra" agent:"infra-engineer" prompt:"..."
-      (wait for result)
+      You are <worker-name>, <engineer-file>.
+      Claim this task immediately as your first action:
+      - [task-<id1>] <task text>
+      <optional more tasks in the batch>
+
+      Key context:
+      - <short bullets>
+
+      After claiming:
+      1. Load @ob-global
+      2. Load only the relevant abilities/skills for this task
+      3. Implement the task
+      4. Call team_tasks_complete for the same task ID
+      5. Send a short team_message with files changed and checks run
       \`\`\`
 
-      Then send each spawned agent a short start message that repeats their task IDs if needed:
+      Spawn sequentially, waiting for each result:
       \`\`\`
-      team_message to:"back" text:"Start now. Load skills first. Your tasks: [task-<id1>] <task1 text>, [task-<id2>] <task2 text>. Call team_claim task_id:<id> for each before starting it."
-      team_message to:"front" text:"Start now. Load skills first. Your tasks: [task-<id3>] <task3 text>. Call team_claim task_id:<id> before starting it."
-      team_message to:"infra" text:"Start now. Load skills first. Your tasks: [task-<id4>] <task4 text>. Call team_claim task_id:<id> before starting it."
+      team_spawn name:"ui1" agent:"frontend-engineer" prompt:"..."
+      (wait for result)
+      team_spawn name:"api1" agent:"backend-engineer" prompt:"..."
+      (wait for result)
       \`\`\`
-      Replace placeholders with REAL task IDs and content. Never send a generic "claim your first task" message without the actual IDs.
+      Replace example agent names with REAL engineers that exist in this project.
+
+      Then send each spawned agent a short start message that repeats their exact task IDs if needed:
+      \`\`\`
+      team_message to:"ui1" text:"Claim now: [task-<id1>] <task text>."
+      \`\`\`
+      Never send a generic "claim your first task" message without the actual IDs.
       If \`claim_task\` already covers the first task, keep the start message minimal. Use follow-up messages mainly for additional tasks in the batch or recovery.
 
    **Step 6e.** After sending start messages, tell the user what is running, then STOP and wait.
@@ -102,20 +118,20 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
       1. Call \`team_results from:"<name>"\` to read full message.
       2. Call \`team_tasks_list\` to check remaining pending/unassigned tasks on the board.
       3. If the teammate is idle and has not claimed any assigned task:
-         - resend one short message with the same literal task IDs
+         - resend one short claim-only message with the same literal task IDs
          - if they still do not claim, \`team_shutdown member:"<name>" force:true\`
-         - respawn the same role with a shorter prompt and the same first \`claim_task\`
+         - respawn once with a shorter prompt and the same first \`claim_task\`
          - if the second spawn also stays idle, stop forcing ensemble for this change and continue in the main session or ask the user whether to retry later
       4. **If there are more unassigned tasks matching this agent's domain:**
           - Pick up to 3 unassigned, unblocked tasks for this agent's domain.
-          - Send them via \`team_message to:"<name>" text:"Next tasks: [task-<id1>] <desc>, [task-<id2>] <desc>. Claim each with team_claim before starting."\`
+          - Send them via \`team_message to:"<name>" text:"Claim next: [task-<id1>] <desc>, [task-<id2>] <desc>."\`
           - Do NOT shut down the agent. Go back to waiting (step 6e).
       5. **If no more tasks for this agent:**
           - \`team_shutdown member:"<name>"\`
           - \`team_merge member:"<name>"\`
           - If team_merge blocks on local changes: \`git stash\`, retry merge, \`git stash pop\`.
       6. **If ALL agents are shut down and tasks remain unassigned** (new domain, dependencies unblocked):
-          - Spawn new agents for the remaining tasks (back to step 6d).
+          - Discover the remaining matching engineers from \`.agents/agents/\` and spawn a new wave (back to step 6d).
       7. **If ALL tasks are done:** proceed to step 7.
       If a teammate reports rate-limit/quota/token exhaustion, immediately shutdown that teammate and respawn with an available model.
 
@@ -123,9 +139,9 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 
 7. **Quality check**
 
-   Spawn quality engineer with worktree:false (read-only, no file edits):
+   Spawn the best available verification-capable engineer with \`worktree:false\` (for example, a testing-focused custom engineer or \`basic-engineer\` if no better verifier exists):
    \`\`\`
-   team_spawn name:"quality" agent:"quality-engineer" worktree:false prompt:"<verification scope, context summary, run tests + build + lint + verify acceptance criteria, no task claiming required in this phase, send results to lead when done>"
+   team_spawn name:"verify" agent:"<real-verifier-engineer>" worktree:false prompt:"<verification scope, context summary, run tests + build + lint + verify acceptance criteria, no task claiming required in this phase, send results to lead when done>"
    \`\`\`
    Wait for message -> team_results -> fix blockers -> team_shutdown (no team_merge needed, worktree:false)
 
@@ -160,10 +176,11 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 - NEVER send a start message that omits task IDs; if a task ID is missing from the start message, the agent cannot claim
 - NEVER edit files between team_spawn and team_merge, team_merge blocks on overlapping local changes
 - ALWAYS add every task to the board before spawning, using multiple \`team_tasks_add\` calls when dependency wiring requires it
+- ALWAYS discover engineers from \`.agents/agents/\` and prefer matching custom engineers over \`basic-engineer\`
 - ALWAYS spawn agents sequentially (wait for each team_spawn result before the next), then send start messages to all of them together
-- ALWAYS set \`claim_task\` for the first unblocked task in each initial batch and instruct agents to call team_claim before each later task and team_tasks_complete after
+- ALWAYS set \`claim_task\` for the first unblocked task in each initial batch and instruct agents to claim before any other work
 - ALWAYS shut down + merge agents only when no more tasks remain for their domain
-- If teammates are stuck, use team_message to resend tasks once, then shutdown + respawn. If repeated idle/stall continues, stop forcing ensemble and continue outside it.
+- If teammates are stuck, use one short claim-only message, then one respawn with a shorter prompt. If repeated idle/stall continues, stop forcing ensemble and continue outside it.
 - Mark tasks complete in openspec AFTER specialists finish, not before
 - Pause on errors, blockers, or unclear requirements. Do not guess
 - Use contextFiles from CLI output, do not assume specific file paths

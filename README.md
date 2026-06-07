@@ -124,6 +124,7 @@ basic-engineer     implementation worker, ability-driven
 ```
 
 `basic-engineer` behavior is composed by abilities, not hardcoded role silos.
+Project-specific specialization comes from user-created custom engineers via `/ob-create-engineer`. During `/opsx-apply`, the lead should inspect the engineers that actually exist in `.agents/agents/`, prefer matching custom engineers, and fall back to `basic-engineer` only when no specialist is a clear fit.
 
 ### Skills, platform knowledge
 

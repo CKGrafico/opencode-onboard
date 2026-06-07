@@ -11,8 +11,21 @@ export async function writeModelToAgent(agentFile, modelId) {
   await fse.writeFile(agentFile, updated, 'utf-8');
 }
 
-export async function writeModelsToConfigs({ planModel, buildModel, fastModel, agentsDir, preset }) {
-  for (const name of preset.roles.build.agents) {
+async function listBuildAgentNames(agentsDir, preset) {
+  const fastAgents = new Set(preset.roles.fast.agents)
+  const configuredBuildAgents = preset.roles.build.agents
+  const discovered = await fse.pathExists(agentsDir)
+    ? (await fse.readdir(agentsDir))
+      .filter(name => name.endsWith('.md'))
+      .map(name => path.basename(name, '.md'))
+      .filter(name => !fastAgents.has(name))
+    : []
+
+  return [...new Set([...configuredBuildAgents, ...discovered])]
+}
+
+export async function writeModelsToConfigs({ planModel, buildModel, fastModel, agentsDir, preset, cwd = process.cwd() }) {
+  for (const name of await listBuildAgentNames(agentsDir, preset)) {
     const file = path.join(agentsDir, `${name}.md`);
     if (await fse.pathExists(file)) {
       await writeModelToAgent(file, buildModel);
@@ -28,7 +41,7 @@ export async function writeModelsToConfigs({ planModel, buildModel, fastModel, a
     }
   }
 
-  const opencodeJsonPath = path.join(process.cwd(), '.opencode', 'opencode.json');
+  const opencodeJsonPath = path.join(cwd, '.opencode', 'opencode.json');
   if (await fse.pathExists(opencodeJsonPath)) {
     const config = await fse.readJson(opencodeJsonPath);
     config.model = buildModel;
@@ -36,7 +49,7 @@ export async function writeModelsToConfigs({ planModel, buildModel, fastModel, a
     success(`default model -> ${buildModel} (written to .opencode/opencode.json)`);
   }
 
-  const ensembleJsonPath = path.join(process.cwd(), '.opencode', 'ensemble.json');
+  const ensembleJsonPath = path.join(cwd, '.opencode', 'ensemble.json');
   if (await fse.pathExists(ensembleJsonPath)) {
     const ensemble = await fse.readJson(ensembleJsonPath);
     delete ensemble.defaultModel;

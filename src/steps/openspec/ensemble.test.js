@@ -91,6 +91,19 @@ describe('ENSEMBLE_SECTION dependency guidance', () => {
     expect(ENSEMBLE_SECTION).toContain('stop forcing ensemble for this change and continue in the main session')
   })
 
+  it('prefers discovered custom engineers over hardcoded role inventory', () => {
+    expect(ENSEMBLE_SECTION).toContain('scan `.agents/agents/` and list the engineers that actually exist in this project')
+    expect(ENSEMBLE_SECTION).toContain('prefer the most specialized custom engineer')
+    expect(ENSEMBLE_SECTION).not.toContain('front-engineer: UI, components, framework skills')
+    expect(ENSEMBLE_SECTION).not.toContain('team_spawn name:"front" agent:"front-engineer"')
+  })
+
+  it('keeps the prompt claim-first and minimal', () => {
+    expect(ENSEMBLE_SECTION).toContain('Claim this task immediately as your first action:')
+    expect(ENSEMBLE_SECTION).toContain('After claiming:')
+    expect(ENSEMBLE_SECTION).not.toContain('Available OpenCode tools:')
+  })
+
   it('does not include the impossible same-call dependency example', () => {
     expect(ENSEMBLE_SECTION).not.toContain('{ content: "3.1 <task that needs 1.x done first>", priority: "medium", depends_on: ["<id-of-1.1>"] }')
     expect(ENSEMBLE_SECTION).not.toContain('Use depends_on to block tasks that require other tasks first, pass the IDs returned by team_tasks_add.')
