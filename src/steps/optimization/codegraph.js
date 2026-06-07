@@ -1,32 +1,35 @@
 import { execa } from 'execa'
 import fse from 'fs-extra'
 import path from 'node:path'
+import { parse as parseJsonc } from 'jsonc-parser'
 import { header, success, warn, error, loading } from '../../utils/exec.js'
 
 /**
  * After codegraph install, it may create an `opencode.jsonc` at the project root.
  * This project uses `.opencode/opencode.json` instead. Merge any MCP config from
  * the rogue file into the correct location and remove it.
+ * Returns true if config was successfully merged (or no rogue file existed), false on parse failure.
  */
 export async function fixCodegraphConfig() {
   const cwd = process.cwd()
   const rogueFile = path.join(cwd, 'opencode.jsonc')
   const correctFile = path.join(cwd, '.opencode', 'opencode.json')
 
-  if (!await fse.pathExists(rogueFile)) return
+  if (!await fse.pathExists(rogueFile)) return true
 
   let rogueContent
   try {
     const raw = await fse.readFile(rogueFile, 'utf-8')
-    // Strip JSONC comments (single-line // and block /* */) before parsing
-    const stripped = raw
-      .replace(/\/\/.*$/gm, '')
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-    rogueContent = JSON.parse(stripped)
+    const errors = []
+    rogueContent = parseJsonc(raw, errors)
+    if (errors.length > 0) throw new Error(`parse errors: ${errors.length}`)
+    if (!rogueContent || typeof rogueContent !== 'object' || Array.isArray(rogueContent)) {
+      throw new Error('unexpected structure')
+    }
   } catch {
     warn('Could not parse opencode.jsonc, removing it')
     await fse.remove(rogueFile)
-    return
+    return false
   }
 
   let correctContent = {}
@@ -34,11 +37,10 @@ export async function fixCodegraphConfig() {
     try {
       correctContent = await fse.readJson(correctFile)
     } catch {
-      correctContent = {}
+      // ignore invalid existing config
     }
   }
 
-  // Merge mcpServers from rogue into correct config
   if (rogueContent.mcpServers || rogueContent.mcp) {
     const mcpServers = rogueContent.mcpServers || rogueContent.mcp
     correctContent.mcpServers = { ...(correctContent.mcpServers || {}), ...mcpServers }
@@ -48,6 +50,8 @@ export async function fixCodegraphConfig() {
   await fse.writeJson(correctFile, correctContent, { spaces: 2 })
   await fse.remove(rogueFile)
   warn('Migrated codegraph config from opencode.jsonc → .opencode/opencode.json (removed opencode.jsonc)')
+
+  return true
 }
 
 export async function installCodegraph(options = {}) {
@@ -73,7 +77,13 @@ export async function installCodegraph(options = {}) {
       return { optedIn: true, installed: false }
     }
 
-    await fixCodegraphConfig()
+    const configFixed = await fixCodegraphConfig()
+
+    if (!configFixed) {
+      warn('codegraph config could not be merged — skipping init')
+      return { optedIn: true, installed: false }
+    }
+
     success(`codegraph configured for opencode (${location})`)
   } catch (err) {
     error(`Failed to install codegraph: ${err.message}`)

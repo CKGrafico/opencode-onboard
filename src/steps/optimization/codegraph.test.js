@@ -29,9 +29,9 @@ describe('fixCodegraphConfig()', () => {
     vi.restoreAllMocks()
   })
 
-  it('does nothing when opencode.jsonc does not exist', async () => {
-    await fixCodegraphConfig()
-    // No error, no file created
+  it('returns true when opencode.jsonc does not exist', async () => {
+    const result = await fixCodegraphConfig()
+    expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, '.opencode', 'opencode.json'))).toBe(false)
   })
 
@@ -50,12 +50,13 @@ describe('fixCodegraphConfig()', () => {
       "plugin": ["opencode-plugin-openspec@latest"]
     }))
 
-    await fixCodegraphConfig()
+    const result = await fixCodegraphConfig()
 
+    expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
-    const result = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
-    expect(result.mcpServers.codegraph).toEqual({ command: 'codegraph', args: ['mcp'] })
-    expect(result.plugin).toEqual(["opencode-plugin-openspec@latest"])
+    const readResult = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
+    expect(readResult.mcpServers.codegraph).toEqual({ command: 'codegraph', args: ['mcp'] })
+    expect(readResult.plugin).toEqual(["opencode-plugin-openspec@latest"])
   })
 
   it('handles JSONC with comments', async () => {
@@ -71,18 +72,43 @@ describe('fixCodegraphConfig()', () => {
     fs.mkdirSync(opencodeDir, { recursive: true })
     fs.writeFileSync(path.join(opencodeDir, 'opencode.json'), '{}')
 
-    await fixCodegraphConfig()
+    const result = await fixCodegraphConfig()
 
+    expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
-    const result = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
-    expect(result.mcpServers.codegraph.command).toBe('codegraph')
+    const readResult = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
+    expect(readResult.mcpServers.codegraph.command).toBe('codegraph')
   })
 
-  it('removes unparseable opencode.jsonc and warns', async () => {
+  it('handles JSONC with URLs containing //', async () => {
+    const rogueRaw = `{
+  "url": "https://example.com/path",
+  "mcpServers": {
+    "codegraph": { "command": "codegraph", "args": ["mcp"] }
+  }
+}`
+    fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), rogueRaw)
+
+    const opencodeDir = path.join(tmpDir, '.opencode')
+    fs.mkdirSync(opencodeDir, { recursive: true })
+    fs.writeFileSync(path.join(opencodeDir, 'opencode.json'), '{}')
+
+    const result = await fixCodegraphConfig()
+
+    // The old regex-based parser would have mangled the URL and failed.
+    // jsonc-parser handles this correctly.
+    expect(result).toBe(true)
+    expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
+    const readResult = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
+    expect(readResult.mcpServers.codegraph.command).toBe('codegraph')
+  })
+
+  it('removes unparseable opencode.jsonc, warns, and returns false', async () => {
     fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), 'not valid json {{{')
 
-    await fixCodegraphConfig()
+    const result = await fixCodegraphConfig()
 
+    expect(result).toBe(false)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
     expect(warn).toHaveBeenCalledWith('Could not parse opencode.jsonc, removing it')
   })
@@ -95,10 +121,11 @@ describe('fixCodegraphConfig()', () => {
     }
     fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), JSON.stringify(rogueContent))
 
-    await fixCodegraphConfig()
+    const result = await fixCodegraphConfig()
 
-    const result = await fse.readJson(path.join(tmpDir, '.opencode', 'opencode.json'))
-    expect(result.mcpServers.codegraph.command).toBe('codegraph')
+    expect(result).toBe(true)
+    const readResult = await fse.readJson(path.join(tmpDir, '.opencode', 'opencode.json'))
+    expect(readResult.mcpServers.codegraph.command).toBe('codegraph')
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
   })
 })
