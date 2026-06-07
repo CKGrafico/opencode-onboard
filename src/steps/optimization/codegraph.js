@@ -45,7 +45,7 @@ export async function fixCodegraphConfig() {
   if (rogueMcp) {
     for (const entry of Object.values(rogueMcp)) {
       if (Array.isArray(entry.command) && entry.command[0] === 'codegraph') {
-        entry.command = ['npx', '--yes', '@colbymchenry/codegraph', ...entry.command.slice(1)]
+        entry.command = ['npx', '@colbymchenry/codegraph', ...entry.command.slice(1)]
       }
     }
     correctContent.mcp = { ...(correctContent.mcp || {}), ...rogueMcp }
@@ -69,7 +69,7 @@ export async function installCodegraph(options = {}) {
   try {
     const installResult = await execa(
       'npx',
-      ['@colbymchenry/codegraph', 'install', '--target=opencode', `--location=${location}`, '--yes'],
+      ['--yes', '@colbymchenry/codegraph', 'install', '--target=opencode', `--location=${location}`, '--yes'],
       {
         cwd: process.cwd(),
         reject: false,
@@ -98,7 +98,7 @@ export async function installCodegraph(options = {}) {
   loading('initializing codegraph project index...')
 
   try {
-    const initResult = await execa('npx', ['--yes', '@colbymchenry/codegraph', 'init'], {
+    const initResult = await execa('npx', ['@colbymchenry/codegraph', 'init', '-i'], {
       cwd: process.cwd(),
       reject: false,
       stdio: 'pipe',

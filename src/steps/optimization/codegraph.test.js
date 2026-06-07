@@ -55,7 +55,7 @@ describe('fixCodegraphConfig()', () => {
     expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
     const readResult = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
-    expect(readResult.mcp.codegraph).toEqual({ command: ['npx', '--yes', '@colbymchenry/codegraph', 'serve', '--mcp'] })
+    expect(readResult.mcp.codegraph).toEqual({ command: ['npx', '@colbymchenry/codegraph', 'serve', '--mcp'] })
     expect(readResult.plugin).toEqual(["opencode-plugin-openspec@latest"])
   })
 
@@ -74,7 +74,7 @@ describe('fixCodegraphConfig()', () => {
     expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
     const readResult = await fse.readJson(path.join(tmpDir, '.opencode', 'opencode.json'))
-    expect(readResult.mcp.codegraph.command).toEqual(['npx', '--yes', '@colbymchenry/codegraph', 'serve', '--mcp'])
+    expect(readResult.mcp.codegraph.command).toEqual(['npx', '@colbymchenry/codegraph', 'serve', '--mcp'])
   })
 
   it('handles JSONC with comments', async () => {
@@ -95,7 +95,7 @@ describe('fixCodegraphConfig()', () => {
     expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
     const readResult = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
-    expect(readResult.mcp.codegraph.command).toEqual(['npx', '--yes', '@colbymchenry/codegraph', 'serve', '--mcp'])
+    expect(readResult.mcp.codegraph.command).toEqual(['npx', '@colbymchenry/codegraph', 'serve', '--mcp'])
   })
 
   it('handles JSONC with URLs containing //', async () => {
@@ -118,7 +118,7 @@ describe('fixCodegraphConfig()', () => {
     expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
     const readResult = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
-    expect(readResult.mcp.codegraph.command).toEqual(['npx', '--yes', '@colbymchenry/codegraph', 'serve', '--mcp'])
+    expect(readResult.mcp.codegraph.command).toEqual(['npx', '@colbymchenry/codegraph', 'serve', '--mcp'])
   })
 
   it('removes unparseable opencode.jsonc, warns, and returns false', async () => {
@@ -143,7 +143,7 @@ describe('fixCodegraphConfig()', () => {
 
     expect(result).toBe(true)
     const readResult = await fse.readJson(path.join(tmpDir, '.opencode', 'opencode.json'))
-    expect(readResult.mcp.codegraph.command).toEqual(['npx', '--yes', '@colbymchenry/codegraph', 'serve', '--mcp'])
+    expect(readResult.mcp.codegraph.command).toEqual(['npx', '@colbymchenry/codegraph', 'serve', '--mcp'])
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
   })
 
