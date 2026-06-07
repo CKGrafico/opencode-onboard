@@ -58,6 +58,13 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
       - use \`basic-engineer\` only when no custom engineer is a clear fit or as a recovery fallback
       - never spawn an engineer name that is not present in \`.opencode/agents/\`
 
+      **Model resolution for spawned agents (do not skip):**
+      Before each \`team_spawn\`, resolve the model for that agent using this priority:
+      1. **Agent file frontmatter** — Read \`.opencode/agents/<engineer-file>\` and check for a \`model:\` field in the YAML frontmatter. This is the user's explicit choice for this specific agent.
+      2. **\`ensemble.json\` \`modelsByAgent\`** — Read \`.opencode/ensemble.json\`. If \`modelsByAgent\` contains a key matching this agent's role (build agents → \`build\`, devops-manager → \`explore\`), use that value.
+      3. **Active chat model** — Fall back to the model currently running this conversation (your own model).
+      Never hardcode a model ID. Never skip this resolution. Log the result: \`[model: <id> ← <source: agent frontmatter / ensemble.json modelsByAgent / active chat>]\`
+
       Each \`team_spawn\` MUST include the agent field (required, causes NOT NULL error if omitted).
 
       The spawn prompt must be short and operational. It must contain:
@@ -91,9 +98,9 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 
       Spawn sequentially, waiting for each result:
       \`\`\`
-      team_spawn name:"ui1" agent:"frontend-engineer" prompt:"..."
+      team_spawn name:"ui1" agent:"frontend-engineer" model:"<resolved-model>" prompt:"..."
       (wait for result)
-      team_spawn name:"api1" agent:"backend-engineer" prompt:"..."
+      team_spawn name:"api1" agent:"backend-engineer" model:"<resolved-model>" prompt:"..."
       (wait for result)
       \`\`\`
       Replace example agent names with REAL engineers that exist in this project.
@@ -133,7 +140,7 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
       6. **If ALL agents are shut down and tasks remain unassigned** (new domain, dependencies unblocked):
           - Discover the remaining matching engineers from \`.opencode/agents/\` and spawn a new wave (back to step 6d).
       7. **If ALL tasks are done:** proceed to step 7.
-      If a teammate reports rate-limit/quota/token exhaustion, immediately shutdown that teammate and respawn with an available model.
+      If a teammate reports rate-limit/quota/token exhaustion, immediately shutdown that teammate and respawn with a different model using the model resolution priority above.
 
       **ZERO PENDING TASKS GUARANTEE:** Before proceeding to step 7, call \`team_tasks_list\` and verify EVERY task is either \`done\` or \`blocked\`. If any task is \`pending\` and unassigned, assign it to an agent or spawn a new one. Never leave pending tasks orphaned.
 
@@ -141,7 +148,7 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 
    Spawn the best available verification-capable engineer with \`worktree:false\` (for example, a testing-focused custom engineer or \`basic-engineer\` if no better verifier exists):
    \`\`\`
-   team_spawn name:"verify" agent:"<real-verifier-engineer>" worktree:false prompt:"<verification scope, context summary, run tests + build + lint + verify acceptance criteria, no task claiming required in this phase, send results to lead when done>"
+   team_spawn name:"verify" agent:"<real-verifier-engineer>" worktree:false model:"<resolved-model>" prompt:"<verification scope, context summary, run tests + build + lint + verify acceptance criteria, no task claiming required in this phase, send results to lead when done>"
    \`\`\`
    Wait for message -> team_results -> fix blockers -> team_shutdown (no team_merge needed, worktree:false)
 
@@ -165,6 +172,7 @@ export const ENSEMBLE_SECTION = `6. **Implement via ensemble team**
 - NEVER implement tasks directly. Always use team_create + team_spawn, no exceptions
 - NEVER touch source files before team_create is called, not even one edit
 - NEVER call team_spawn without the agent field, it is required and will fail without it
+- NEVER call team_spawn without a resolved \`model:\` field; always pass the model resolved from the priority chain
 - NEVER call team_spawn before all tasks are on the board; use multiple \`team_tasks_add\` calls when dependencies require real IDs from earlier calls
 - NEVER poll team_results or team_status in a loop, wait for teammates to message you
 - NEVER call team_claim or team_tasks_complete as lead, only agents call these tools

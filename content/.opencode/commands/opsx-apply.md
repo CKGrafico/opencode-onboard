@@ -122,9 +122,16 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
        - read each engineer's description and abilities
        - prefer the most specialized custom engineer whose description and abilities match the task
        - use `basic-engineer` only when no custom engineer is a clear fit or as a recovery fallback
-       - never spawn an engineer name that is not present in `.opencode/agents/`
+        - never spawn an engineer name that is not present in `.opencode/agents/`
 
-       REQUIRED assignment algorithm (do not skip):
+        **Model resolution for spawned agents (do not skip):**
+        Before each `team_spawn`, resolve the model for that agent using this priority:
+        1. **Agent file frontmatter** — Read `.opencode/agents/<engineer-file>` and check for a `model:` field in the YAML frontmatter. This is the user's explicit choice for this specific agent.
+        2. **`ensemble.json` `modelsByAgent`** — Read `.opencode/ensemble.json`. If `modelsByAgent` contains a key matching this agent's role (build agents → `build`, devops-manager → `explore`), use that value.
+        3. **Active chat model** — Fall back to the model currently running this conversation (your own model).
+        Never hardcode a model ID. Never skip this resolution. Log the result: `[model: <id> ← <source: agent frontmatter / ensemble.json modelsByAgent / active chat>]`
+
+        REQUIRED assignment algorithm (do not skip):
        1. Build candidate list from `.opencode/agents/*.md` excluding `devops-manager`.
        2. Classify each task by domain using task text (api/backend, ui/frontend, infra/devops, testing/qa).
        3. For each task, score every candidate agent:
@@ -174,13 +181,13 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
        ALWAYS set `claim_task` to the first unblocked task in that agent's initial batch.
        Only spawn agents whose tasks are actually needed by this change. Skip agents with no tasks.
 
-       Spawn sequentially, waiting for each result:
-       ```
-       team_spawn name:"ui1" agent:"frontend-engineer" prompt:"..."
-       (wait for result)
-       team_spawn name:"api1" agent:"backend-engineer" prompt:"..."
-       (wait for result)
-       ```
+        Spawn sequentially, waiting for each result:
+        ```
+        team_spawn name:"ui1" agent:"frontend-engineer" model:"<resolved-model>" prompt:"..."
+        (wait for result)
+        team_spawn name:"api1" agent:"backend-engineer" model:"<resolved-model>" prompt:"..."
+        (wait for result)
+        ```
        Replace example agent names with REAL engineers that exist in this project.
 
        Then send each spawned worker a short start message that repeats their exact task IDs if needed:
@@ -226,7 +233,7 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 
    Spawn the best available verification-capable engineer with `worktree:false` (for example, a testing-focused custom engineer or `basic-engineer` if no better verifier exists):
    ```
-   team_spawn name:"verify" agent:"<real-verifier-engineer>" worktree:false prompt:"<verification scope, context summary, run tests + build + lint + verify acceptance criteria, no task claiming required in this phase, send results to lead when done>"
+   team_spawn name:"verify" agent:"<real-verifier-engineer>" worktree:false model:"<resolved-model>" prompt:"<verification scope, context summary, run tests + build + lint + verify acceptance criteria, no task claiming required in this phase, send results to lead when done>"
    ```
    Wait for message -> team_results -> fix blockers -> team_shutdown (no team_merge needed, worktree:false)
 
@@ -253,6 +260,7 @@ Implement tasks from an OpenSpec change using the ensemble agent team.
 - NEVER implement tasks directly. Always use team_create + team_spawn, no exceptions
 - NEVER touch source files before team_create is called, not even one edit
 - NEVER call team_spawn without the agent field, it is required and will fail without it
+- NEVER call team_spawn without a resolved `model:` field; always pass the model resolved from the priority chain
 - NEVER call team_spawn before all tasks are on the board; use multiple `team_tasks_add` calls when dependencies require real IDs from earlier calls
 - NEVER poll team_results or team_status in a loop, wait for teammates to message you
 - NEVER call team_claim or team_tasks_complete as lead, only agents call these tools

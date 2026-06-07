@@ -248,8 +248,9 @@ Core tools used in this workflow:
 
 If a teammate stalls due to model quota/rate-limit exhaustion:
 1. `team_shutdown name:"<stuck-member>" force:true`
-2. `team_spawn` same member/task with an available model
-3. `team_message` start instruction with the exact next task ID
+2. Resolve a new model using the model resolution priority (agent file frontmatter → `ensemble.json` `modelsByAgent` → active chat model). Avoid the model that hit the rate limit.
+3. `team_spawn` same member/task with the resolved model
+4. `team_message` start instruction with the exact next task ID
 
 ---
 
