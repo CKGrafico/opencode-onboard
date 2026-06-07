@@ -6,7 +6,7 @@
 
 **One command to prepare any codebase for AI agent workflows in OpenCode.**
 
-Works with [OpenCode](https://opencode.ai), [OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble), [OpenSpec](https://github.com/fission-ai/openspec), GitHub and Azure DevOps.
+Works with [OpenCode](https://opencode.ai), [OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble), [OpenSpec](https://github.com/fission-ai/openspec), GitHub, Azure DevOps, or no tracker/PR platform at all.
 
 [![npm version](https://img.shields.io/npm/v/opencode-onboard?style=flat-square&color=black)](https://www.npmjs.com/package/opencode-onboard)
 [![npm downloads](https://img.shields.io/npm/dm/opencode-onboard?style=flat-square&color=black)](https://www.npmjs.com/package/opencode-onboard)
@@ -74,8 +74,8 @@ The CLI runs a 10-step onboarding wizard. It keeps the current step visible, plu
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **1. Source scope**               | Choose current repo or sibling source roots for code analysis                                                                                                        |
 | **2. Clean AI files**             | Detects existing `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, `.agents/` etc. and removes them, preserves your `.agents/skills/`                                        |
-| **3. Choose platform**            | GitHub or Azure DevOps                                                                                                                                               |
-| **4. Check platform CLI**         | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps)                                                                                                       |
+| **3. Choose platform**            | GitHub, Azure DevOps, or None                                                                                                                                       |
+| **4. Check platform CLI**         | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps), or skips checks when platform is None                                                              |
 | **5. Copy scaffolding**           | Copies agents + built-in skills + bootstrap docs, writes source-roots metadata, applies AGENTS bootstrap patching, copies `skills-lock.json`, then runs `npx skills` |
 | **6. Init OpenSpec**              | Runs `npx @fission-ai/openspec init` silently for structured change management                                                                                       |
 | **7. Choose models**              | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing                   |
@@ -100,7 +100,7 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 | Command        | Description                                                                                           |
 | -------------- | ----------------------------------------------------------------------------------------------------- |
 | `/ob-init`        | Initialize the project. Asks greenfield vs brownfield, then activates the agent team. Supports skipping doc generation for new projects. |
-| `/ob-plan <url>`  | Parse a user story URL and produce a plan, proposal, specs, and tasks. Stops before implementation.   |
+| `/ob-plan <url>`  | Parse a user story URL and produce a plan, proposal, specs, and tasks. Stops before implementation. Use platform mode, not `None`.   |
 | `/ob-main <task>` | Quick direct implementation, no OpenSpec, no ensemble, no PRs. Just do it.                            |
 | `/ob-create-engineer <name> "<description>"` | Create a custom engineer agent from a description, with skills auto-installed from [skills.sh](https://www.skills.sh/) |
 | `/ob-create-architecture` | Generate or regenerate `ARCHITECTURE.md` from the codebase. Safe to rerun any time the architecture changes. |
@@ -129,6 +129,8 @@ Project-specific specialization comes from user-created custom engineers via `/o
 ### Skills, platform knowledge
 
 Skills define _what to know_. They provide project rules, platform behavior, and task-specific execution guidance. Agents auto-detect/load relevant skills; **you do not manually choose skills per prompt**.
+
+If you choose platform `None` during onboarding, no userstory or pull-request platform skills are injected into the workflow. The project works from direct conversation, local repo context, and optional OpenSpec artifacts only.
 
 Current loading model:
 
@@ -177,7 +179,7 @@ Models are fetched live from [models.dev](https://models.dev) (3000+ models, cac
 
 ## The pipeline
 
-When you give the lead agent a work item URL, execution follows this pipeline:
+When you give the lead agent a work item URL, execution follows this pipeline. If onboarding platform is `None`, skip the work item / PR stages and work directly from conversation plus optional OpenSpec artifacts:
 
 ```
 devops-manager (load ob-global first)

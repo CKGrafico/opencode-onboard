@@ -45,6 +45,15 @@ describe('choosePlatform()', () => {
     expect(success).toHaveBeenCalledWith('Platform: Azure DevOps')
   })
 
+  it('returns "none" when user selects None', async () => {
+    select.mockResolvedValue('none')
+
+    const result = await choosePlatform()
+
+    expect(result).toBe('none')
+    expect(success).toHaveBeenCalledWith('Platform: None')
+  })
+
   describe('checkPlatform()', () => {
     describe('github path', () => {
       it('prints success when gh is installed and authenticated', async () => {
@@ -123,6 +132,16 @@ describe('choosePlatform()', () => {
         await checkPlatform('azure')
 
         expect(warn).toHaveBeenCalledWith('Could not check azure-devops extension. Run:')
+      })
+    })
+
+    describe('none path', () => {
+      it('skips CLI checks when no platform integration is selected', async () => {
+        await checkPlatform('none')
+
+        expect(commandExists).not.toHaveBeenCalled()
+        expect(execa).not.toHaveBeenCalled()
+        expect(success).toHaveBeenCalledWith('Platform: None')
       })
     })
   })

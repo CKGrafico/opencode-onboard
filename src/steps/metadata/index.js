@@ -22,7 +22,8 @@ export async function writeOnboardConfig(data) {
   header('Step 10, Writing onboarding metadata')
 
   const opencodeVersion = await detectOpencodeVersion()
-  const target = path.join(process.cwd(), '.opencode', 'opencode-onboard.json')
+  const cwd = data.cwd ?? process.cwd()
+  const target = path.join(cwd, '.opencode', 'opencode-onboard.json')
 
   const payload = {
     schema: 1,

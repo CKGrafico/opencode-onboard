@@ -11,6 +11,7 @@ vi.mock('../../utils/copy.js', () => ({
 }))
 
 vi.mock('./agents.js', () => ({
+  patchAgentGuidance: vi.fn(),
   patchAgentsMd: vi.fn(),
   patchConcurrency: vi.fn(),
   patchDevopsManagerMd: vi.fn(),
@@ -21,7 +22,7 @@ vi.mock('./skills.js', () => ({
 }))
 
 import { copyContent } from '../../utils/copy.js'
-import { success, error } from '../../utils/exec.js'
+import { error } from '../../utils/exec.js'
 import { copyContentStep } from './index.js'
 
 describe('copyContentStep()', () => {
@@ -47,7 +48,6 @@ describe('copyContentStep()', () => {
       'github',
       {}
     )
-    expect(success).toHaveBeenCalledWith('Files copied to project root')
   })
 
   it('calls copyContent with azure platform', async () => {
@@ -59,6 +59,19 @@ describe('copyContentStep()', () => {
       expect.stringContaining('content'),
       process.cwd(),
       'azure',
+      {}
+    )
+  })
+
+  it('calls copyContent with none platform', async () => {
+    copyContent.mockResolvedValue(undefined)
+
+    await copyContentStep('none')
+
+    expect(copyContent).toHaveBeenCalledWith(
+      expect.stringContaining('content'),
+      process.cwd(),
+      'none',
       {}
     )
   })

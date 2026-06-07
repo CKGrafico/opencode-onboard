@@ -25,17 +25,14 @@ import fse from 'fs-extra'
 import { writeOnboardConfig } from './index.js'
 
 describe('writeOnboardConfig()', () => {
-  let tmpDir, originalCwd
+  let tmpDir
 
   beforeEach(() => {
     vi.clearAllMocks()
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'metadata-test-'))
-    originalCwd = process.cwd()
-    process.chdir(tmpDir)
   })
 
   afterEach(() => {
-    process.chdir(originalCwd)
     fs.rmSync(tmpDir, { recursive: true, force: true })
   })
 
@@ -55,6 +52,7 @@ describe('writeOnboardConfig()', () => {
       fastModel: 'fast-model',
       optionalTools: ['rtk'],
       cavemanGuidance: true,
+      cwd: tmpDir,
     })
 
     expect(fse.ensureDir).toHaveBeenCalled()
@@ -70,7 +68,7 @@ describe('writeOnboardConfig()', () => {
   it('detects opencode version from CLI', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '2.0.0', stderr: '' })
 
-    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [] })
+    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
 
     const call = fse.writeJson.mock.calls[0]
     const payload = call[1]
@@ -80,7 +78,7 @@ describe('writeOnboardConfig()', () => {
   it('handles missing opencode gracefully', async () => {
     execa.mockResolvedValue({ exitCode: 1, stdout: '', stderr: '' })
 
-    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [] })
+    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
 
     const call = fse.writeJson.mock.calls[0]
     const payload = call[1]
@@ -90,10 +88,20 @@ describe('writeOnboardConfig()', () => {
   it('includes note field', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
 
-    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [] })
+    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
 
     const call = fse.writeJson.mock.calls[0]
     const payload = call[1]
     expect(payload.note).toContain('Informational file only')
+  })
+
+  it('persists none as an explicit platform mode', async () => {
+    execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
+
+    await writeOnboardConfig({ platform: 'none', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
+
+    const call = fse.writeJson.mock.calls[0]
+    const payload = call[1]
+    expect(payload.wizard.platform).toBe('none')
   })
 })
