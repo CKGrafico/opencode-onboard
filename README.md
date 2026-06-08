@@ -74,8 +74,8 @@ The CLI runs a 10-step onboarding wizard. It keeps the current step visible, plu
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **1. Source scope**               | Choose current repo or sibling source roots for code analysis                                                                                                        |
 | **2. Clean AI files**             | Detects existing `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, `.agents/` etc. and removes them, preserves your `.agents/skills/`                                        |
-| **3. Choose platform**            | GitHub, Azure DevOps, or None                                                                                                                                       |
-| **4. Check platform CLI**         | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps), or skips checks when platform is None                                                              |
+| **3. Choose platform**            | GitHub, Azure DevOps, or None                                                                                                                                        |
+| **4. Check platform CLI**         | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps), or skips checks when platform is None                                                                |
 | **5. Copy scaffolding**           | Copies agents + built-in skills + bootstrap docs, writes source-roots metadata, applies AGENTS bootstrap patching, copies `skills-lock.json`, then runs `npx skills` |
 | **6. Init OpenSpec**              | Runs `npx @fission-ai/openspec init` silently for structured change management                                                                                       |
 | **7. Choose models**              | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing                   |
@@ -164,6 +164,8 @@ Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 | `ob-generic-guardrails` | Foundation for user guardrails skills                                                                            |
 | `ob-userstory-gh`       | Parse a GitHub Issue URL into a structured work item                                                             |
 | `ob-userstory-az`       | Parse an Azure DevOps work item URL                                                                              |
+| `ob-archive-az`         | Archive change on Azure DevOps                                                                                   |
+| `ob-archive-gh`         | Archive change on GitHub                                                                                         |
 | `browser-automation`    | Browser control via `@different-ai/opencode-browser`                                                             |
 
 Skills live in `.agents/skills/`. Any `SKILL.md` file in a subdirectory is automatically discoverable, write your own and agents will pick them up.
@@ -269,6 +271,7 @@ The first time you type `init` in OpenCode after onboarding, the agent asks whet
 4. `ARCHITECTURE.md` and `DESIGN.md` are left as placeholder files
 
 Once your codebase has meaningful content, run:
+
 - `/ob-create-architecture` to generate architecture docs
 - `/ob-create-design` to generate design system docs
 
