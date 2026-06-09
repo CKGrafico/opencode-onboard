@@ -26,5 +26,5 @@ Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
    - Try to match a change (`us-{id}-{slug}`) from `openspec/changes` with the provided URL (`feature/{id}-{slug}`) or change ID (`us-{id}-{slug}`).
    - If the change is not found, report as a blocker and do not proceed with archiving.
 
-<!-- OB-OPSX-ARCHIVE-START -->
-<!-- OB-OPSX-ARCHIVE-END -->
+<!-- OB-PLATFORM-ARCHIVE-START -->
+<!-- OB-PLATFORM-ARCHIVE-END -->

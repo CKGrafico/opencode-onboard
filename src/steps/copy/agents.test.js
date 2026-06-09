@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import fse from 'fs-extra'
-import { patchAgentGuidance, patchArchiveCommand, patchDevopsManagerMd } from './agents.js'
+import { patchAgentGuidance, patchArchiveCommand } from './agents.js'
 
 describe('platform patching', () => {
   let tmpDir
@@ -27,20 +27,6 @@ describe('platform patching', () => {
     expect(content).toContain('GitHub Issue URLs, Azure DevOps work item URLs, and PR URLs are NOT automatic triggers in this mode.')
     expect(content).toContain('There is no PR shipping phase in')
     expect(content).not.toContain('A GitHub or Azure DevOps URL anywhere in the user\'s message is always a trigger')
-  })
-
-  it('patches devops-manager for none mode without platform skills', async () => {
-    const source = path.join(process.cwd(), 'content', '.opencode', 'agents', 'devops-manager.md')
-    const dest = path.join(tmpDir, '.opencode', 'agents', 'devops-manager.md')
-    await fse.ensureDir(path.dirname(dest))
-    await fse.copyFile(source, dest)
-
-    await patchDevopsManagerMd('none', tmpDir)
-
-    const content = await fse.readFile(dest, 'utf-8')
-    expect(content).toContain('Selected platform: `none`')
-    expect(content).toContain('Do NOT load `ob-userstory`')
-    expect(content).toContain('This project does not use GitHub or Azure DevOps integration.')
   })
 
   it('patches ob-archive for azure platform', async () => {
