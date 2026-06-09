@@ -39,7 +39,7 @@ Save to: `openspec/changes/{change-name}/images/{feature}.png`
 
 ```bash
 git add .
-git commit -m "feat(#{id}): {description}"
+git commit -m "feat({scope}): {description} (#{id})"
 git push origin feature/{id}-{slug}
 ```
 
@@ -50,7 +50,7 @@ az repos pr create \
   --repository {repo} \
   --source-branch feature/{id}-{slug} \
   --target-branch main \
-  --title "feat(#{id}): {title}" \
+  --title "feat({scope}): {title} (#{id})" \
   --description "{description}"
 ```
 
@@ -155,6 +155,20 @@ az devops invoke \
   ]
 }
 ```
+
+---
+
+## Mode C: Find unarchived change ordered by oldest first (archive mode)
+
+Triggered ONLY from `ob-archive` command when an Azure DevOps PR URL or change ID is provided.
+
+### Step 1: List changes and find oldest unarchived
+
+```bash
+# list ordered by merge date, oldest first; output only name and url
+az repos pr list --repository {repo} --status completed --query "sort_by(@, &closedDate)[].{name:title,url:url}"
+```
+
 ---
 
 ## Guardrails

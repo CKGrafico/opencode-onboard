@@ -19,8 +19,8 @@ gh pr list \
   --state closed
 ```
 
-- If a matching PR is found, verify that its status is "completed" (merged) and save the {username} of the PR creator.
-- If no matching PR is found, or if the PR is not merged, report as a blocker and do not proceed with archiving. 
+- If a matching PR is found, verify that its status is "completed" (merged).
+- If no matching PR is found, or if the PR is not merged, report as a blocker and do not proceed with archiving.
 
 ### Step 2: Verify and update AI files
 
@@ -29,7 +29,7 @@ gh pr list \
 /opsx-archive us-{id}-{slug}
 ```
 
-### Step 3: Update AI files
+### Step 3: Update ARCHITECTURE and DESIGN files
 
 - Review ARCHITECTURE.md and DESIGN.md and find discrepancies compared to the change implementation. Discrepancies include any new architectural decisions, design changes, or implementation details that are not yet captured in the documentation.
 - Make sure all discrepancies are properly documented in ARCHITECTURE.md and DESIGN.md, so the documentation is up to date with the change implementation.
@@ -41,7 +41,6 @@ gh pr list \
 
 ```bash
 gh pr create \
-  --assignee {username} \
   --repo {owner}/{repo} \
   --base main \
   --head archive/{id}-{slug} \

@@ -39,7 +39,7 @@ Save to: `openspec/changes/{change-name}/images/{feature}.png`
 
 ```bash
 git add .
-git commit -m "feat(#{id}): {description}"
+git commit -m "feat({scope}): {description} (#{id})"
 git push origin feature/{id}-{slug}
 ```
 
@@ -48,8 +48,8 @@ git push origin feature/{id}-{slug}
 ```bash
 gh pr create \
   --base main \
-  --head feature/{id}-{slug} \
-  --title "feat(#{id}): {title}" \
+  --head feature/{slug} \
+  --title "feat({scope}): {title} (#{id})" \
   --body "{description}"
 ```
 
@@ -124,6 +124,19 @@ gh api repos/{owner}/{repo}/pulls/{pr-number}/comments/{comment-id}/replies \
 
 # Or post a general PR comment
 gh pr comment {pr-number} --body "Updated design.md to reflect feedback."
+```
+
+---
+
+## Mode C: Find unarchived change ordered by oldest first (archive mode)
+
+Triggered ONLY from `ob-archive` command when a GitHub PR URL or change ID is provided.
+
+### Step 1: List changes and find oldest unarchived
+
+```bash
+# list ordered by merge date, oldest first; output only name and url
+gh pr list --repo {owner}/{repo} --state merged --json title,url,mergedAt --jq 'sort_by(.mergedAt) | .[] | {name: .title, url: .url}'
 ```
 
 ---
