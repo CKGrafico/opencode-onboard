@@ -128,19 +128,6 @@ gh pr comment {pr-number} --body "Updated design.md to reflect feedback."
 
 ---
 
-## Mode C: Find unarchived change ordered by oldest first (archive mode)
-
-Triggered ONLY from `ob-archive` command when a GitHub PR URL or change ID is provided.
-
-### Step 1: List changes and find oldest unarchived
-
-```bash
-# list ordered by merge date, oldest first; output only name and url
-gh pr list --repo {owner}/{repo} --state merged --json title,url,mergedAt --jq 'sort_by(.mergedAt) | .[] | {name: .title, url: .url}'
-```
-
----
-
 ## Guardrails
 
 - ✅ Commit and push to feature branches only

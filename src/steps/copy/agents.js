@@ -5,6 +5,15 @@ import { info, success } from '../../utils/exec.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const agentsContent = await fse.readJson(path.resolve(__dirname, '../../presets/agents-content.json'))
+const archiveAzure = await fse.readFile(path.resolve(__dirname, '../../presets/ob-archive-az.md'), 'utf-8')
+const archiveGithub = await fse.readFile(path.resolve(__dirname, '../../presets/ob-archive-gh.md'), 'utf-8')
+
+const OPSX_PROPOSE_START = '<!-- OB-OPSX-PROPOSE-START -->'
+const OPSX_PROPOSE_END = '<!-- OB-OPSX-PROPOSE-END -->'
+const OPSX_APPLY_START = '<!-- OB-OPSX-APPLY-START -->'
+const OPSX_APPLY_END = '<!-- OB-OPSX-APPLY-END -->'
+const OPSX_ARCHIVE_START = '<!-- OB-OPSX-ARCHIVE-START -->'
+const OPSX_ARCHIVE_END = '<!-- OB-OPSX-ARCHIVE-END -->'
 
 const STEP1_HEADING = '### Step 1, Archive project history into OpenSpec'
 const STEP2_HEADING = '### Step 2, Generate DESIGN.md'
@@ -82,6 +91,45 @@ export async function patchConcurrency(ctx) {
   }
 }
 
+export async function patchProposeEnrichment(cwd = process.cwd()) {
+  const targetPath = path.join(cwd, '.opencode', 'commands', 'ob-propose.md')
+  if (!await fse.pathExists(targetPath)) return
+
+  let content = await fse.readFile(targetPath, 'utf-8')
+  if (!content.includes(OPSX_PROPOSE_START) || !content.includes(OPSX_PROPOSE_END)) return
+
+  const pattern = new RegExp(`${OPSX_PROPOSE_START}[\\s\\S]*?${OPSX_PROPOSE_END}`)
+  content = content.replace(pattern, `${OPSX_PROPOSE_START}\n${openspecPreset.proposeEnrichment.trim()}\n${OPSX_PROPOSE_END}`)
+  await fse.writeFile(targetPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
+  success('ob-propose.md enrichment step injected')
+}
+
+export async function patchStep6Override(cwd = process.cwd()) {
+  const targetPath = path.join(cwd, '.opencode', 'commands', 'ob-apply.md')
+  if (!await fse.pathExists(targetPath)) return
+
+  let content = await fse.readFile(targetPath, 'utf-8')
+  if (!content.includes(OPSX_APPLY_START) || !content.includes(OPSX_APPLY_END)) return
+
+  const pattern = new RegExp(`${OPSX_APPLY_START}[\\s\\S]*?${OPSX_APPLY_END}`)
+  content = content.replace(pattern, `${OPSX_APPLY_START}\n${openspecPreset.step6Override.trim()}\n${OPSX_APPLY_END}`)
+  await fse.writeFile(targetPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
+  success('ob-apply.md step 6 injected')
+}
+
+export async function patchArchiveCommand(platform, cwd = process.cwd()) {
+  const targetPath = path.join(cwd, '.opencode', 'commands', 'ob-archive.md')
+  if (!await fse.pathExists(targetPath)) return
+
+  let content = await fse.readFile(targetPath, 'utf-8')
+  if (!content.includes(OPSX_ARCHIVE_START) || !content.includes(OPSX_ARCHIVE_END)) return
+
+  const replacement = platform === 'azure' ? archiveAzure : archiveGithub
+  const pattern = new RegExp(`${OPSX_ARCHIVE_START}[\\s\\S]*?${OPSX_ARCHIVE_END}`)
+  content = content.replace(pattern, `${OPSX_ARCHIVE_START}\n${replacement.trim()}\n${OPSX_ARCHIVE_END}`)
+  await fse.writeFile(targetPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
+  success(`ob-archive.md archive flow injected for platform: ${platform}`)
+}
 
 export async function patchAgentsMd(ctx) {
   const agentsMdPath = path.join(process.cwd(), 'AGENTS.md')

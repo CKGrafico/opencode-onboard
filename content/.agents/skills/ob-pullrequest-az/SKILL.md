@@ -158,19 +158,6 @@ az devops invoke \
 
 ---
 
-## Mode C: Find unarchived change ordered by oldest first (archive mode)
-
-Triggered ONLY from `ob-archive` command when an Azure DevOps PR URL or change ID is provided.
-
-### Step 1: List changes and find oldest unarchived
-
-```bash
-# list ordered by merge date, oldest first; output only name and url
-az repos pr list --repository {repo} --status completed --query "sort_by(@, &closedDate)[].{name:title,url:url}"
-```
-
----
-
 ## Guardrails
 
 - ✅ Commit and push to feature branches only
