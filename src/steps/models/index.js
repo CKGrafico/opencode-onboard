@@ -1,12 +1,14 @@
 import path from 'path'
-import { header, info, success, warn } from '../../utils/exec.js'
+import { header, info, prompt, success, warn } from '../../utils/exec.js'
 import { fetchModels } from '../../utils/models-cache.js'
 import { buildDisplayModels, filterModelsByProvider, modelsPreset, pickModel, pickProvider } from './format.js'
 import { writeModelsToConfigs } from './write.js'
 
 async function pickRoleModel(role, allModels) {
   const rolePreset = modelsPreset.roles[role]
-  for (const line of rolePreset.info) info(line)
+  const [first, ...rest] = rolePreset.info
+  prompt(first)
+  for (const line of rest) info(line)
   console.log()
 
   while (true) {

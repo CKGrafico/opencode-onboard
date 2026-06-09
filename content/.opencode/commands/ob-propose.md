@@ -12,19 +12,28 @@ Load `@openspec-propose` skill and follow its instructions.
 
 > ⚠️ **CHECKPOINT — `tasks.md` was just written. STOP. Do NOT show the plan yet. You MUST complete the enrichment below before continuing. Skipping this breaks `/ob-apply`.**
 
-1. Read `.opencode/agents/`. For each task, pick the most domain-relevant engineer (skip any orchestration-only agents).
-2. Read `.opencode/opencode-onboard.json` → `wizard.models.build` for the implementation model.
-3. Annotate each task line in-place:
+1. List every `*-engineer.md` file in `.opencode/agents/`. For each file read:
+   - `description:` from the YAML frontmatter — the engineer's specialization summary
+   - `## Abilities` section — the skills listed under Development, Testing, Infrastructure (e.g. `@nodejs-backend`, `@secure-nextjs-api-routes`)
+   Build a map of `agent-name → { description, abilities }`.
+2. For each task, compare the task text and domain against every engineer's description AND abilities. Pick the engineer whose combined profile most closely matches. Only use `basic-engineer` if no specialist is a clear fit.
+3. Read `.opencode/opencode-onboard.json` → `wizard.models`. It has three keys: `build` (heavy implementation), `fast` (light/simple tasks), `plan` (orchestration). For each task, pick the most appropriate model:
+   - `build` — complex code: data models, APIs, auth logic, core business logic, UI components
+   - `fast` — light work: i18n keys, config changes, env variables, navigation links, simple markup, verification runs
+   - `plan` — reserved for orchestration, do not use for implementation tasks
+4. Annotate each task line in-place:
 
 ```
 - [ ] <task text> <!-- agent: <name>, model: <id> -->
 ```
 
-Example result:
+Example result (each task independently picks agent + model):
 
 ```
-- [ ] Implement JWT authentication <!-- agent: backend-engineer, model: claude-sonnet-4-5 -->
-- [ ] Add login form component <!-- agent: frontend-engineer, model: claude-sonnet-4-5 -->
+- [ ] Add Invitation model to Prisma schema <!-- agent: backend-engineer, model: opencode/big-pickle -->
+- [ ] Create invitation accept page UI <!-- agent: frontend-engineer, model: opencode/big-pickle -->
+- [ ] Add i18n keys for invitation flow <!-- agent: frontend-engineer, model: opencode/qwen3.6-plus -->
+- [ ] Run pnpm typecheck and fix errors <!-- agent: basic-engineer, model: opencode/qwen3.6-plus -->
 ```
 
 `/ob-apply` step 6 reads these annotations to spawn the right agent with the right model — no guessing at implementation time.

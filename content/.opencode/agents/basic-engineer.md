@@ -1,6 +1,6 @@
 ---
 description: Basic Engineer Agent.
-mode: primary
+mode: subagent
 color: success
 permission:
   edit: allow
