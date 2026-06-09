@@ -14,12 +14,12 @@ When the user says anything resembling initialization, "/ob-init", "initialize",
 
 ### Step 1, Detect project type
 
-Ask the user exactly this question before doing anything else:
+Use the **AskUserQuestion tool** (not plain text) to present this choice:
 
-> "Is this a **greenfield** project (starting from scratch, little or no existing code) or a **brownfield** project (existing codebase)?"
->
-> - Reply **greenfield** to skip architecture/design/history analysis
-> - Reply **brownfield** to generate docs from your existing code
+- Question: `"Is this a greenfield or brownfield project?"`
+- Options:
+  - `greenfield` — Starting from scratch, little or no existing code. Skip architecture/design/history analysis.
+  - `brownfield` — Existing codebase. Generate docs from your code.
 
 Wait for the answer. Then follow the matching path below.
 

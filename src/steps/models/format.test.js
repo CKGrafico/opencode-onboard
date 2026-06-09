@@ -96,6 +96,7 @@ describe('buildDisplayModels()', () => {
     const result = buildModelChoices('claude', models)
 
     expect(result[0].name).toBe('None')
-    expect(result[1].value).toBe('anthropic/claude-3-5-sonnet')
+    expect(result[1].value).toBe('__back__')
+    expect(result[2].value).toBe('anthropic/claude-3-5-sonnet')
   })
 })

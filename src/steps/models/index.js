@@ -9,15 +9,18 @@ async function pickRoleModel(role, allModels) {
   for (const line of rolePreset.info) info(line)
   console.log()
 
-  const provider = await pickProvider('Provider:')
-  const filtered = filterModelsByProvider(allModels, provider)
-  const available = filtered.length > 0 ? filtered : allModels
+  while (true) {
+    const provider = await pickProvider('Provider:')
+    const filtered = filterModelsByProvider(allModels, provider)
+    const available = filtered.length > 0 ? filtered : allModels
 
-  const suggestion = rolePreset.suggestions?.[provider]
-  if (suggestion) info(`  Suggested: ${suggestion}`)
-  if (filtered.length === 0 && provider) warn(`  No ${provider} models found — showing all`)
+    const suggestion = rolePreset.suggestions?.[provider]
+    if (suggestion) info(`  Suggested: ${suggestion}`)
+    if (filtered.length === 0 && provider) warn(`  No ${provider} models found — showing all`)
 
-  return pickModel(rolePreset.prompt, available)
+    const model = await pickModel(rolePreset.prompt, available)
+    if (model !== '__back__') return model
+  }
 }
 
 export async function chooseModels() {
@@ -41,18 +44,20 @@ export async function chooseModels() {
   const models = buildDisplayModels(rawModels);
   success(`${models.length} models available`);
   console.log();
+  info('Three models — main session, engineers, and light commands.');
   info('Cost indicators: [$] cheap  [$$] mid  [$$$] expensive');
   info('Pick provider first, then search by name. Change later in .opencode/opencode.json');
   console.log();
 
   const planModel  = await pickRoleModel('plan',  models); console.log();
   const buildModel = await pickRoleModel('build', models); console.log();
+  const fastModel  = await pickRoleModel('fast',  models); console.log();
 
-  await writeModelsToConfigs({ planModel, buildModel });
+  await writeModelsToConfigs({ planModel, buildModel, fastModel });
 
   console.log();
   warn('Make sure you have API access to the selected models.');
   warn('Change them anytime in .opencode/opencode.json');
 
-  return { planModel, buildModel };
+  return { planModel, buildModel, fastModel };
 }

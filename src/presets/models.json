@@ -44,6 +44,21 @@
         "deepseek":  "deepseek/deepseek-v3"
       },
       "agents": ["basic-engineer"]
+    },
+    "fast": {
+      "prompt": "Fast model:",
+      "info": [
+        "FAST — light commands: /ob-pullrequest, /ob-explore, /ob-archive, status checks.",
+        "No heavy reasoning needed. Cheap and fast is the right call here."
+      ],
+      "suggestions": {
+        "opencode":  "opencode/big-pickle",
+        "github":    "github/gpt-4o-mini",
+        "anthropic": "anthropic/claude-haiku-4-5",
+        "google":    "google/gemini-2.0-flash",
+        "openai":    "openai/gpt-4o-mini",
+        "deepseek":  null
+      }
     }
   }
 }

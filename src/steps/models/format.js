@@ -53,6 +53,11 @@ export function buildModelChoices(input, models) {
       value: null,
       description: 'Leave this model unset',
     },
+    {
+      name: '← Change provider',
+      value: '__back__',
+      description: 'Go back to provider selection',
+    },
     ...filtered.slice(0, 50).map(m => ({
       name: m.label,
       value: m.id,

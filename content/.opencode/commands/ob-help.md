@@ -2,6 +2,8 @@
 description: Show all available /ob-* commands and when to use each one.
 ---
 
+Display the following reference to the user exactly as written. Do not summarize.
+
 ## ob-onboard commands
 
 ### Not sure where to start?
