@@ -6,7 +6,7 @@ description: Archive a completed OpenSpec change and update documentation. Trigg
 
 Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
 
-**Input**: A GitHub Issue URL, Azure DevOps work item URL or change ID.
+**Input**: A change ID. (`us-{id}-{slug}` or PR URL)
 
 **Steps:**
 
@@ -23,7 +23,7 @@ Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
    - Do not apply the stashed changes to the new archive branch, as the archive branch should only contain the changes related to the merged PR.
 
 3. **Find the change**
-   - Try to match a change (`us-{id}-{slug}`) from `openspec/changes` with the provided URL (`feature/{id}-{slug}`) or change ID (`us-{id}-{slug}`).
+   - Try to match a change from `openspec/changes` with the provided change ID or PR URL.
    - If the change is not found, report as a blocker and do not proceed with archiving.
 
 <!-- OB-PLATFORM-ARCHIVE-START -->
