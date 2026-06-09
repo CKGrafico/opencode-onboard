@@ -1,7 +1,7 @@
 {
   "name": "opencode-onboard",
   "version": "0.6.0",
-  "description": "Prepare any codebase for AI agent workflows using OpenCode, OpenSpec, and ensemble orchestration.",
+  "description": "Prepare any codebase for AI. Wires OpenCode, OpenSpec, opencode-ensemble, codegraph, and basic-memory into a multi-agent development workflow.",
   "keywords": [
     "opencode",
     "ai",
