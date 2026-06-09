@@ -46,10 +46,6 @@ function renumberSteps(content) {
   return content.replace(/^### Step \d+,/gm, () => `### Step ${++counter},`)
 }
 
-const PLATFORM_SKILLS_START = '<!-- OB-PLATFORM-SKILLS-START -->'
-const PLATFORM_SKILLS_END = '<!-- OB-PLATFORM-SKILLS-END -->'
-const PLATFORM_MODE_START = '<!-- OB-PLATFORM-MODE-START -->'
-const PLATFORM_MODE_END = '<!-- OB-PLATFORM-MODE-END -->'
 const PLATFORM_WORKFLOW_START = '<!-- OB-PLATFORM-WORKFLOW-START -->'
 const PLATFORM_WORKFLOW_END = '<!-- OB-PLATFORM-WORKFLOW-END -->'
 const PLATFORM_PIPELINE_START = '<!-- OB-PLATFORM-PIPELINE-START -->'
@@ -163,14 +159,4 @@ export async function patchAgentGuidance(platform, cwd = process.cwd()) {
   }
 }
 
-export async function patchDevopsManagerMd(platform, cwd = process.cwd()) {
-  const devopsPath = path.join(cwd, '.opencode', 'agents', 'devops-manager.md')
-  if (!await fse.pathExists(devopsPath)) return
 
-  const resolved = platform === 'azure' ? 'azure' : platform === 'none' ? 'none' : 'github'
-  let content = await fse.readFile(devopsPath, 'utf-8')
-  content = replaceBetween(content, PLATFORM_SKILLS_START, PLATFORM_SKILLS_END, platformContent(resolved, 'devopsSkills'))
-  content = replaceBetween(content, PLATFORM_MODE_START, PLATFORM_MODE_END, platformContent(resolved, 'devopsMode'))
-  await fse.writeFile(devopsPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
-  success(`devops-manager.md patched for platform: ${resolved}`)
-}

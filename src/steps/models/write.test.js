@@ -28,23 +28,23 @@ describe('writeModelsToConfigs()', () => {
     const opencodeJsonPath = path.join(opencodeDir, 'opencode.json')
     fs.writeFileSync(opencodeJsonPath, JSON.stringify({ theme: 'dark' }, null, 2), 'utf-8')
 
-    await writeModelsToConfigs({ planModel: 'plan-model', buildModel: 'build-model', fastModel: 'fast-model', cwd: tmpDir })
+    await writeModelsToConfigs({ planModel: 'plan-model', buildModel: 'build-model', cwd: tmpDir })
 
     const config = JSON.parse(fs.readFileSync(opencodeJsonPath, 'utf-8'))
     expect(config.model).toBe('build-model')
     expect(success).toHaveBeenCalledWith(expect.stringContaining('build-model'))
   })
 
-  it('writes all three models to ensemble.json modelsByAgent', async () => {
+  it('writes plan and build models to ensemble.json modelsByAgent', async () => {
     const ensembleJsonPath = path.join(opencodeDir, 'ensemble.json')
     fs.writeFileSync(ensembleJsonPath, JSON.stringify({ dashboardPort: 4747 }, null, 2), 'utf-8')
 
-    await writeModelsToConfigs({ planModel: 'plan-model', buildModel: 'build-model', fastModel: 'fast-model', cwd: tmpDir })
+    await writeModelsToConfigs({ planModel: 'plan-model', buildModel: 'build-model', cwd: tmpDir })
 
     const ensemble = JSON.parse(fs.readFileSync(ensembleJsonPath, 'utf-8'))
     expect(ensemble.modelsByAgent.plan).toBe('plan-model')
     expect(ensemble.modelsByAgent.build).toBe('build-model')
-    expect(ensemble.modelsByAgent.explore).toBe('fast-model')
+    expect(ensemble.modelsByAgent.explore).toBeUndefined()
   })
 
   it('removes model entries when null is passed', async () => {
@@ -53,7 +53,7 @@ describe('writeModelsToConfigs()', () => {
     fs.writeFileSync(opencodeJsonPath, JSON.stringify({ model: 'old-model', theme: 'dark' }, null, 2), 'utf-8')
     fs.writeFileSync(ensembleJsonPath, JSON.stringify({ modelsByAgent: { plan: 'a', build: 'b', explore: 'c', keep: 'yes' } }, null, 2), 'utf-8')
 
-    await writeModelsToConfigs({ planModel: null, buildModel: null, fastModel: null, cwd: tmpDir })
+    await writeModelsToConfigs({ planModel: null, buildModel: null, cwd: tmpDir })
 
     expect(JSON.parse(fs.readFileSync(opencodeJsonPath, 'utf-8'))).toEqual({ theme: 'dark' })
     expect(JSON.parse(fs.readFileSync(ensembleJsonPath, 'utf-8'))).toEqual({ modelsByAgent: { keep: 'yes' } })

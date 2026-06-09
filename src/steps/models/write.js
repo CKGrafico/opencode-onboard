@@ -7,7 +7,7 @@ import { success } from '../../utils/exec.js'
  * Agent files no longer receive a model: field — models are assigned per task during /opsx-propose
  * and read from opencode-onboard.json wizard.models at spawn time.
  */
-export async function writeModelsToConfigs({ planModel, buildModel, fastModel, cwd = process.cwd() }) {
+export async function writeModelsToConfigs({ planModel, buildModel, cwd = process.cwd() }) {
   const opencodeJsonPath = path.join(cwd, '.opencode', 'opencode.json')
   if (await fse.pathExists(opencodeJsonPath)) {
     const config = await fse.readJson(opencodeJsonPath)
@@ -26,8 +26,7 @@ export async function writeModelsToConfigs({ planModel, buildModel, fastModel, c
     else delete modelsByAgent.plan
     if (buildModel) modelsByAgent.build = buildModel
     else delete modelsByAgent.build
-    if (fastModel) modelsByAgent.explore = fastModel
-    else delete modelsByAgent.explore
+    delete modelsByAgent.explore
 
     if (Object.keys(modelsByAgent).length > 0) ensemble.modelsByAgent = modelsByAgent
     else delete ensemble.modelsByAgent
@@ -35,6 +34,5 @@ export async function writeModelsToConfigs({ planModel, buildModel, fastModel, c
     await fse.writeJson(ensembleJsonPath, ensemble, { spaces: 2 })
     if (planModel) success(`plan model -> ${planModel} (written to .opencode/ensemble.json)`)
     if (buildModel) success(`build model -> ${buildModel} (written to .opencode/ensemble.json)`)
-    if (fastModel) success(`fast model -> ${fastModel} (written to .opencode/ensemble.json)`)
   }
 }

@@ -118,7 +118,7 @@ Agents define _how to work_. They are universal personas (same behavior across p
 Current baseline uses a generic execution model:
 
 ```
-devops-manager     lead/orchestrator, planning, PR lifecycle
+lead     lead/orchestrator, planning, PR lifecycle
 basic-engineer     implementation worker, ability-driven
 ```
 
@@ -170,7 +170,7 @@ During onboarding you pick three models:
 | --------- | --------------------- | --------------------------------------- |
 | **plan**  | Main OpenCode session | Something capable with strong reasoning |
 | **build** | All builder agents    | Something capable for implementation    |
-| **fast**  | `devops-manager`      | Something fast and cheap                |
+| **fast**  | `lead`      | Something fast and cheap                |
 
 Models are fetched live from [models.dev](https://models.dev) (3000+ models, cached weekly). Cost tiers `[$]` `[$$]` `[$$$]` always reflect the canonical provider price, so `github-copilot/claude-opus-4.7` shows `[$$]` not `[$]`.
 
@@ -181,7 +181,7 @@ Models are fetched live from [models.dev](https://models.dev) (3000+ models, cac
 When you give the lead agent a work item URL, execution follows this pipeline. If onboarding platform is `None`, skip the work item / PR stages and work directly from conversation plus optional OpenSpec artifacts:
 
 ```
-devops-manager (load ob-global first)
+lead (load ob-global first)
                   ↓
          parse work item via userstory skill
                   ↓
@@ -195,7 +195,7 @@ devops-manager (load ob-global first)
                   ↓
        verify (tests/build/lint as needed)
                   ↓
-    devops-manager (ship mode, if configured)
+    lead (ship mode, if configured)
   commit → push → PR → feedback loop
 ```
 
@@ -207,7 +207,7 @@ devops-manager (load ob-global first)
 6. Spawn one or more engineers in parallel (`basic-engineer` and/or custom engineers)
 7. Each engineer claims tasks, loads relevant abilities, and executes
 8. Verify with tests/build/lint according to task scope
-9. Ship/update PR via devops-manager flow
+9. Ship/update PR via lead flow
 
 Each agent runs in its own isolated git worktree via [OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble), with a live dashboard at `http://localhost:4747`.
 
@@ -226,7 +226,7 @@ your-project/
 │   └── opencode-onboard.json        ← onboarding metadata snapshot
 └── .agents/
     ├── agents/
-    │   ├── devops-manager.md
+    │   ├── lead.md
     │   └── basic-engineer.md
     └── skills/
         ├── ob-global/              ← baseline skill, load FIRST

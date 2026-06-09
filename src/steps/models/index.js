@@ -47,13 +47,12 @@ export async function chooseModels() {
 
   const planModel  = await pickRoleModel('plan',  models); console.log();
   const buildModel = await pickRoleModel('build', models); console.log();
-  const fastModel  = await pickRoleModel('fast',  models); console.log();
 
-  await writeModelsToConfigs({ planModel, buildModel, fastModel });
+  await writeModelsToConfigs({ planModel, buildModel });
 
   console.log();
   warn('Make sure you have API access to the selected models.');
   warn('Change them anytime in .opencode/opencode.json');
 
-  return { planModel, buildModel, fastModel };
+  return { planModel, buildModel };
 }

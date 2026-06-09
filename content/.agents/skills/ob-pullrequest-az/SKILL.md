@@ -15,7 +15,7 @@ Browser tools are ONLY permitted for screenshots of the LOCAL running app on `lo
 
 ## Mode A: Create PR (ship mode)
 
-Triggered when devops-manager is in ship mode after implementation is complete.
+Triggered when the lead runs `/ob-pullrequest`.
 
 ### Step 1: Verify feature branch
 

@@ -3,7 +3,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { copyContent } from '../../utils/copy.js'
 import { error, header, success } from '../../utils/exec.js'
-import { patchAgentGuidance, patchAgentsMd, patchConcurrency, patchDevopsManagerMd, patchProposeEnrichment, patchStep6Override } from './agents.js'
+import { patchAgentGuidance, patchAgentsMd, patchConcurrency, patchProposeEnrichment, patchStep6Override } from './agents.js'
 import { installSkills } from './skills.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -22,7 +22,6 @@ export async function copyContentStep(platform, ctx = {}) {
       mode: ctx.sourceMode || 'current',
       roots: ctx.sourceRoots || [dest],
     }, { spaces: 2 })
-    await patchDevopsManagerMd(platform)
     await patchAgentGuidance(platform)
     await patchProposeEnrichment()
     await patchStep6Override()

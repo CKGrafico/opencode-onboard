@@ -15,7 +15,7 @@ Always pass `--repo {owner}/{repo}` explicitly, never rely on git context to res
 
 ## Mode A: Create PR (ship mode)
 
-Triggered when devops-manager is in ship mode after implementation is complete.
+Triggered when the lead runs `/ob-pullrequest`.
 
 ### Step 1: Verify feature branch
 

@@ -14,7 +14,6 @@ vi.mock('./agents.js', () => ({
   patchAgentGuidance: vi.fn(),
   patchAgentsMd: vi.fn(),
   patchConcurrency: vi.fn(),
-  patchDevopsManagerMd: vi.fn(),
 }))
 
 vi.mock('./skills.js', () => ({
