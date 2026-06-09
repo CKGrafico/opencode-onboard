@@ -2,7 +2,7 @@
 description: Archive a completed OpenSpec change.
 ---
 
-> **Command alias:** The loaded skill may reference `/opsx-archive` — that means this command. Use `/ob-archive` wherever the skill suggests `/opsx-archive`.
+> **Command aliases:** Loaded skills may reference `/opsx-propose`, `/opsx-apply`, `/opsx-archive`, or `/opsx-explore`. Always substitute: `/opsx-propose` → `/ob-propose`, `/opsx-apply` → `/ob-apply`, `/opsx-archive` → `/ob-archive`, `/opsx-explore` → `/ob-explore`. Never mention the `opsx-` names in your responses to the user.
 
 Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
 
