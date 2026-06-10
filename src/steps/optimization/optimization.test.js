@@ -46,9 +46,16 @@ import { installQuota } from './quota.js'
 import { installCaveman } from './caveman.js'
 import { installCodegraph } from './codegraph.js'
 import { enableCavemanGuidance } from './caveman-guidance.js'
-import { installMemory } from './memory.js'
 import { configureAgentsMd } from './global.js'
 import { tokenOptimizationStep } from './index.js'
+
+const checkboxMock = vi.mocked(checkbox)
+const commandExistsMock = vi.mocked(commandExists)
+const installQuotaMock = vi.mocked(installQuota)
+const installCavemanMock = vi.mocked(installCaveman)
+const installCodegraphMock = vi.mocked(installCodegraph)
+const enableCavemanGuidanceMock = vi.mocked(enableCavemanGuidance)
+const configureAgentsMdMock = vi.mocked(configureAgentsMd)
 
 describe('tokenOptimizationStep()', () => {
   beforeEach(() => {
@@ -59,23 +66,23 @@ describe('tokenOptimizationStep()', () => {
     const originalIsTTY = process.stdin.isTTY
     Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true })
 
-    checkbox.mockResolvedValue(['rtk', 'quota', 'caveman', 'codegraph'])
-    commandExists.mockResolvedValue(true)
-    installQuota.mockResolvedValue({ optedIn: true, installed: true })
-    installCaveman.mockResolvedValue({ optedIn: true, installed: true })
-    installCodegraph.mockResolvedValue({ optedIn: true, installed: true })
-    enableCavemanGuidance.mockResolvedValue({ enabled: true })
-    configureAgentsMd.mockResolvedValue({ configured: true })
+    checkboxMock.mockResolvedValue(['rtk', 'quota', 'caveman', 'codegraph'])
+    commandExistsMock.mockResolvedValue(true)
+    installQuotaMock.mockResolvedValue({ optedIn: true, installed: true })
+    installCavemanMock.mockResolvedValue({ optedIn: true, installed: true })
+    installCodegraphMock.mockResolvedValue({ optedIn: true, installed: true })
+    enableCavemanGuidanceMock.mockResolvedValue({ enabled: true })
+    configureAgentsMdMock.mockResolvedValue({ configured: true })
 
     const result = await tokenOptimizationStep()
 
     Object.defineProperty(process.stdin, 'isTTY', { value: originalIsTTY, configurable: true })
 
-    expect(commandExists).toHaveBeenCalledWith('rtk')
-    expect(installQuota).toHaveBeenCalledWith({ skipHeader: true, skipPrompt: true })
-    expect(installCaveman).toHaveBeenCalledWith(expect.objectContaining({ skipHeader: true, skipPrompt: true }))
-    expect(installCodegraph).toHaveBeenCalledWith(expect.objectContaining({ skipHeader: true }))
-    expect(enableCavemanGuidance).toHaveBeenCalledWith({ optedIn: true, installed: true })
+    expect(commandExistsMock).toHaveBeenCalledWith('rtk')
+    expect(installQuotaMock).toHaveBeenCalledWith({ skipHeader: true, skipPrompt: true })
+    expect(installCavemanMock).toHaveBeenCalledWith(expect.objectContaining({ skipHeader: true, skipPrompt: true }))
+    expect(installCodegraphMock).toHaveBeenCalledWith(expect.objectContaining({ skipHeader: true }))
+    expect(enableCavemanGuidanceMock).toHaveBeenCalledWith({ optedIn: true, installed: true })
     expect(result.rtk.available).toBe(true)
     expect(result.quota.installed).toBe(true)
     expect(result.caveman.installed).toBe(true)
@@ -84,15 +91,15 @@ describe('tokenOptimizationStep()', () => {
   })
 
   it('skips all tools when nothing is selected', async () => {
-    checkbox.mockResolvedValue([])
+    checkboxMock.mockResolvedValue([])
 
     const result = await tokenOptimizationStep()
 
-    expect(commandExists).not.toHaveBeenCalled()
-    expect(installQuota).not.toHaveBeenCalled()
-    expect(installCaveman).not.toHaveBeenCalled()
-    expect(installCodegraph).not.toHaveBeenCalled()
-    expect(enableCavemanGuidance).not.toHaveBeenCalled()
+    expect(commandExistsMock).not.toHaveBeenCalled()
+    expect(installQuotaMock).not.toHaveBeenCalled()
+    expect(installCavemanMock).not.toHaveBeenCalled()
+    expect(installCodegraphMock).not.toHaveBeenCalled()
+    expect(enableCavemanGuidanceMock).not.toHaveBeenCalled()
     expect(warn).toHaveBeenCalledWith('No token optimization tools selected')
     expect(result.rtk.optedIn).toBe(false)
     expect(result.quota.optedIn).toBe(false)

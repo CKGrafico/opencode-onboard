@@ -1,7 +1,6 @@
 import { execa } from "execa"
 import fse from "fs-extra"
 import path from "node:path"
-import { fileURLToPath } from "node:url"
 import { commandExists, error, header, info, loading, success, warn } from "../../utils/exec.js"
 
 

@@ -1,4 +1,3 @@
-import path from 'path'
 import { header, info, prompt, success, warn } from '../../utils/exec.js'
 import { fetchModels } from '../../utils/models-cache.js'
 import { buildDisplayModels, filterModelsByProvider, modelsPreset, pickModel, pickProvider } from './format.js'

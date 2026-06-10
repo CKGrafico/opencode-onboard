@@ -7,12 +7,15 @@ import { execa } from "execa"
 import { commandExists } from "../../utils/exec.js"
 import { initOpenspec } from "./index.js"
 
-const installSuccess = () => execa.mockResolvedValueOnce({ exitCode: 0 })
-const installFails = () => execa.mockResolvedValueOnce({ exitCode: 1 })
-const initSuccess = () => execa.mockResolvedValueOnce({ exitCode: 0 })
-const initFails = () => execa.mockResolvedValueOnce({ exitCode: 1 })
-const checkFails = () => commandExists.mockResolvedValueOnce(false)
-const checkSuccess = () => commandExists.mockResolvedValueOnce(true)
+const initOpenSpecMock = vi.mocked(execa)
+const installOpenSpecMock = vi.mocked(execa)
+
+const installFails = () => installOpenSpecMock.mockRejectedValueOnce({ exitCode: 1 })
+const installSuccess = () => installOpenSpecMock.mockResolvedValueOnce(/** @type {any} */ ({ exitCode: 0 }))
+const initSuccess = () => initOpenSpecMock.mockResolvedValueOnce(/** @type {any} */ ({ exitCode: 0 }))
+const initFails = () => initOpenSpecMock.mockRejectedValueOnce({ exitCode: 1 })
+const checkFails = () => vi.mocked(commandExists).mockResolvedValueOnce(false)
+const checkSuccess = () => vi.mocked(commandExists).mockResolvedValueOnce(true)
 
 describe("initOpenspec()", () => {
   beforeEach(() => {
@@ -21,20 +24,39 @@ describe("initOpenspec()", () => {
 
   it("installs and initializes when openspec is initially unavailable", async () => {
     checkFails()
-    checkSuccess()
     installSuccess()
+    checkSuccess()
     initSuccess()
 
     const result = await initOpenspec()
 
     expect(result.available).toBe(true)
     expect(result.initialized).toBe(true)
+
+    expect(installOpenSpecMock).toHaveBeenCalledWith(
+      "npm",
+      ["install", "@fission-ai/openspec", "--global"],
+      expect.objectContaining({
+        cwd: process.cwd(),
+        stdio: "pipe",
+        reject: false,
+      }),
+    )
+
+    expect(initOpenSpecMock).toHaveBeenCalledWith(
+      "npx",
+      ["@fission-ai/openspec", "init", "--tools", "opencode", "--force"],
+      expect.objectContaining({
+        cwd: process.cwd(),
+        reject: false,
+      }),
+    )
   })
 
   it("fails if openspec remains unavailable after install", async () => {
     checkFails()
-    checkFails()
     installFails()
+    checkFails()
 
     const result = await initOpenspec()
 

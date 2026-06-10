@@ -1,7 +1,7 @@
 import fse from 'fs-extra'
 import path from 'node:path'
 import { fileURLToPath } from 'url'
-import { info, success, warn } from '../../utils/exec.js'
+import { success, warn } from '../../utils/exec.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const optimizationPreset = await fse.readJson(path.resolve(__dirname, '../../presets/optimization.json'))
