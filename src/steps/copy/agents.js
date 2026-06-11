@@ -5,8 +5,6 @@ import { info, success } from '../../utils/exec.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const agentsContent = await fse.readJson(path.resolve(__dirname, '../../presets/agents-content.json'))
-const archiveAzure = await fse.readFile(path.resolve(__dirname, '../../presets/ob-archive-az.md'), 'utf-8')
-const archiveGithub = await fse.readFile(path.resolve(__dirname, '../../presets/ob-archive-gh.md'), 'utf-8')
 
 const STEP1_HEADING = '### Step 1, Archive project history into OpenSpec'
 const STEP2_HEADING = '### Step 2, Generate DESIGN.md'
@@ -48,8 +46,6 @@ const PLATFORM_PIPELINE_START = '<!-- OB-PLATFORM-PIPELINE-START -->'
 const PLATFORM_PIPELINE_END = '<!-- OB-PLATFORM-PIPELINE-END -->'
 const PLATFORM_SKILLS_GUIDE_START = '<!-- OB-PLATFORM-SKILLS-GUIDE-START -->'
 const PLATFORM_SKILLS_GUIDE_END = '<!-- OB-PLATFORM-SKILLS-GUIDE-END -->'
-const PLATFORM_ARCHIVE_START = '<!-- OB-PLATFORM-ARCHIVE-START -->'
-const PLATFORM_ARCHIVE_END = '<!-- OB-PLATFORM-ARCHIVE-END -->'
 
 function platformContent(platform, key) {
   const p = agentsContent.platform[platform] ?? agentsContent.platform.github
@@ -84,20 +80,6 @@ export async function patchConcurrency(ctx) {
   if (patched > 0) {
     success(`Concurrency limit set to ${maxAgents} agents in ${patched} file(s)`)
   }
-}
-
-export async function patchArchiveCommand(platform, cwd = process.cwd()) {
-  const targetPath = path.join(cwd, '.opencode', 'commands', 'ob-archive.md')
-  if (!await fse.pathExists(targetPath)) return
-
-  let content = await fse.readFile(targetPath, 'utf-8')
-  if (!content.includes(PLATFORM_ARCHIVE_START) || !content.includes(PLATFORM_ARCHIVE_END)) return
-
-  const replacement = platform === 'azure' ? archiveAzure : archiveGithub
-  const pattern = new RegExp(`${PLATFORM_ARCHIVE_START}[\\s\\S]*?${PLATFORM_ARCHIVE_END}`)
-  content = content.replace(pattern, `${PLATFORM_ARCHIVE_START}\n${replacement.trim()}\n${PLATFORM_ARCHIVE_END}`)
-  await fse.writeFile(targetPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
-  success(`ob-archive.md archive flow injected for platform: ${platform}`)
 }
 
 export async function patchAgentsMd(ctx) {
