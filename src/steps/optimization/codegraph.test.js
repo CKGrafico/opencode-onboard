@@ -5,13 +5,7 @@ import os from 'node:os'
 import fse from 'fs-extra'
 
 vi.mock('execa', () => ({ execa: vi.fn() }))
-vi.mock('../../utils/exec.js', () => ({
-  header: vi.fn(),
-  success: vi.fn(),
-  warn: vi.fn(),
-  error: vi.fn(),
-  loading: vi.fn(),
-}))
+vi.mock('../../utils/exec.js')
 
 import { warn } from '../../utils/exec.js'
 import { fixCodegraphConfig } from './codegraph.js'
@@ -79,11 +73,11 @@ describe('fixCodegraphConfig()', () => {
 
   it('handles JSONC with comments', async () => {
     const rogueRaw = `{
-  // This is a comment
-  "mcpServers": {
-    "codegraph": { "command": ["codegraph", "serve", "--mcp"] }
-  }
-}`
+      // This is a comment
+      "mcpServers": {
+        "codegraph": { "command": ["codegraph", "serve", "--mcp"] }
+      }
+    }`
     fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), rogueRaw)
 
     const opencodeDir = path.join(tmpDir, '.opencode')

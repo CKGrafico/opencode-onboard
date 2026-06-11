@@ -5,6 +5,7 @@ import { copyContent } from '../../utils/copy.js'
 import { error, header, success } from '../../utils/exec.js'
 import { patchAgentGuidance, patchAgentsMd, patchArchiveCommand, patchConcurrency } from './agents.js'
 import { installSkills } from './skills.js'
+import { exit } from '../../utils/process.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CONTENT_DIR = path.resolve(__dirname, '../../../content')
@@ -30,6 +31,6 @@ export async function copyContentStep(platform, ctx = {}) {
     success('Files copied to project root')
   } catch (err) {
     error(`Failed to copy content: ${err.message}`)
-    process.exit(1)
+    exit(1)
   }
 }
