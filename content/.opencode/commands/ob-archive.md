@@ -1,30 +1,53 @@
 ---
-description: Archive a completed OpenSpec change and update documentation. Triggered by /ob-archive <url|changeId> command.
+description: Archive the oldest merged unarchived OpenSpec change and update documentation.
 ---
 
-> **Command aliases:** Loaded skills may reference `/opsx-propose`, `/opsx-apply`, `/opsx-archive`, or `/opsx-explore`. Always substitute: `/opsx-propose` → `/ob-propose`, `/opsx-apply` → `/ob-apply`, `/opsx-archive` → `/ob-archive`, `/opsx-explore` → `/ob-explore`. Never mention the `opsx-` names in your responses to the user.
+> **Command aliases:** Loaded skills may reference `/opsx-propose`, `/opsx-apply`, `/opsx-archive`, or `/opsx-explore`. Always substitute: `/opsx-propose` -> `/ob-propose`, `/opsx-apply` -> `/ob-apply`, `/opsx-archive` -> `/ob-archive`, `/opsx-explore` -> `/ob-explore`. Never mention the `opsx-` names in your responses to the user.
 
-Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
+Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.). Load `@ob-global`.
 
-**Input**: A change ID. (`us-{id}-{slug}` or PR URL)
+Archive the oldest merged unarchived OpenSpec change, update documentation, and create an archive PR. No input required — the command automatically finds the correct change.
 
-**Steps:**
+**Steps**
 
-1. **Load baseline**
-   Load `@ob-global`
+1. **Prepare working tree**
 
-2. **Update main branch**
-   - Switch to main branch and pull the latest changes to ensure it's up to date:
-     ```bash
-     git switch main
-     git pull origin main
-     ```
-   - If there are changes in current branch (when switching or pulling), stash them and warn the user.
-   - Do not apply the stashed changes to the new archive branch, as the archive branch should only contain the changes related to the merged PR.
+   Resolve the repo root and capture current git state:
 
-3. **Find the change**
-   - Try to match a change from `openspec/changes` with the provided change ID or PR URL.
-   - If the change is not found, report as a blocker and do not proceed with archiving.
+   ```bash
+   REPO_ROOT="$(git rev-parse --show-toplevel)"
+   git branch --show-current
+   git status --porcelain
+   ```
+
+   If the current branch is not `main` and there are uncommitted changes, stash them:
+
+   ```bash
+   git stash push -m "WIP before archive"
+   ```
+
+   Warn the user before exit if anything was stashed. Then update `main`:
+
+   ```bash
+   git switch main
+   git pull origin main
+   ```
+
+2. **Get the list of unarchived changes**
+
+   List unarchived changes from the top level of `openspec/changes/`:
+
+   ```bash
+   find "$REPO_ROOT/openspec/changes" -mindepth 1 -maxdepth 1 -type d -name 'us-*' | sort
+   ```
+
+   If the list is empty, verify the parent directory once:
+
+   ```bash
+   ls -la "$REPO_ROOT/openspec/changes"
+   ```
+
+   If there are still no unarchived change directories, report a blocker and stop.
 
 <!-- OB-PLATFORM-ARCHIVE-START -->
 <!-- OB-PLATFORM-ARCHIVE-END -->
