@@ -1,96 +1,72 @@
-3. **Resolve the oldest merged unarchived change**
+2. **Find the oldest change with a completed PR**
 
-   List all merged PRs in the repo using GitHub CLI:
-   
+   List unarchived changes (top-level only, excludes `archive/`):
+
    ```bash
-   gh pr list --repo {owner}/{repo} --state merged --json title,url,mergedAt --jq 'sort_by(.mergedAt) | .[] | {name: .title, sourceRefName: .headRefName, mergedAt: .mergedAt}'
+   find "$REPO_ROOT/openspec/changes" -mindepth 1 -maxdepth 1 -type d -name 'us-*' | sort
    ```
 
-   For each unarchived change from the list of unarchived changes (step 2), try to find a matching PR from the list of merged PRs (this step), using the change ID and slug as search hints.
+   If empty, report a blocker and stop.
 
-   Handle PR matches:
-   - No results → record as blocked: `no merged PR found`
-   - Exactly one result → keep as the resolved PR
-   - Multiple results → ask the user to pick the correct PR for that change by number or PR ID
+   List completed PRs:
 
-   Build two lists:
-   - `eligible`: changes with one resolved merged PR
-   - `blocked`: changes with no resolved merged PR
-
-   If `eligible` is empty, report a blocker and stop.
-
-   Sort `eligible` by `mergedAt` ascending and display the ordered list. Include blocked items separately. Example:
-
-   ```text
-   Unarchived changes, ordered by merge date (oldest first):
-
-   1. us-195435-secure-external-lb-iap (merged 2026-05-15T09:22:00Z) <- OLDEST
-   2. us-195448-update-service-names-and-repo (merged 2026-05-18T11:44:00Z)
-   3. us-195462-update-ssl-certs-and-routing (merged 2026-05-20T14:32:00Z)
-
-   Blocked from archiving:
-   - us-195499-some-change (no merged PR found)
+   ```bash
+   gh pr list --repo {owner}/{repo} --state merged --json title,headRefName,mergedAt,number --jq 'sort_by(.mergedAt) | .[] | {name: .title, sourceRefName: .headRefName, mergedAt: .mergedAt, pullRequestId: .number}'
    ```
 
-   Select the first `eligible` item as the archive candidate. Carry its already-resolved PR metadata forward — do not run a second PR lookup.
+   Match each change to a completed PR using its ID and slug as search hints:
+   - No match → skip (record as blocked: `no merged PR found`).
+   - One match → eligible.
+   - Multiple matches → ask the user which PR belongs to that change.
 
-4. **Confirm the candidate**
+   If nothing is eligible, report a blocker and stop. Otherwise select the eligible change with the **oldest** PR `mergedAt` as the candidate.
 
-   Display the resolved candidate and wait for confirmation:
+3. **Confirm the candidate**
+
+   Show the candidate (ID, title, PR ID, merged date) and any blocked changes, then ask:
 
    ```text
    Oldest unarchived merged change found:
      ID: us-{id}-{slug}
      Title: {title from resolved PR}
      PR ID: {pullRequestId}
-     Merged: {closedDate}
+     Merged: {mergedAt}
 
    Proceed with archiving? [yes/no]
    ```
 
    Stop if the user does not confirm.
 
-5. **Archive and update docs**
-
-   Create the archive branch:
+4. **Archive the change**
 
    ```bash
    git checkout -b archive/{id}-{slug}
    ```
 
-   Archive the change through OpenSpec:
+   Load `@openspec-archive-change` skill and follow it to archive the change.
 
-   ```bash
-   openspec archive "us-{id}-{slug}"
-   ```
+5. **Update docs**
 
-   Review documentation impact:
-   - Read `$REPO_ROOT/openspec/changes/archive/us-{id}-{slug}/specs/` if the archive moved the change, or `$REPO_ROOT/openspec/changes/us-{id}-{slug}/specs/` if not yet moved.
-   - Compare the implemented change with `ARCHITECTURE.md` and `DESIGN.md`.
-   - If documentation updates are needed, show the proposed changes and get user approval before applying them.
+   Compare the archived change's specs against `ARCHITECTURE.md` and `DESIGN.md`. If updates are needed, show them and get user approval before applying.
 
-   Commit and push:
+6. **Create the archive PR**
 
    ```bash
    git add -A
-   git commit -m "archive(us-{id}): {title from resolved PR}"
+   git commit -m "archive: {title} ({id})"
    git push origin archive/{id}-{slug}
-   ```
 
-   Create the archive PR:
-
-   ```bash
    gh pr create \
-   --repo {owner}/{repo} \
-   --base main \
-   --head archive/{id}-{slug} \
-   --title "archive(#{id}): {title}" \
-   --body "Archive SDD artifacts for {id} after merge."
+      --repo {owner}/{repo} \
+      --base main \
+      --head archive/{id}-{slug} \
+      --title "archive(#{id}): {title}" \
+      --body "Archive SDD artifacts for {id} after merge."
    ```
 
-   Record the archive PR URL and ID. If work was stashed in step 1, restore it after the archive flow completes unless the user opts out.
+   If work was stashed in step 1, restore it after the PR is created unless the user opts out.
 
-6. **Report**
+7. **Report**
 
    Display:
 
@@ -107,22 +83,12 @@
      - DESIGN.md: {count} changes applied
    ```
 
-   Stop immediately with a clear error if any of these blockers are encountered:
-   - No unarchived change directories under `$REPO_ROOT/openspec/changes/`
-   - No unarchived change has a resolved merged PR
-   - GitHub CLI PR queries fail
-   - The selected PR is not `merged`
-
 ## Rules
 
-- All OpenSpec paths must resolve from the git repository root (`git rev-parse --show-toplevel`). Never use `/openspec/...`.
-- Use `--repo {owner}/{repo}` when querying PRs, where `{repo}` is the resolved repository name.
-- Use change ID and slug only as search hints. Do not assume the exact source branch name.
-- Display the full sorted list of eligible unarchived changes before asking for confirmation.
-- The oldest eligible merged change is the only archive candidate. Never ask the user which change to archive.
-- If multiple PRs match a specific change, ask the user which PR belongs to that change.
-- Only process top-level directories in `$REPO_ROOT/openspec/changes/`. Exclude archived locations.
-- All archive commits and pushes must use `archive/{id}-{slug}` branches.
-- Never proceed if the selected PR is not merged.
+- All OpenSpec paths resolve from `git rev-parse --show-toplevel`. Never use `/openspec/...`.
+- Only process top-level directories in `$REPO_ROOT/openspec/changes/`; exclude `archive/`.
+- Use change ID and slug only as search hints; do not assume the source branch name.
+- The oldest eligible merged change is the only candidate — never ask the user which change to archive (but do ask which PR if multiple match one change).
+- Never proceed if the selected PR is not completed.
 - Never use browser tools or direct web requests for GitHub. Use `gh` CLI only.
 - Never invent or guess PR, branch, or merge metadata.
