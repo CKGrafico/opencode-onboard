@@ -4,6 +4,7 @@ import { createRequire } from 'node:module'
 import { runJoin } from './commands/join.js'
 import { runSingleCommand } from './commands/single.js'
 import { runWizard } from './commands/wizard.js'
+import { exit } from './utils/process.js'
 
 function printHelp(version) {
   console.log(`opencode-onboard v${version}`)
@@ -35,7 +36,7 @@ const args = process.argv.slice(2)
 
 if (args.includes('-h') || args.includes('--help')) {
   printHelp(version)
-  process.exit(0)
+  exit()
 }
 
 if (args.length > 0) {
@@ -48,7 +49,7 @@ if (args.length > 0) {
         console.log(chalk.red(`Unknown command: ${args[0]}`))
         console.log()
         printHelp(version)
-        process.exit(1)
+        exit(1)
       }
     }
   } catch (err) {
@@ -57,10 +58,10 @@ if (args.length > 0) {
       console.log(chalk.yellow('Cancelled.'))
     } else {
       console.error(chalk.red('\nUnexpected error:'), err.message)
-      process.exit(1)
+      exit(1)
     }
   }
-  process.exit(0)
+  exit()
 }
 
 try {
@@ -71,6 +72,6 @@ try {
     console.log(chalk.yellow('Cancelled.'))
   } else {
     console.error(chalk.red('\nUnexpected error:'), err.message)
-    process.exit(1)
+    exit(1)
   }
 }

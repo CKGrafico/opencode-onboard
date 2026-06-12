@@ -1,48 +1,32 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('../../utils/exec.js', () => ({
-  header: vi.fn(),
-  success: vi.fn(),
-  error: vi.fn(),
-}))
-
-vi.mock('../../utils/copy.js', () => ({
-  copyContent: vi.fn(),
-}))
-
-vi.mock('./agents.js', () => ({
-  patchAgentGuidance: vi.fn(),
-  patchAgentsMd: vi.fn(),
-  patchArchiveCommand: vi.fn(),
-  patchConcurrency: vi.fn(),
-}))
-
-vi.mock('./skills.js', () => ({
-  installSkills: vi.fn(),
-}))
+vi.mock('../../utils/exec.js')
+vi.mock('../../utils/copy.js')
+vi.mock('../../utils/process.js')
+vi.mock('./agents.js')
+vi.mock('./skills.js')
 
 import { copyContent } from '../../utils/copy.js'
 import { error } from '../../utils/exec.js'
 import { copyContentStep } from './index.js'
+import { exit } from '../../utils/process.js'
+
+const copyContentMock = vi.mocked(copyContent)
+const errorMock = vi.mocked(error)
+const exitMock = vi.mocked(exit)
 
 describe('copyContentStep()', () => {
-  const originalExit = process.exit
 
   beforeEach(() => {
-    process.exit = vi.fn()
     vi.clearAllMocks()
   })
 
-  afterEach(() => {
-    process.exit = originalExit
-  })
-
   it('calls copyContent with the correct platform and prints success', async () => {
-    copyContent.mockResolvedValue(undefined)
+    copyContentMock.mockResolvedValue(undefined)
 
     await copyContentStep('github')
 
-    expect(copyContent).toHaveBeenCalledWith(
+    expect(copyContentMock).toHaveBeenCalledWith(
       expect.stringContaining('content'),
       process.cwd(),
       'github',
@@ -51,11 +35,11 @@ describe('copyContentStep()', () => {
   })
 
   it('calls copyContent with azure platform', async () => {
-    copyContent.mockResolvedValue(undefined)
+    copyContentMock.mockResolvedValue(undefined)
 
     await copyContentStep('azure')
 
-    expect(copyContent).toHaveBeenCalledWith(
+    expect(copyContentMock).toHaveBeenCalledWith(
       expect.stringContaining('content'),
       process.cwd(),
       'azure',
@@ -64,11 +48,11 @@ describe('copyContentStep()', () => {
   })
 
   it('calls copyContent with none platform', async () => {
-    copyContent.mockResolvedValue(undefined)
+    copyContentMock.mockResolvedValue(undefined)
 
     await copyContentStep('none')
 
-    expect(copyContent).toHaveBeenCalledWith(
+    expect(copyContentMock).toHaveBeenCalledWith(
       expect.stringContaining('content'),
       process.cwd(),
       'none',
@@ -76,12 +60,12 @@ describe('copyContentStep()', () => {
     )
   })
 
-  it('calls process.exit(1) when copyContent throws', async () => {
-    copyContent.mockRejectedValue(new Error('disk full'))
+  it('calls exit(1) when copyContent throws', async () => {
+    copyContentMock.mockRejectedValue(new Error('disk full'))
 
     await copyContentStep('github')
 
-    expect(error).toHaveBeenCalledWith(expect.stringContaining('disk full'))
-    expect(process.exit).toHaveBeenCalledWith(1)
+    expect(errorMock).toHaveBeenCalledWith(expect.stringContaining('disk full'))
+    expect(exitMock).toHaveBeenCalledWith(1)
   })
 })

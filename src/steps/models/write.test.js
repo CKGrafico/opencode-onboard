@@ -3,9 +3,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 
-vi.mock('../../utils/exec.js', () => ({
-  success: vi.fn(),
-}))
+vi.mock('../../utils/exec.js')
+vi.mock('../../utils/process.js')
 
 import { success } from '../../utils/exec.js'
 import { writeModelsToConfigs } from './write.js'
