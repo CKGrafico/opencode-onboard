@@ -175,11 +175,11 @@ Skills live in `.agents/skills/`. Any `SKILL.md` file in a subdirectory is autom
 
 During onboarding you pick three models:
 
-| Role      | Used by               | Pick                                    |
-| --------- | --------------------- | --------------------------------------- |
-| **plan**  | Main OpenCode session | Something capable with strong reasoning |
-| **build** | All builder agents    | Something capable for implementation    |
-| **fast**  | `lead`      | Something fast and cheap                |
+| Role      | Used by                                | Pick                                    |
+| --------- | -------------------------------------- | --------------------------------------- |
+| **plan**  | Main OpenCode session (the lead)       | Something capable with strong reasoning |
+| **build** | `*-build` engineer variants            | Something capable for implementation    |
+| **fast**  | `*-fast` engineer variants (light work)| Something fast and cheap                |
 
 Models are fetched live from [models.dev](https://models.dev) (3000+ models, cached weekly). Cost tiers `[$]` `[$$]` `[$$$]` always reflect the canonical provider price, so `github-copilot/claude-opus-4.7` shows `[$$]` not `[$]`.
 
@@ -199,8 +199,8 @@ lead (load ob-global first)
                   ↓
              [confirm with user]
                   ↓
- basic-engineer + *-engineer (parallel)
- claim tasks → load abilities → implement
+ wave of subagents (basic-engineer / *-engineer, per-tier model)
+ each implements its assigned tasks → returns result → lead commits group
                   ↓
        verify (tests/build/lint as needed)
                   ↓
@@ -212,9 +212,9 @@ lead (load ob-global first)
 2. Load platform userstory skill (`ob-userstory-gh` or `ob-userstory-az`)
 3. Run `/ob-propose` to produce `proposal.md`, specs, and `tasks.md`
 4. Confirm with user before implementation
-5. Run `/ob-apply` to orchestrate implementation workers
-6. Spawn one or more engineers in parallel (`basic-engineer` and/or custom engineers)
-7. Each engineer claims tasks, loads relevant abilities, and executes
+5. Run `/ob-apply` to orchestrate implementation in waves
+6. Each wave spawns engineers in parallel (`<agent>-<modeltype>` variants — `basic-engineer` and/or custom engineers), capped at `maxConcurrentAgents`
+7. Each subagent receives its task IDs in its prompt, loads relevant abilities, implements, and returns; the lead commits each group
 8. Verify with tests/build/lint according to task scope
 9. Ship/update PR via lead flow
 
