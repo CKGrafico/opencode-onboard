@@ -8,6 +8,23 @@ Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
 
 **If a work item URL is provided** (GitHub Issue or Azure DevOps work item): load `@ob-userstory` skill and fetch the work item via CLI before continuing. Platform is set in `.opencode/opencode-onboard.json` `wizard.platform`. If platform is `none`, skip this step and work from direct user input.
 
+**Step 0 - Check for unarchived changes**
+
+Before proposing a new change, inspect `openspec/changes/` (ignore `openspec/changes/archive`).
+If any unarchived change (`us-{id}-{slug}`) folders exist, list them and warn the user with this exact prompt:
+
+```text
+There are unarchived changes pending to be archived:
+  Name: {change-name}
+  Name: {change-name}
+  ...
+
+Do you want to continue with the proposal or stop to archive the change first? [continue/stop]
+```
+
+If the user answers `stop`, end the command without generating a proposal.
+If the user answers `continue`, proceed to the next step.
+
 Load `@openspec-propose` skill and follow its instructions.
 
 > ⚠️ **CHECKPOINT — `tasks.md` was just written. STOP. Do NOT show the plan yet. You MUST complete the enrichment below before continuing. Skipping this breaks `/ob-apply`.**
