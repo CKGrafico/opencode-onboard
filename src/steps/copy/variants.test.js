@@ -78,7 +78,7 @@ describe('generateAgentVariants()', () => {
     expect(fs.existsSync(path.join(agentsDir, 'basic-engineer-build-build.md'))).toBe(false)
   })
 
-  it('regenerates variants with updated models (ob-model behaviour)', async () => {
+  it('regenerates variants with updated models (ob-set-model behaviour)', async () => {
     await generateAgentVariants({ models: { build: 'old/m' }, cwd: tmpDir })
     await generateAgentVariants({ models: { build: 'new/m' }, cwd: tmpDir })
     const build = fs.readFileSync(path.join(agentsDir, 'basic-engineer-build.md'), 'utf-8')

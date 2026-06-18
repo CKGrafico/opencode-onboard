@@ -7,7 +7,7 @@ Set the concrete model for one tier in `.opencode/opencode-onboard.json` → `wi
 Usage:
 
 ```
-/ob-model <tier> <model>
+/ob-set-model <tier> <model>
 ```
 
 - `<tier>` — one of `plan`, `build`, `fast`.

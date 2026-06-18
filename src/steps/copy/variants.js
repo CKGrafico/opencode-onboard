@@ -29,7 +29,7 @@ export function setFrontmatterModel(content, model) {
  * `*-engineer.md`, stamping the per-tier model from wizard.models. A task's
  * `agent` + `modeltype` annotation maps directly to one of these files, so the
  * native task tool spawns the subagent on the right model with no apply-time
- * resolution. Re-running regenerates variants (used by /ob-model).
+ * resolution. Re-running regenerates variants (used by /ob-set-model).
  */
 export async function generateAgentVariants({ models = {}, cwd = process.cwd() } = {}) {
   const agentsDir = path.join(cwd, '.opencode', 'agents')
