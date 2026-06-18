@@ -57,13 +57,13 @@ export async function runWizard(version) {
 
   const maxConcurrentAgents = await wizardSelect({
     message: 'Max concurrent agents:',
-    default: 4,
+    default: 3,
     choices: [
+      { name: '1', value: 1, description: 'Serial — one agent at a time' },
       { name: '2', value: 2, description: 'Conservative — lower resource usage' },
-      { name: '3', value: 3, description: 'Moderate parallelism' },
-      { name: '4 (default)', value: 4, description: 'Recommended for most projects' },
-      { name: '5', value: 5, description: 'High parallelism — requires more resources' },
-      { name: '6', value: 6, description: 'Maximum parallelism' },
+      { name: '3 (default)', value: 3, description: 'Recommended — balances speed vs MCP load' },
+      { name: '4', value: 4, description: 'Higher parallelism' },
+      { name: '5', value: 5, description: 'Maximum — needs more resources' },
     ],
   })
 

@@ -46,6 +46,9 @@ export async function fixCodegraphConfig() {
     for (const entry of Object.values(rogueMcp)) {
       if (Array.isArray(entry.command) && entry.command[0] === 'codegraph') {
         entry.command = ['npx', '@colbymchenry/codegraph', ...entry.command.slice(1)]
+        // codegraph defaults to a 30s MCP timeout, which fails under parallel
+        // subagent load. Raise it unless the user has set one explicitly.
+        if (entry.timeout == null) entry.timeout = 120000
       }
     }
     correctContent.mcp = { ...(correctContent.mcp || {}), ...rogueMcp }

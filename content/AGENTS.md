@@ -189,7 +189,7 @@ Load DESIGN.md for design principles and guidelines. Load ARCHITECTURE.md for sy
 ## I Am the Lead, Full Workflow Ownership
 
 <!-- OB-PLATFORM-WORKFLOW-START -->
-When the user provides a work item URL or says "implement the plan" or "I've added comments to the PR", **I own the full lifecycle**. I load `ob-global` skill first, then the appropriate userstory skill, and use ensemble tools to coordinate the agent team.
+When the user provides a work item URL or says "implement the plan" or "I've added comments to the PR", **I own the full lifecycle**. I load `ob-global` skill first, then the appropriate userstory skill, and coordinate implementation as native subagent waves via `/ob-apply`.
 
 Trigger patterns, I recognize ALL of these, exact wording does not matter:
 - User pastes or mentions a GitHub Issue URL → load `ob-userstory` skill → parse issue → run `/ob-propose` → confirm with user → run `/ob-apply` → ship
@@ -201,7 +201,7 @@ Trigger patterns, I recognize ALL of these, exact wording does not matter:
 **A GitHub or Azure DevOps URL anywhere in the user's message is always a trigger, regardless of surrounding words.**
 <!-- OB-PLATFORM-WORKFLOW-END -->
 
-**Never delegate without a plan. Default to specialists for implementation. If ensemble is clearly non-functional in the current session (idle teammate, no claim, or repeated spawn failure after one retry), stop forcing it: report the failure, then continue in the main session or ask the user whether to retry later.**
+**Never delegate without a plan. Default to specialists for implementation. If a subagent wave repeatedly fails (a group errors after one retry, or a full wave makes zero progress), stop forcing it: report the failure, then continue in the main session or ask the user whether to retry later.**
 
 ## Engineer Selection
 
@@ -212,39 +212,28 @@ Before spawning implementation workers:
 - Never spawn engineer names that are not present in `.opencode/agents/`.
 - When multiple engineers could fit, choose the narrower specialist before the generalist.
 
-## Multi-Agent Execution, opencode-ensemble
+## Multi-Agent Execution, native subagent waves
 
-Parallel execution uses the `opencode-ensemble` plugin (`team_create`, `team_spawn`, etc.).
-Works on **all platforms** (Windows, macOS, Linux) via OpenCode's built-in worktree support.
+Parallel execution uses OpenCode's native `task` tool — no external plugin, no worktrees. The lead spawns subagents in **waves**: a set of foreground `task()` calls in a single turn that run concurrently and return their results to the lead. Subagents are navigable (`ctrl+x ↓`, `←`/`→`) and ephemeral (one batch, then they exit).
 
-Core tools used in this workflow:
-- `team_create`, `team_spawn`, `team_shutdown`, `team_merge`, `team_cleanup`
-- `team_tasks_add`, `team_tasks_list`, `team_claim`, `team_tasks_complete`
-- `team_message`, `team_results`, `team_status`
-
-**Dashboard**: Monitor running agents at **http://localhost:4747/**
+**How a wave works:**
+- **Push assignment.** Each subagent's task IDs + text go in its spawn prompt — there is no claim step, so a worker can never sit idle waiting for work.
+- **Eligibility.** A task runs only when every `depends_on` is done.
+- **Conflict safety (no worktrees).** Concurrent subagents must touch disjoint files (codegraph impact → `touches` globs → `git diff`). Same-file tasks are packed into one worker and run sequentially.
+- **Checkpoints.** The lead commits each group on success; on failure it reverts that group's paths and retries once.
+- **Per-task model.** Subagents are spawned by the variant name `<agent>-<modeltype>`, which carries that tier's model.
 
 **Hard limits:**
-- **Sequential by default.** Default `{{MAX_CONCURRENT_AGENTS}}` to `1`. Raise only when tasks are provably independent and user approves. More concurrency = more tokens burned in parallel.
-- **Max {{MAX_CONCURRENT_AGENTS}} truly concurrent agents.** All {{MAX_CONCURRENT_AGENTS}} must be spawned and running simultaneously, not sequentially. Spawn in waves if more than {{MAX_CONCURRENT_AGENTS}} are needed. Wait for wave N to finish before spawning wave N+1.
-- **Non-overlapping file domains.** Each agent owns exclusive directories. Two agents must NEVER touch the same file.
-- **Immediate shutdown on completion.** The moment an agent's domain has no more pending tasks → `team_shutdown` → `team_merge`. Keep agents alive if more tasks in their domain are pending (rolling batch).
-- **Rolling batch assignment.** Agents receive up to 3 tasks initially. When they complete a batch, lead assigns the next batch of up to 3 from the board. Never leave pending tasks orphaned.
-- **Stall detection at 5 minutes.** No commits after 5 min → nudge message → 2 min grace → force shutdown + respawn.
-- **Idle-without-claim is an earlier stall.** If a spawned teammate sits idle with no claimed task after a short wait, resend one short claim-only message with the exact task IDs. If still idle, force shutdown + respawn once with a shorter prompt. If the retry repeats the same failure, treat ensemble as unavailable for that session and stop recycling equivalent workers.
-- **Retry limit.** Max 3 retries per failing task → stop-and-report to user. Never retry indefinitely.
+- **Max {{MAX_CONCURRENT_AGENTS}} concurrent subagents per wave** (set during onboarding, 1–5). The lead enforces the cap by emitting at most that many `task()` calls per turn; overflow queues to the next wave.
+- **Non-overlapping file domains.** Two concurrent subagents must NEVER touch the same file.
+- **Explicit stalls.** If tasks remain but none are eligible (a dependency failed), or a full wave makes zero progress, STOP and report — never spin.
+- **Retry limit.** One retry per failed group, then surface to the user. Never retry indefinitely.
 
-**Progress inspection commands (tell user explicitly after spawning):**
-- `team_status` for live team snapshot
-- `team_tasks_list` for task board state
-- `team_view member:"<name>"` to inspect a teammate live session
-- `team_results from:"<name>"` to fetch full teammate report text
+**Live view:** the lead's native Todo list is the board; the `ob-subagent-monitor` plugin also writes `.opencode/.ob-run.json`. Navigate into any running subagent with `ctrl+x ↓` then `←`/`→`.
 
-If a teammate stalls due to model quota/rate-limit exhaustion:
-1. `team_shutdown name:"<stuck-member>" force:true`
-2. Resolve a new model using the model resolution priority (agent file frontmatter → `ensemble.json` `modelsByAgent` → active chat model). Avoid the model that hit the rate limit.
-3. `team_spawn` same member/task with the resolved model
-4. `team_message` start instruction with the exact next task ID
+**Recovery:** re-run `/ob-apply` — it rebuilds state from `tasks.md` + git + basic-memory + `.opencode/.ob-run.json` and continues. State is on disk, not in the session.
+
+**MCP degradation:** if codegraph or basic-memory is unavailable, fall back to `touches` + `git diff` for disjointness and inline result-passing, and tell the user.
 
 ---
 
@@ -260,7 +249,7 @@ Pipeline content is injected here during onboarding based on the selected platfo
 
 **OpenSpec** manages the change lifecycle. Each work item becomes a change with a `proposal.md`, specs, and a `tasks.md` task board. Commands: `openspec new change`, `openspec status`, `openspec instructions apply`. Agents never implement without an active change — OpenSpec is the single source of truth for what is planned and what is done.
 
-**opencode-ensemble** handles parallel agent execution via git worktrees. Each spawned agent works in an isolated branch; the lead merges on completion. Core tools: `team_create`, `team_spawn`, `team_shutdown`, `team_merge`, `team_cleanup`, `team_tasks_add`, `team_tasks_list`, `team_claim`, `team_tasks_complete`, `team_message`, `team_results`, `team_status`. Live dashboard at `http://localhost:4747/`.
+**Native subagent waves** handle parallel execution via the OpenCode `task` tool — no external plugin or worktrees. The lead spawns concurrent foreground subagents per wave; each implements its assigned tasks and returns its result, and the lead commits per group. Live board in the Todo pane; subagent state mirrored to `.opencode/.ob-run.json` by the `ob-subagent-monitor` plugin.
 
 ---
 
@@ -297,7 +286,7 @@ Every agent file declares an `## Abilities` section that maps roles to `@skill-n
 
 Skills live in `.agents/skills/`. Agents load them via `@skill-name` in their `## Abilities` section.
 
-Always installed: `@ob-default`, `@ob-generic-guardrails`, `@browser-automation`, `@opencode-ensemble`.
+Always installed: `@ob-default`, `@ob-generic-guardrails`, `@browser-automation`.
 
 <!-- OB-PLATFORM-SKILLS-GUIDE-START -->
 <!-- OB-PLATFORM-SKILLS-GUIDE-END -->

@@ -4,7 +4,7 @@
 
 # 🧰 opencode-onboard
 
-**Prepare any codebase for AI. Wires [OpenCode](https://opencode.ai), [OpenSpec](https://github.com/fission-ai/openspec), [opencode-ensemble](https://github.com/hueyexe/opencode-ensemble), [codegraph](https://github.com/colbymchenry/codegraph), and [basic-memory](https://github.com/basicmachines-co/basic-memory) into a multi-agent development workflow.**
+**Prepare any codebase for AI. Wires [OpenCode](https://opencode.ai), [OpenSpec](https://github.com/fission-ai/openspec), [codegraph](https://github.com/colbymchenry/codegraph), and [basic-memory](https://github.com/basicmachines-co/basic-memory) into a multi-agent development workflow powered by native parallel subagents.**
 
 GitHub, Azure DevOps, or no platform at all.
 
@@ -19,7 +19,7 @@ GitHub, Azure DevOps, or no platform at all.
 
 Most codebases have no `AGENTS.md`, no architecture docs agents can read, and no defined workflow for picking up tasks. Agents end up improvising, producing inconsistent results.
 
-**opencode-onboard** fixes that in a single interactive wizard. It configures OpenCode with OpenSpec for structured change management, opencode-ensemble for parallel agent execution, codegraph for code intelligence, and basic-memory for shared context across agent sessions. It also installs an agent team, platform skills, and slash commands — everything agents need to plan, implement, and ship.
+**opencode-onboard** fixes that in a single interactive wizard. It configures OpenCode with OpenSpec for structured change management, native subagent waves for parallel agent execution, codegraph for code intelligence, and basic-memory for shared context across agent sessions. It also installs an agent team, platform skills, and slash commands — everything agents need to plan, implement, and ship.
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/CKGrafico/opencode-onboard/refs/heads/main/demo.gif" alt="opencode-onboard demo" width="700" />
@@ -64,6 +64,8 @@ Typical flow for reruns:
 - Run `metadata` last to refresh `.opencode/opencode-onboard.json`
 - Run `join` if you're a new member of an existing onboarded project and want to sync the latest onboarding metadata
 
+**Migrating from an older (ensemble-based) onboard?** Re-run `copy` then `models`: this removes the `opencode-ensemble` plugin, switches `/ob-apply` to native subagent waves, and regenerates the per-tier agent variants. The now-unused `.opencode/ensemble.json` can be deleted safely.
+
 ---
 
 ## How it works
@@ -103,14 +105,14 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 | `/ob-init` | Initialize the project. Asks greenfield vs brownfield, then activates the agent team. |
 | `/ob-explore` | Think through an idea or investigate a problem before committing to a plan. |
 | `/ob-propose <url or idea>` | Parse a GitHub Issue / Azure DevOps URL or a direct idea into a structured plan (proposal, specs, tasks). Enriches each task with agent and model assignments. |
-| `/ob-apply` | Implement tasks from the current OpenSpec change via parallel engineers using opencode-ensemble. |
+| `/ob-apply` | Implement tasks from the current OpenSpec change via parallel subagent waves (native `task` tool). |
 | `/ob-pullrequest` | Create a PR for the current branch, or read and classify PR review comments. |
 | `/ob-archive` | Archive a completed OpenSpec change. |
-| `/ob-main <task>` | Quick direct implementation — no OpenSpec, no ensemble, no PR. Just do it. |
+| `/ob-main <task>` | Quick direct implementation — no OpenSpec, no waves, no PR. Just do it. |
 | `/ob-create-engineer <name> "<description>"` | Create a custom specialist engineer with skills auto-installed from [skills.sh](https://www.skills.sh/). |
 | `/ob-create-architecture` | Generate or regenerate `ARCHITECTURE.md` from the codebase. |
 | `/ob-create-design` | Generate or regenerate `DESIGN.md` from the design system. |
-| `/ob-model <tier> <model>` | Set the model for a tier (`plan`, `build`, `fast`) in `.opencode/ensemble.json`. Pass a model id or `current` for the active session model. |
+| `/ob-model <tier> <model>` | Set the model for a tier (`plan`, `build`, `fast`) in `.opencode/opencode-onboard.json` (`wizard.models`) and regenerate the agent variants. Pass a model id or `current` for the active session model. |
 
 ---
 
@@ -216,7 +218,7 @@ lead (load ob-global first)
 8. Verify with tests/build/lint according to task scope
 9. Ship/update PR via lead flow
 
-Each agent runs in its own isolated git worktree via [OpenCode Ensemble](https://github.com/hueyexe/opencode-ensemble), with a live dashboard at `http://localhost:4747`.
+Agents run as native OpenCode subagents in parallel waves — no external plugin, no git worktrees. The lead's Todo pane is the live board, and the `ob-subagent-monitor` plugin mirrors state to `.opencode/.ob-run.json`. Navigate into any running subagent with `ctrl+x ↓` then `←`/`→`.
 
 ---
 
@@ -229,12 +231,11 @@ your-project/
 ├── DESIGN.md                        ← prompt for agents to fill in from your codebase
 ├── .opencode/
 │   ├── opencode.json                ← default model + plugin config
-│   ├── ensemble.json                ← model assignments for plan/build/fast roles
-│   └── opencode-onboard.json        ← onboarding metadata snapshot
+│   ├── opencode-onboard.json        ← onboarding metadata + runtime config (models, maxConcurrentAgents)
+│   ├── agents/                      ← basic-engineer + generated *-build / *-fast variants
+│   └── plugins/
+│       └── ob-subagent-monitor.js   ← live subagent state → .opencode/.ob-run.json
 └── .agents/
-    ├── agents/
-    │   ├── lead.md
-    │   └── basic-engineer.md
     └── skills/
         ├── ob-global/              ← baseline skill, load FIRST
         ├── ob-default/             ← fallback skill

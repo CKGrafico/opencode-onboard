@@ -17,28 +17,32 @@ Load `@openspec-propose` skill and follow its instructions.
    - `## Abilities` section — the skills listed under Development, Testing, Infrastructure (e.g. `@nodejs-backend`, `@secure-nextjs-api-routes`)
    Build a map of `agent-name → { description, abilities }`.
 2. For each task, compare the task text and domain against every engineer's description AND abilities. Pick the engineer whose combined profile most closely matches. Only use `basic-engineer` if no specialist is a clear fit.
-3. Classify each task into a **model tier**, not a concrete model id. The tiers are defined in `.opencode/ensemble.json` → `modelsByAgent` (mirrored in `.opencode/opencode-onboard.json` → `wizard.models`) with three keys:
+3. Classify each task into a **model tier**, not a concrete model id. Tiers live in `.opencode/opencode-onboard.json` → `wizard.models`:
    - `build` — complex code: data models, APIs, auth logic, core business logic, UI components
    - `fast` — light work: i18n keys, config changes, env variables, navigation links, simple markup, verification runs
-   - `plan` — reserved for orchestration, do not use for implementation tasks
+   - `plan` — reserved for the lead/orchestrator, never for implementation tasks
 
-   Pick the tier name only. Do NOT resolve or write the underlying model id here — `/ob-apply` resolves the tier to a concrete model from `ensemble.json` at spawn time. This keeps the plan stable: the user can edit `ensemble.json` later and re-run `/ob-apply` to get different models without re-running `/ob-propose`.
-4. Annotate each task line in-place:
-
-```
-- [ ] <task text> <!-- agent: <name>, modeltype: <tier> -->
-```
-
-Example result (each task independently picks agent + tier):
+   Pick the tier name only. `<agent>` + `<modeltype>` maps directly to the generated agent file `<agent>-<modeltype>` (e.g. `backend-engineer` + `build` → `backend-engineer-build`, which carries that tier's model), so `/ob-apply` spawns the right model with no apply-time resolution.
+4. Derive **`depends_on`** for each task — the OpenSpec task IDs (`N.M`) it logically needs completed first (a task that consumes another's output: UI needs its RPC, tests need the code, a seed needs its migration). Root tasks get `[]`. Reference the IDs OpenSpec already generated; never invent new ones.
+5. Derive **`touches`** for each task — the file path(s)/glob(s) it will create or modify (the task text usually names them, e.g. "Modify src/board/components/CreateForm.tsx"). This lets `/ob-apply` serialize same-file tasks that have no logical dependency. Include net-new files.
+6. Annotate each task line in-place with all four fields:
 
 ```
-- [ ] Add Invitation model to Prisma schema <!-- agent: backend-engineer, modeltype: build -->
-- [ ] Create invitation accept page UI <!-- agent: frontend-engineer, modeltype: build -->
-- [ ] Add i18n keys for invitation flow <!-- agent: frontend-engineer, modeltype: fast -->
-- [ ] Run pnpm typecheck and fix errors <!-- agent: basic-engineer, modeltype: fast -->
+- [ ] <task text> <!-- agent: <name>, modeltype: <tier>, depends_on: [<ids>], touches: [<globs>] -->
 ```
 
-`/ob-apply` step 6 reads these annotations and resolves `modeltype` → concrete model via `ensemble.json` `modelsByAgent` — the right agent on the right tier, with no guessing at implementation time.
+Example result (note same-file tasks like 1.1/1.2 share `touches`, so `/ob-apply` runs them sequentially even with no `depends_on` between them):
+
+```
+- [ ] 1.1 Add Project model to schema <!-- agent: backend-engineer, modeltype: build, depends_on: [], touches: [src/types.ts] -->
+- [ ] 1.2 Add projectId field to LoopOptions <!-- agent: backend-engineer, modeltype: build, depends_on: [], touches: [src/types.ts] -->
+- [ ] 2.1 Project RPC endpoints <!-- agent: backend-engineer, modeltype: build, depends_on: [1.1], touches: [src/rpc/project/**] -->
+- [ ] 3.1 Accept page UI <!-- agent: frontend-engineer, modeltype: build, depends_on: [2.1], touches: [src/board/components/CreateForm.tsx] -->
+- [ ] 3.2 i18n keys for invitation flow <!-- agent: frontend-engineer, modeltype: fast, depends_on: [3.1], touches: [src/i18n/**] -->
+- [ ] 4.1 Run typecheck and fix errors <!-- agent: basic-engineer, modeltype: fast, depends_on: [2.1,3.1], touches: [] -->
+```
+
+`/ob-apply` reads these annotations to build conflict-free waves: `depends_on` gates ordering, `touches` keeps concurrent agents file-disjoint, and `<agent>-<modeltype>` selects the model. **`depends_on` is mandatory; `touches` is a best-effort hint** that codegraph impact refines at apply time.
 
 **After enrichment, show the plan:** change name, total task count, full task list with agent and model-tier annotations.
 

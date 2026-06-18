@@ -49,7 +49,7 @@ describe('fixCodegraphConfig()', () => {
     expect(result).toBe(true)
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
     const readResult = await fse.readJson(path.join(opencodeDir, 'opencode.json'))
-    expect(readResult.mcp.codegraph).toEqual({ command: ['npx', '@colbymchenry/codegraph', 'serve', '--mcp'] })
+    expect(readResult.mcp.codegraph).toEqual({ command: ['npx', '@colbymchenry/codegraph', 'serve', '--mcp'], timeout: 120000 })
     expect(readResult.plugin).toEqual(["opencode-plugin-openspec@latest"])
   })
 
@@ -139,6 +139,22 @@ describe('fixCodegraphConfig()', () => {
     const readResult = await fse.readJson(path.join(tmpDir, '.opencode', 'opencode.json'))
     expect(readResult.mcp.codegraph.command).toEqual(['npx', '@colbymchenry/codegraph', 'serve', '--mcp'])
     expect(fs.existsSync(path.join(tmpDir, 'opencode.jsonc'))).toBe(false)
+  })
+
+  it('preserves an explicit codegraph timeout instead of overwriting it', async () => {
+    const rogueContent = {
+      mcpServers: {
+        codegraph: { command: ['codegraph', 'serve', '--mcp'], timeout: 300000 }
+      }
+    }
+    fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), JSON.stringify(rogueContent))
+    fs.mkdirSync(path.join(tmpDir, '.opencode'), { recursive: true })
+    fs.writeFileSync(path.join(tmpDir, '.opencode', 'opencode.json'), '{}')
+
+    await fixCodegraphConfig()
+
+    const readResult = await fse.readJson(path.join(tmpDir, '.opencode', 'opencode.json'))
+    expect(readResult.mcp.codegraph.timeout).toBe(300000)
   })
 
   it('does not prepend npx to non-codegraph commands', async () => {

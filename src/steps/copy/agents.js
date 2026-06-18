@@ -59,10 +59,18 @@ function replaceBetween(content, start, end, replacement) {
 }
 
 const CONCURRENCY_PLACEHOLDER = '{{MAX_CONCURRENT_AGENTS}}'
-const DEFAULT_MAX_CONCURRENT_AGENTS = 4
+const DEFAULT_MAX_CONCURRENT_AGENTS = 3
+const MIN_CONCURRENT_AGENTS = 1
+const MAX_CONCURRENT_AGENTS = 5
+
+function clampConcurrency(n) {
+  const v = Number(n)
+  if (!Number.isFinite(v)) return DEFAULT_MAX_CONCURRENT_AGENTS
+  return Math.min(MAX_CONCURRENT_AGENTS, Math.max(MIN_CONCURRENT_AGENTS, Math.round(v)))
+}
 
 export async function patchConcurrency(ctx) {
-  const maxAgents = String(ctx.maxConcurrentAgents ?? DEFAULT_MAX_CONCURRENT_AGENTS)
+  const maxAgents = String(clampConcurrency(ctx.maxConcurrentAgents ?? DEFAULT_MAX_CONCURRENT_AGENTS))
   const cwd = process.cwd()
 
   const filesToPatch = ['AGENTS.md']

@@ -76,20 +76,4 @@ export async function installSkills(platform = 'github') {
   } catch (err) {
     warn(`npx skills failed: ${err.message}`)
   }
-
-  info('Installing opencode-ensemble skill...')
-  try {
-    const result = await execa('npx', ['skills@latest', 'add', 'hueyexe/opencode-ensemble', '--skill', 'opencode-ensemble', '-y'], {
-      reject: false,
-      timeout: 120000,
-      stdio: 'inherit',
-    })
-    if (result.exitCode === 0) {
-      success('opencode-ensemble skill installed')
-    } else {
-      warn('opencode-ensemble install exited with non-zero code')
-    }
-  } catch (err) {
-    warn(`opencode-ensemble install failed: ${err.message}`)
-  }
 }
