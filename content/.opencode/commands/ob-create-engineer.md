@@ -64,17 +64,9 @@ Example: `/ob-create-engineer frontend-engineer build "A frontend engineer speci
    - Development: <@installed-skill-1>, <@installed-skill-2>, ...
    - Testing: <@installed-skill-for-testing>, ...
    - Infrastructure: <@installed-skill-for-devops-cicd>, ...
-
-   ## Workflow
-
-   When the lead spawns you via the task tool, your assigned task IDs and text are already in your prompt:
-1. Load `@ob-global` first, then the mandatory `Guardrails` ability.
-2. Load the additional abilities from `## Abilities` relevant to your task domain (development, testing, infrastructure). Each ability may list several skills; load all that apply.
-3. If available, read shared context from basic-memory (`search` the change context note and any `task-<id>-result` notes your tasks depend on) and use `codegraph_search` to locate the relevant symbols.
-4. Implement your assigned tasks in dependency order, following every loaded skill rule. Edit only files within your assigned scope.
-5. If available, write a `task-<id>-result` note to basic-memory summarizing what you changed and any decisions.
-6. Return a concise summary of what you did — that is your result to the lead. Then you exit; you do not poll, claim, or wait for more work.
 ```
+
+   Keep the file minimal — **identity + abilities + model only**, exactly like `basic-engineer.md`. Do **NOT** add a `## Workflow` section: the per-spawn protocol (load abilities, implement in dependency order, write a result note, return) is supplied by the lead in the `/ob-apply` spawn prompt, so it must not be duplicated in every agent file.
 
    Place the installed skills under the most relevant ability category:
    - **Development** — language frameworks, UI libraries, application code skills

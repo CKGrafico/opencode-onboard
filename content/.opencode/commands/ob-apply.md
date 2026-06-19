@@ -46,7 +46,7 @@ wave     = pick groups whose file-sets are pairwise DISJOINT, capped at maxConcu
 **7. Spawn the wave — one assistant turn, multiple `task()` calls (they run in parallel).** For each group:
 - `subagent_type` = the task's `agent` **exactly as written** in `tasks.md` (e.g. `frontend-engineer`). It must be an agent file present in `.opencode/agents/`. If that agent is missing, fall back to `basic-engineer`. **Never** spawn the built-in `general` agent for implementation work — its model is wrong. The agent's own file carries its model.
 - `description` = `"<task-ids> — <short label>"` (e.g. `"2.1,2.2 — RPC endpoints"`) so the subagent is legible in the `←`/`→` list and the monitor.
-- `prompt` must contain: the exact task IDs + text, the gathered context, the rule to do the tasks in dependency order, and to write a `task-<id>-result` note to basic-memory on finish.
+- `prompt` must contain the full worker protocol (agent files hold only identity + abilities + model — the protocol lives here): (a) the exact task IDs + text; (b) load `@ob-global` then the skills listed under the agent's own `## Abilities`; (c) the gathered context (codegraph symbols + relevant basic-memory notes); (d) implement in dependency order, editing only the assigned files; (e) write a `task-<id>-result` note to basic-memory on finish; (f) return a concise summary.
 - Flip each spawned task's Todo item to `in_progress` and prefix its label with `<agent> · <model> — ` (e.g. `frontend-engineer · sonnet — 2.1 Consolidate logic`) so the running worker is visible in the Todo pane. On completion, drop the prefix and mark `completed`.
 
 **8. Collect the wave.** Each foreground `task()` returns its result to you. For each group:

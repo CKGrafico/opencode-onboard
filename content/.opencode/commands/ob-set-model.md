@@ -29,7 +29,7 @@ Arguments: `$ARGUMENTS`
 
 4. **Update the config.** Note the PREVIOUS value of `wizard.models.<tier>` (needed in step 5). Then set `wizard.models.<tier>` to the resolved model id (create `wizard.models` if absent). Do NOT touch any other field. Preserve the existing 2-space JSON formatting, then write the file back.
 
-5. **Re-stamp engineers on that tier.** There are no variant files — each engineer is a single `*-engineer.md` carrying its own `model:`. For every `*-engineer.md` in `.opencode/agents/` whose current `model:` equals the tier's PREVIOUS value (from step 4), set its `model:` to the new id. By convention `basic-engineer` is the `fast` tier. For tier `plan` (the lead/primary session model) there is usually no engineer file to change — tell the user to select it when launching opencode.
+5. **Re-stamp engineers on that tier.** There are no variant files — each engineer is a single agent file carrying its own `model:`. For every agent file (`*.md`) in `.opencode/agents/` whose current `model:` equals the tier's PREVIOUS value (from step 4), set its `model:` to the new id. By convention `basic-engineer` is the `fast` tier. For tier `plan` (the lead/primary session model) there is usually no engineer file to change — tell the user to select it when launching opencode.
 
 6. **Confirm:**
 
