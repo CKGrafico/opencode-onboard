@@ -34,14 +34,6 @@ describe('writeModelsToConfigs()', () => {
     expect(success).toHaveBeenCalledWith(expect.stringContaining('build-model'))
   })
 
-  it('does not create or touch ensemble.json', async () => {
-    const opencodeJsonPath = path.join(opencodeDir, 'opencode.json')
-    fs.writeFileSync(opencodeJsonPath, JSON.stringify({ theme: 'dark' }, null, 2), 'utf-8')
-
-    await writeModelsToConfigs({ buildModel: 'build-model', cwd: tmpDir })
-
-    expect(fs.existsSync(path.join(opencodeDir, 'ensemble.json'))).toBe(false)
-  })
 
   it('removes the default model when no build model is passed', async () => {
     const opencodeJsonPath = path.join(opencodeDir, 'opencode.json')

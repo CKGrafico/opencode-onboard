@@ -64,8 +64,6 @@ Typical flow for reruns:
 - Run `metadata` last to refresh `.opencode/opencode-onboard.json`
 - Run `join` if you're a new member of an existing onboarded project and want to sync the latest onboarding metadata
 
-**Migrating from an older (ensemble-based) onboard?** Re-run `copy` then `models`: this removes the `opencode-ensemble` plugin, switches `/ob-apply` to native subagent waves, and stamps each engineer's model. The now-unused `.opencode/ensemble.json` can be deleted safely.
-
 ---
 
 ## How it works
