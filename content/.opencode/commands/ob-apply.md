@@ -20,7 +20,7 @@ You are the **lead**. You orchestrate from this session only; you spawn workers 
 
 **2. Load the plan.** Parse `tasks.md`. Each task carries `<!-- agent, depends_on, touches -->` (from `/ob-propose`). The model is a property of the **agent** (set in its agent file), not the task. Read `.opencode/opencode-onboard.json` → `wizard.maxConcurrentAgents` (the wave cap, 1–5).
 
-**3. Hydrate the Todo board.** `todowrite` one item per task: `pending`. The Todo pane is your live board — but it is a **projection only**. Never read it for recovery; rebuild it from `tasks.md` + git + `.opencode/.ob-run.json`.
+**3. Hydrate the Todo board.** `todowrite` one item per task: `pending`. **The Todo pane is the visible subagent board** (opencode plugins cannot draw a custom pane, so the native Todo widget is the live UI). While a task is in flight, its label must carry the worker — `<agent> · <model>` — so the pane shows which agent on which model is doing what. The Todo list is a **projection only**: never read it for recovery; rebuild it from `tasks.md` + git + `.opencode/.ob-run.json`.
 
 **4. MCP health + degradation.** Before each wave, confirm codegraph and basic-memory respond. Degrade automatically:
 - **codegraph down/slow** → compute file-disjointness from `touches:` globs + `git diff` instead of `codegraph_impact`.
@@ -47,7 +47,7 @@ wave     = pick groups whose file-sets are pairwise DISJOINT, capped at maxConcu
 - `subagent_type` = the task's `agent` **exactly as written** in `tasks.md` (e.g. `frontend-engineer`). It must be an agent file present in `.opencode/agents/`. If that agent is missing, fall back to `basic-engineer`. **Never** spawn the built-in `general` agent for implementation work — its model is wrong. The agent's own file carries its model.
 - `description` = `"<task-ids> — <short label>"` (e.g. `"2.1,2.2 — RPC endpoints"`) so the subagent is legible in the `←`/`→` list and the monitor.
 - `prompt` must contain: the exact task IDs + text, the gathered context, the rule to do the tasks in dependency order, and to write a `task-<id>-result` note to basic-memory on finish.
-- Flip each spawned task's Todo item to `in_progress`.
+- Flip each spawned task's Todo item to `in_progress` and prefix its label with `<agent> · <model> — ` (e.g. `frontend-engineer · sonnet — 2.1 Consolidate logic`) so the running worker is visible in the Todo pane. On completion, drop the prefix and mark `completed`.
 
 **8. Collect the wave.** Each foreground `task()` returns its result to you. For each group:
 - **success** → `git add` the group's `touches` paths and commit `"{ids}: {summary}"`; mark its Todo items `completed`; check `[x]` in `tasks.md`.
