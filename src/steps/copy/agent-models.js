@@ -37,9 +37,7 @@ export async function stampAgentModels({ models = {}, cwd = process.cwd() } = {}
   const agentsDir = path.join(cwd, '.opencode', 'agents')
   if (!(await fse.pathExists(agentsDir))) return { stamped: 0 }
 
-  // Every agent file is an engineer (the lead is the primary session, not a file).
-  // Match all *.md so custom names like `frontend-engineer-di.md` are covered.
-  const files = (await fse.readdir(agentsDir)).filter(f => f.endsWith('.md') && f !== 'lead.md')
+  const files = (await fse.readdir(agentsDir)).filter(f => f.endsWith('-engineer.md'))
 
   let stamped = 0
   for (const file of files) {

@@ -12,7 +12,7 @@ Load `@openspec-propose` skill and follow its instructions.
 
 > ⚠️ **CHECKPOINT — `tasks.md` was just written. STOP. Do NOT show the plan yet. You MUST complete the enrichment below before continuing. Skipping this breaks `/ob-apply`.**
 
-1. List every agent file in `.opencode/agents/` (every `*.md`; the lead is the primary session, not a file). For each file read:
+1. List every `*-engineer.md` file in `.opencode/agents/`. For each file read:
    - `description:` from the YAML frontmatter — the engineer's specialization summary
    - `## Abilities` section — the skills listed under Development, Testing, Infrastructure (e.g. `@nodejs-backend`, `@secure-nextjs-api-routes`)
    Build a map of `agent-name → { description, abilities }`.

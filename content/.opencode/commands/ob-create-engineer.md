@@ -15,7 +15,7 @@ Example: `/ob-create-engineer frontend-engineer build "A frontend engineer speci
 1. **Parse input**
 
    Extract `<name>`, `<tier>`, and `<description>` from the arguments after `/ob-create-engineer`.
-   - Name should be kebab-case (e.g., `frontend-engineer`)
+   - Name MUST be a single lowercase word followed by `-engineer` (match `^[a-z0-9]+-engineer$`), e.g. `frontend-engineer`, `di-engineer`, `architect-engineer`. If the given name doesn't match (e.g. `frontend-engineer-di`), normalize it to that form (pick the most descriptive single word, e.g. `di-engineer`) before continuing. The `-engineer` suffix is required — discovery globs `*-engineer.md`.
    - Tier is one of `plan` / `build` / `fast` (default `build` if omitted)
    - Description is the quoted string explaining the agent's specialty
    - If no input provided, use the AskUserQuestion tool to ask for name, tier, and description.
@@ -66,7 +66,7 @@ Example: `/ob-create-engineer frontend-engineer build "A frontend engineer speci
    - Infrastructure: <@installed-skill-for-devops-cicd>, ...
 ```
 
-   Keep the file minimal — **identity + abilities + model only**, exactly like `basic-engineer.md`. Do **NOT** add a `## Workflow` section: the per-spawn protocol (load abilities, implement in dependency order, write a result note, return) is supplied by the lead in the `/ob-apply` spawn prompt, so it must not be duplicated in every agent file.
+   Keep the file minimal — **identity + abilities + model only**, exactly like `basic-engineer.md`. Do **NOT** add a `## Workflow` section: the engineer workflow is defined once in `@ob-generic-guardrails` (every engineer loads it via its Guardrails ability), so it must not be duplicated in each agent file.
 
    Place the installed skills under the most relevant ability category:
    - **Development** — language frameworks, UI libraries, application code skills
