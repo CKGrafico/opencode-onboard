@@ -18,6 +18,9 @@ type Row = { id: string; agent: string; model: string; task: string; status: str
 const tui: TuiPlugin = async (api) => {
   const statePath = join(process.cwd(), ".opencode", ".ob-run.json")
   const [rows, setRows] = createSignal<Row[]>([])
+  // Only show live subagents — finished/failed ones are kept in .ob-run.json
+  // for recovery but are not navigable targets the user cares about here.
+  const active = () => rows().filter((r) => r.status === "running")
 
   const refresh = async () => {
     try {
@@ -55,14 +58,14 @@ const tui: TuiPlugin = async (api) => {
         return (
           <box flexDirection="column">
             <text>Subagents</text>
-            <Show when={rows().length === 0}>
+            <Show when={active().length === 0}>
               <text>  idle</text>
             </Show>
-            <For each={rows()}>
+            <For each={active()}>
               {(r) => (
                 <box onMouseUp={() => api.route.navigate("session", { sessionID: r.id })}>
                   <text>
-                    {r.status === "done" ? "✓ " : r.status === "failed" ? "✗ " : "▶ "}
+                    {"▶ "}
                     {r.agent}
                     {r.model ? ` · ${r.model}` : ""}
                     {r.task ? ` — ${r.task}` : ""}
