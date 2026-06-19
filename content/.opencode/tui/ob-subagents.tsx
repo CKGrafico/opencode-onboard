@@ -6,7 +6,7 @@ import { join } from "node:path"
 
 const id = "ob.subagents"
 
-type Row = { agent: string; model: string; task: string; status: string }
+type Row = { id: string; agent: string; model: string; task: string; status: string }
 
 // Renders a live "Subagents" panel in the session sidebar.
 //
@@ -24,7 +24,8 @@ const tui: TuiPlugin = async (api) => {
       const data = JSON.parse(await readFile(statePath, "utf-8"))
       const agents = data?.agents ?? {}
       setRows(
-        Object.values(agents).map((a: any) => ({
+        Object.entries(agents).map(([sid, a]: [string, any]) => ({
+          id: sid,
           agent: a?.agent ?? "?",
           model: a?.model ?? "",
           task: Array.isArray(a?.tasks) && a.tasks.length ? a.tasks.join(",") : (a?.title ?? ""),
@@ -59,12 +60,14 @@ const tui: TuiPlugin = async (api) => {
             </Show>
             <For each={rows()}>
               {(r) => (
-                <text>
-                  {r.status === "done" ? "✓ " : r.status === "failed" ? "✗ " : "▶ "}
-                  {r.agent}
-                  {r.model ? ` · ${r.model}` : ""}
-                  {r.task ? ` — ${r.task}` : ""}
-                </text>
+                <box onMouseUp={() => api.route.navigate("session", { sessionID: r.id })}>
+                  <text>
+                    {r.status === "done" ? "✓ " : r.status === "failed" ? "✗ " : "▶ "}
+                    {r.agent}
+                    {r.model ? ` · ${r.model}` : ""}
+                    {r.task ? ` — ${r.task}` : ""}
+                  </text>
+                </box>
               )}
             </For>
           </box>
