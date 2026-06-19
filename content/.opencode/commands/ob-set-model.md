@@ -1,8 +1,8 @@
 ---
-description: Set the model for a tier (plan, build, or fast) in opencode-onboard.json and regenerate agent variants.
+description: Set the model for a tier (plan, build, or fast) in opencode-onboard.json and re-stamp engineers on that tier.
 ---
 
-Set the concrete model for one tier in `.opencode/opencode-onboard.json` → `wizard.models`. For `build`/`fast` this also regenerates the tier-variant agent files (`<engineer>-build` / `<engineer>-fast`) that carry the model, so the change takes effect on your next `/ob-apply`.
+Set the concrete model for one tier in `.opencode/opencode-onboard.json` → `wizard.models`, then re-stamp the `model:` line of every engineer assigned to that tier (one file per engineer — no variants), so the change takes effect on your next `/ob-apply`.
 
 Usage:
 
@@ -27,20 +27,18 @@ Arguments: `$ARGUMENTS`
 
 3. **Read `.opencode/opencode-onboard.json`.** If it does not exist, stop and tell the user onboarding has not generated it yet.
 
-4. **Set `wizard.models.<tier>`** to the resolved model id (create `wizard.models` if absent). Do NOT touch any other field. Preserve the existing 2-space JSON formatting, then write the file back.
+4. **Update the config.** Note the PREVIOUS value of `wizard.models.<tier>` (needed in step 5). Then set `wizard.models.<tier>` to the resolved model id (create `wizard.models` if absent). Do NOT touch any other field. Preserve the existing 2-space JSON formatting, then write the file back.
 
-5. **Regenerate variants (only for `build` / `fast`).** For every base engineer file in `.opencode/agents/` matching `*-engineer.md` that is NOT itself a `-build`/`-fast` variant:
-   - Write `<engineer-name>-<tier>.md` with the same body as the base file, but with `model: <resolved-id>` set in its YAML frontmatter (replace an existing `model:` line, or add one).
-   - For tier `plan` there is no variant to regenerate — `plan` is the lead/primary session model. Tell the user to select it when launching opencode (or set it as the default in `.opencode/opencode.json`).
+5. **Re-stamp engineers on that tier.** There are no variant files — each engineer is a single `*-engineer.md` carrying its own `model:`. For every `*-engineer.md` in `.opencode/agents/` whose current `model:` equals the tier's PREVIOUS value (from step 4), set its `model:` to the new id. By convention `basic-engineer` is the `fast` tier. For tier `plan` (the lead/primary session model) there is usually no engineer file to change — tell the user to select it when launching opencode.
 
 6. **Confirm:**
 
    ```
    opencode-onboard.json updated
      <tier> model -> <resolved-id>
-     regenerated: <list of *-<tier>.md variants>   (build/fast only)
+     re-stamped: <list of engineer files updated>
    ```
 
-   It takes effect on your next `/ob-apply`: tasks annotated `modeltype: <tier>` resolve to the `<agent>-<tier>` variant, which now carries this model. No restart required.
+   It takes effect on your next `/ob-apply`: engineers on that tier now carry the new model. No restart required.
 
-**This command edits `.opencode/opencode-onboard.json` and the `*-build` / `*-fast` agent variant files.** It never modifies `opencode.json`, base agent files, or `tasks.md`.
+**This command edits `.opencode/opencode-onboard.json` and the `model:` line of engineer files on that tier.** It never modifies `opencode.json` or `tasks.md`.

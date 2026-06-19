@@ -64,7 +64,7 @@ Typical flow for reruns:
 - Run `metadata` last to refresh `.opencode/opencode-onboard.json`
 - Run `join` if you're a new member of an existing onboarded project and want to sync the latest onboarding metadata
 
-**Migrating from an older (ensemble-based) onboard?** Re-run `copy` then `models`: this removes the `opencode-ensemble` plugin, switches `/ob-apply` to native subagent waves, and regenerates the per-tier agent variants. The now-unused `.opencode/ensemble.json` can be deleted safely.
+**Migrating from an older (ensemble-based) onboard?** Re-run `copy` then `models`: this removes the `opencode-ensemble` plugin, switches `/ob-apply` to native subagent waves, and stamps each engineer's model. The now-unused `.opencode/ensemble.json` can be deleted safely.
 
 ---
 
@@ -112,7 +112,7 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 | `/ob-create-engineer <name> "<description>"` | Create a custom specialist engineer with skills auto-installed from [skills.sh](https://www.skills.sh/). |
 | `/ob-create-architecture` | Generate or regenerate `ARCHITECTURE.md` from the codebase. |
 | `/ob-create-design` | Generate or regenerate `DESIGN.md` from the design system. |
-| `/ob-set-model <tier> <model>` | Set the model for a tier (`plan`, `build`, `fast`) in `.opencode/opencode-onboard.json` (`wizard.models`) and regenerate the agent variants. Pass a model id or `current` for the active session model. |
+| `/ob-set-model <tier> <model>` | Set the model for a tier (`plan`, `build`, `fast`) in `.opencode/opencode-onboard.json` (`wizard.models`) and re-stamp the engineers on that tier. Pass a model id or `current` for the active session model. |
 
 ---
 
@@ -178,8 +178,8 @@ During onboarding you pick three models:
 | Role      | Used by                                | Pick                                    |
 | --------- | -------------------------------------- | --------------------------------------- |
 | **plan**  | Main OpenCode session (the lead)       | Something capable with strong reasoning |
-| **build** | `*-build` engineer variants            | Something capable for implementation    |
-| **fast**  | `*-fast` engineer variants (light work)| Something fast and cheap                |
+| **build** | Specialist engineers (default tier)    | Something capable for implementation    |
+| **fast**  | `basic-engineer` & light helpers       | Something fast and cheap                |
 
 Models are fetched live from [models.dev](https://models.dev) (3000+ models, cached weekly). Cost tiers `[$]` `[$$]` `[$$$]` always reflect the canonical provider price, so `github-copilot/claude-opus-4.7` shows `[$$]` not `[$]`.
 
@@ -213,7 +213,7 @@ lead (load ob-global first)
 3. Run `/ob-propose` to produce `proposal.md`, specs, and `tasks.md`
 4. Confirm with user before implementation
 5. Run `/ob-apply` to orchestrate implementation in waves
-6. Each wave spawns engineers in parallel (`<agent>-<modeltype>` variants — `basic-engineer` and/or custom engineers), capped at `maxConcurrentAgents`
+6. Each wave spawns engineers in parallel (`basic-engineer` and/or custom engineers, each carrying its own model), capped at `maxConcurrentAgents`
 7. Each subagent receives its task IDs in its prompt, loads relevant abilities, implements, and returns; the lead commits each group
 8. Verify with tests/build/lint according to task scope
 9. Ship/update PR via lead flow
@@ -232,7 +232,7 @@ your-project/
 ├── .opencode/
 │   ├── opencode.json                ← default model + plugin config
 │   ├── opencode-onboard.json        ← onboarding metadata + runtime config (models, maxConcurrentAgents)
-│   ├── agents/                      ← basic-engineer + generated *-build / *-fast variants
+│   ├── agents/                      ← basic-engineer + user-created *-engineer files (each carries its model)
 │   └── plugins/
 │       └── ob-subagent-monitor.js   ← live subagent state → .opencode/.ob-run.json
 └── .agents/

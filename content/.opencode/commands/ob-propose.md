@@ -16,34 +16,28 @@ Load `@openspec-propose` skill and follow its instructions.
    - `description:` from the YAML frontmatter — the engineer's specialization summary
    - `## Abilities` section — the skills listed under Development, Testing, Infrastructure (e.g. `@nodejs-backend`, `@secure-nextjs-api-routes`)
    Build a map of `agent-name → { description, abilities }`.
-2. For each task, compare the task text and domain against every engineer's description AND abilities. Pick the engineer whose combined profile most closely matches. Only use `basic-engineer` if no specialist is a clear fit.
-3. Classify each task into a **model tier**, not a concrete model id. Tiers live in `.opencode/opencode-onboard.json` → `wizard.models`:
-   - `build` — complex code: data models, APIs, auth logic, core business logic, UI components
-   - `fast` — light work: i18n keys, config changes, env variables, navigation links, simple markup, verification runs
-   - `plan` — reserved for the lead/orchestrator, never for implementation tasks
-
-   Pick the tier name only. `<agent>` + `<modeltype>` maps directly to the generated agent file `<agent>-<modeltype>` (e.g. `backend-engineer` + `build` → `backend-engineer-build`, which carries that tier's model), so `/ob-apply` spawns the right model with no apply-time resolution.
-4. Derive **`depends_on`** for each task — the OpenSpec task IDs (`N.M`) it logically needs completed first (a task that consumes another's output: UI needs its RPC, tests need the code, a seed needs its migration). Root tasks get `[]`. Reference the IDs OpenSpec already generated; never invent new ones.
-5. Derive **`touches`** for each task — the file path(s)/glob(s) it will create or modify (the task text usually names them, e.g. "Modify src/board/components/CreateForm.tsx"). This lets `/ob-apply` serialize same-file tasks that have no logical dependency. Include net-new files.
-6. Annotate each task line in-place with all four fields:
+2. For each task, compare the task text and domain against every engineer's description AND abilities. Pick the engineer whose combined profile most closely matches. Only use `basic-engineer` if no specialist is a clear fit. **The model follows the agent** — each engineer carries its own model (light work → `basic-engineer`, which runs on a cheap/fast model; complex work → a specialist on a capable model). You do not assign a model per task.
+3. Derive **`depends_on`** for each task — the OpenSpec task IDs (`N.M`) it logically needs completed first (a task that consumes another's output: UI needs its RPC, tests need the code, a seed needs its migration). Root tasks get `[]`. Reference the IDs OpenSpec already generated; never invent new ones.
+4. Derive **`touches`** for each task — the file path(s)/glob(s) it will create or modify (the task text usually names them, e.g. "Modify src/board/components/CreateForm.tsx"). This lets `/ob-apply` serialize same-file tasks that have no logical dependency. Include net-new files.
+5. Annotate each task line in-place with all three fields:
 
 ```
-- [ ] <task text> <!-- agent: <name>, modeltype: <tier>, depends_on: [<ids>], touches: [<globs>] -->
+- [ ] <task text> <!-- agent: <name>, depends_on: [<ids>], touches: [<globs>] -->
 ```
 
 Example result (note same-file tasks like 1.1/1.2 share `touches`, so `/ob-apply` runs them sequentially even with no `depends_on` between them):
 
 ```
-- [ ] 1.1 Add Project model to schema <!-- agent: backend-engineer, modeltype: build, depends_on: [], touches: [src/types.ts] -->
-- [ ] 1.2 Add projectId field to LoopOptions <!-- agent: backend-engineer, modeltype: build, depends_on: [], touches: [src/types.ts] -->
-- [ ] 2.1 Project RPC endpoints <!-- agent: backend-engineer, modeltype: build, depends_on: [1.1], touches: [src/rpc/project/**] -->
-- [ ] 3.1 Accept page UI <!-- agent: frontend-engineer, modeltype: build, depends_on: [2.1], touches: [src/board/components/CreateForm.tsx] -->
-- [ ] 3.2 i18n keys for invitation flow <!-- agent: frontend-engineer, modeltype: fast, depends_on: [3.1], touches: [src/i18n/**] -->
-- [ ] 4.1 Run typecheck and fix errors <!-- agent: basic-engineer, modeltype: fast, depends_on: [2.1,3.1], touches: [] -->
+- [ ] 1.1 Add Project model to schema <!-- agent: backend-engineer, depends_on: [], touches: [src/types.ts] -->
+- [ ] 1.2 Add projectId field to LoopOptions <!-- agent: backend-engineer, depends_on: [], touches: [src/types.ts] -->
+- [ ] 2.1 Project RPC endpoints <!-- agent: backend-engineer, depends_on: [1.1], touches: [src/rpc/project/**] -->
+- [ ] 3.1 Accept page UI <!-- agent: frontend-engineer, depends_on: [2.1], touches: [src/board/components/CreateForm.tsx] -->
+- [ ] 3.2 i18n keys for invitation flow <!-- agent: basic-engineer, depends_on: [3.1], touches: [src/i18n/**] -->
+- [ ] 4.1 Run typecheck and fix errors <!-- agent: basic-engineer, depends_on: [2.1,3.1], touches: [] -->
 ```
 
-`/ob-apply` reads these annotations to build conflict-free waves: `depends_on` gates ordering, `touches` keeps concurrent agents file-disjoint, and `<agent>-<modeltype>` selects the model. **`depends_on` is mandatory; `touches` is a best-effort hint** that codegraph impact refines at apply time.
+`/ob-apply` reads these annotations to build conflict-free waves: `depends_on` gates ordering, `touches` keeps concurrent agents file-disjoint, and the chosen `agent` determines the model. **`depends_on` is mandatory; `touches` is a best-effort hint** that codegraph impact refines at apply time.
 
-**After enrichment, show the plan:** change name, total task count, full task list with agent and model-tier annotations.
+**After enrichment, show the plan:** change name, total task count, full task list with agent and dependency annotations.
 
 **Stop.** Ask the user: "Ready to implement? Run `/ob-apply` to start." Do NOT run `/ob-apply` automatically.

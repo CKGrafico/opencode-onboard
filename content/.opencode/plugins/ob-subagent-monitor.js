@@ -19,27 +19,21 @@ import path from "node:path"
 export const ObSubagentMonitor = async ({ directory, client }) => {
   const root = directory || process.cwd()
   const statePath = path.join(root, ".opencode", ".ob-run.json")
-  const onboardPath = path.join(root, ".opencode", "opencode-onboard.json")
 
   const state = { updatedAt: null, agents: {} }
-  let models = null
 
-  async function loadModels() {
-    if (models) return models
-    try {
-      const raw = await fs.readFile(onboardPath, "utf-8")
-      models = JSON.parse(raw)?.wizard?.models ?? {}
-    } catch {
-      models = {}
-    }
-    return models
-  }
-
-  // Derive the model from a tier-variant agent name, e.g. "backend-engineer-build".
-  function modelForAgent(agent) {
+  // Read the model the engineer runs on from its own agent file (one file per
+  // engineer; the model is stamped into the frontmatter).
+  async function modelForAgent(agent) {
     if (!agent) return null
-    const m = /-(build|fast)$/.exec(agent)
-    return m ? (models?.[m[1]] ?? null) : null
+    try {
+      const raw = await fs.readFile(path.join(root, ".opencode", "agents", `${agent}.md`), "utf-8")
+      const fm = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/)
+      const m = fm && /^model:\s*(\S+)/m.exec(fm[1])
+      return m ? m[1] : null
+    } catch {
+      return null
+    }
   }
 
   // Tasks are encoded at the front of the spawn description, e.g.
@@ -75,14 +69,13 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
     event: async ({ event }) => {
       try {
         if (!event?.type?.startsWith("session.")) return
-        await loadModels()
         const info = sessionInfo(event.properties)
         if (!info.id) return
 
         if (event.type === "session.created" && info.parentID) {
           state.agents[info.id] = {
             agent: info.agent ?? null,
-            model: modelForAgent(info.agent),
+            model: await modelForAgent(info.agent),
             tasks: parseTasks(info.title),
             title: info.title ?? null,
             status: "running",

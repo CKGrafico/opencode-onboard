@@ -38,7 +38,7 @@ Display the following reference to the user exactly as written. Do not summarize
 
 **`/ob-create-design`** — Regenerate `DESIGN.md` from the design system (Tailwind, CSS vars, tokens, etc.).
 
-**`/ob-set-model <tier> <model>`** — Set the model for a tier (`plan`, `build`, or `fast`) in `.opencode/opencode-onboard.json` (`wizard.models`) and regenerate the agent variants. Use a model id (e.g. `/ob-set-model fast opencode/big-pickle`) or `current` to use the active session model (e.g. `/ob-set-model plan current`). Tasks annotated with that `modeltype` resolve to it on the next `/ob-apply`.
+**`/ob-set-model <tier> <model>`** — Set the model for a tier (`plan`, `build`, or `fast`) in `.opencode/opencode-onboard.json` (`wizard.models`) and re-stamp the engineers assigned to that tier. Use a model id (e.g. `/ob-set-model fast opencode/big-pickle`) or `current` to use the active session model (e.g. `/ob-set-model plan current`). Engineers on that tier pick it up on the next `/ob-apply`.
 
 ---
 

@@ -221,7 +221,7 @@ Parallel execution uses OpenCode's native `task` tool — no external plugin, no
 - **Eligibility.** A task runs only when every `depends_on` is done.
 - **Conflict safety (no worktrees).** Concurrent subagents must touch disjoint files (codegraph impact → `touches` globs → `git diff`). Same-file tasks are packed into one worker and run sequentially.
 - **Checkpoints.** The lead commits each group on success; on failure it reverts that group's paths and retries once.
-- **Per-task model.** Subagents are spawned by the variant name `<agent>-<modeltype>`, which carries that tier's model.
+- **Per-agent model.** Each engineer's model is set in its own agent file (chosen by tier when the engineer is created); the lead spawns the plain agent name.
 
 **Hard limits:**
 - **Max {{MAX_CONCURRENT_AGENTS}} concurrent subagents per wave** (set during onboarding, 1–5). The lead enforces the cap by emitting at most that many `task()` calls per turn; overflow queues to the next wave.

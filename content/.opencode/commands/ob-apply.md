@@ -18,7 +18,7 @@ You are the **lead**. You orchestrate from this session only; you spawn workers 
 
 **1. Branch.** Create `feature/{change-slug}` if not already on one.
 
-**2. Load the plan.** Parse `tasks.md`. Each task carries `<!-- agent, modeltype, depends_on, touches -->` (from `/ob-propose`). Read `.opencode/opencode-onboard.json` → `wizard.maxConcurrentAgents` (the wave cap, 1–5) and `wizard.models` (for reference).
+**2. Load the plan.** Parse `tasks.md`. Each task carries `<!-- agent, depends_on, touches -->` (from `/ob-propose`). The model is a property of the **agent** (set in its agent file), not the task. Read `.opencode/opencode-onboard.json` → `wizard.maxConcurrentAgents` (the wave cap, 1–5).
 
 **3. Hydrate the Todo board.** `todowrite` one item per task: `pending`. The Todo pane is your live board — but it is a **projection only**. Never read it for recovery; rebuild it from `tasks.md` + git + `.opencode/.ob-run.json`.
 
@@ -34,7 +34,7 @@ eligible = unchecked tasks whose every depends_on is DONE (committed/checked)
 if eligible is empty but tasks remain  → STALL: report blocked tasks + the failed
                                           dependency causing it, then STOP.
 groups   = pack eligible tasks that share a file (touches / codegraph_impact)
-           into ONE worker each, to run sequentially; group key = (file-set, modeltype)
+           into ONE worker each, to run sequentially (the worker uses the task's `agent`)
 wave     = pick groups whose file-sets are pairwise DISJOINT, capped at maxConcurrentAgents
            (you enforce the cap — opencode runs every task() you emit at once)
 ```
@@ -44,7 +44,7 @@ wave     = pick groups whose file-sets are pairwise DISJOINT, capped at maxConcu
 - basic-memory `search` for prior decisions and the `change-<slug>-context` note (write that context note once before wave 1).
 
 **7. Spawn the wave — one assistant turn, multiple `task()` calls (they run in parallel).** For each group:
-- `subagent_type` = `<agent>-<modeltype>` (e.g. `backend-engineer-build`). If that variant file is absent, fall back to `basic-engineer-<modeltype>`, then `basic-engineer`.
+- `subagent_type` = the task's `agent` **exactly as written** in `tasks.md` (e.g. `frontend-engineer`). It must be an agent file present in `.opencode/agents/`. If that agent is missing, fall back to `basic-engineer`. **Never** spawn the built-in `general` agent for implementation work — its model is wrong. The agent's own file carries its model.
 - `description` = `"<task-ids> — <short label>"` (e.g. `"2.1,2.2 — RPC endpoints"`) so the subagent is legible in the `←`/`→` list and the monitor.
 - `prompt` must contain: the exact task IDs + text, the gathered context, the rule to do the tasks in dependency order, and to write a `task-<id>-result` note to basic-memory on finish.
 - Flip each spawned task's Todo item to `in_progress`.
