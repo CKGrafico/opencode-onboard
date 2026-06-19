@@ -19,11 +19,13 @@ export async function copyContentStep(platform, ctx = {}) {
   try {
     await copyContent(CONTENT_DIR, dest, platform, ctx)
     const rootsFile = path.join(dest, '.agents', 'source-roots.json')
+    const ignoreFile = path.join(dest, '.agents', '.gitignore')
     await fse.ensureDir(path.dirname(rootsFile))
     await fse.writeJson(rootsFile, {
       mode: ctx.sourceMode || 'current',
       roots: ctx.sourceRoots || [dest],
     }, { spaces: 2 })
+    await fse.writeFile(ignoreFile, 'source-roots.json\n')
     await patchAgentGuidance(platform)
     await patchArchiveCommand(platform)
     await patchAgentsMd(ctx)
