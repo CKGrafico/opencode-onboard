@@ -16,9 +16,9 @@ Display the following reference to the user exactly as written. Do not summarize
 
 ### Ready to implement?
 
-**`/ob-apply`** — You have confirmed a plan from `/ob-propose` and you want to implement it. Spawns engineers in parallel via opencode-ensemble. Each engineer claims a task, implements, commits, and reports back.
+**`/ob-apply`** — You have confirmed a plan from `/ob-propose` and you want to implement it. Spawns engineers in parallel as native subagent waves. Each subagent implements its assigned tasks, then the lead commits and reports back.
 
-**`/ob-main <task>`** — Skip the whole OpenSpec/ensemble flow. Just do the task directly in the current session. Best for small, focused changes that don't need a plan or parallel agents.
+**`/ob-main <task>`** — Skip the whole OpenSpec/wave flow. Just do the task directly in the current session. Best for small, focused changes that don't need a plan or parallel agents.
 
 ---
 
@@ -38,7 +38,7 @@ Display the following reference to the user exactly as written. Do not summarize
 
 **`/ob-create-design`** — Regenerate `DESIGN.md` from the design system (Tailwind, CSS vars, tokens, etc.).
 
-**`/ob-model <tier> <model>`** — Set the model for a tier (`plan`, `build`, or `fast`) in `.opencode/ensemble.json`. Use a model id (e.g. `/ob-model fast opencode/big-pickle`) or `current` to use the active session model (e.g. `/ob-model plan current`). Tasks annotated with that `modeltype` resolve to it on the next `/ob-apply`.
+**`/ob-set-model <tier> <model>`** — Set the model for a tier (`plan`, `build`, or `fast`) in `.opencode/opencode-onboard.json` (`wizard.models`) and re-stamp the engineers assigned to that tier. Use a model id (e.g. `/ob-set-model fast opencode/big-pickle`) or `current` to use the active session model (e.g. `/ob-set-model plan current`). Engineers on that tier pick it up on the next `/ob-apply`.
 
 ---
 

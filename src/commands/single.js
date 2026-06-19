@@ -17,7 +17,7 @@ export async function runSingleCommand(command) {
     hasOpenspec: !!savedWizard?.preserved?.openspec,
     sourceMode: savedWizard?.sourceMode ?? 'current',
     sourceRoots: Array.isArray(savedWizard?.sourceRoots) ? savedWizard.sourceRoots : [],
-    maxConcurrentAgents: savedWizard?.maxConcurrentAgents ?? 4,
+    maxConcurrentAgents: savedWizard?.maxConcurrentAgents ?? 3,
   }
   const platform = savedWizard?.platform
   const resolvedPlatform = platform === 'azure' || platform === 'github' || platform === 'none' ? platform : 'github'
@@ -48,7 +48,7 @@ export async function runSingleCommand(command) {
       await writeOnboardConfig({
         ...ctx,
         platform: resolvedPlatform,
-        maxConcurrentAgents: savedWizard?.maxConcurrentAgents ?? 4,
+        maxConcurrentAgents: savedWizard?.maxConcurrentAgents ?? 3,
         additionalSkillsProvider: 'npx-skills',
         planModel: savedWizard?.models?.plan ?? null,
         buildModel: savedWizard?.models?.build ?? null,

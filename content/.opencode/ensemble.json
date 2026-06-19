@@ -1,8 +1,0 @@
-{
-  "dashboardPort": 4747,
-  "mergeOnCleanup": true,
-  "timeoutMs": 1800000,
-  "stallThresholdMs": 300000,
-  "modelsByAgent": {},
-  "modelAssignment": "default"
-}

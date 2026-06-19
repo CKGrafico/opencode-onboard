@@ -9,6 +9,7 @@ export default [
       'dist/**',
       'content/**/node_modules/**',
       'content/.opencode/package-lock.json',
+      'content/**/*.tsx',
     ],
   },
   js.configs.recommended,

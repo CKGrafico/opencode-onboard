@@ -1,5 +1,5 @@
 ---
-description: Implement tasks from an OpenSpec change via ensemble agent team.
+description: Implement tasks from an OpenSpec change via native parallel subagent waves.
 ---
 
 > **Command aliases:** Loaded skills may reference `/opsx-propose`, `/opsx-apply`, `/opsx-archive`, or `/opsx-explore`. Always substitute: `/opsx-propose` → `/ob-propose`, `/opsx-apply` → `/ob-apply`, `/opsx-archive` → `/ob-archive`, `/opsx-explore` → `/ob-explore`. Never mention the `opsx-` names in your responses to the user.
@@ -10,47 +10,54 @@ Load `@openspec-apply-change` skill and follow its instructions, replacing **Ste
 
 ---
 
-**Step 6 — Implement via ensemble. Replace the default step 6 with this protocol.**
+**Step 6 — Implement via native subagent waves. Replace the default step 6 with this protocol.**
 
-> **Root cause of idle agents: missing task IDs.** An agent only claims a task when the exact task ID is in its spawn prompt AND its start message. No ID = agent sits idle. This is the single most important rule in this protocol.
+You are the **lead**. You orchestrate from this session only; you spawn workers with the native `task` tool. Workers are **ephemeral** (one batch, then they exit) and **navigable** (`ctrl+x ↓`, `←`/`→`). There is no board, no claiming, no merging, no external dashboard.
 
-**1. Branch.** Create `feature/{id}-{slug}` if not already on one.
+> **Core rule — push, don't pull.** A worker is born with its work: every `task()` spawn prompt contains the exact task IDs and text it must do. There is no claim step, so a worker can never sit idle waiting for an assignment.
 
-**2. Team.** `team_create "<change>-<4digits>"`. Monitor: http://localhost:4747/
+**1. Branch.** Create `feature/{change-slug}` if not already on one.
 
-**3. Board.** Add ALL tasks before spawning. Dependency order matters — you cannot reference a task ID until its `team_tasks_add` call returns.
+**2. Load the plan.** Parse `tasks.md`. Each task carries `<!-- agent, depends_on, touches -->` (from `/ob-propose`). The model is a property of the **agent** (set in its agent file), not the task. Read `.opencode/opencode-onboard.json` → `wizard.maxConcurrentAgents` (the wave cap, 1–5).
+
+**3. Hydrate the Todo board.** `todowrite` one item per task: `pending`. **The Todo pane is the visible subagent board** (opencode plugins cannot draw a custom pane, so the native Todo widget is the live UI). While a task is in flight, its label must carry the worker — `<agent> · <model>` — so the pane shows which agent on which model is doing what. The Todo list is a **projection only**: never read it for recovery; rebuild it from `tasks.md` + git + `.opencode/.ob-run.json`.
+
+**4. MCP health + degradation.** Before each wave, confirm codegraph and basic-memory respond. Degrade automatically:
+- **codegraph down/slow** → compute file-disjointness from `touches:` globs + `git diff` instead of `codegraph_impact`.
+- **basic-memory down** → pass results inline through your context + read `.opencode/.ob-run.json`; skip note writes.
+Tell the user when you degrade.
+
+**5. The wave loop.** Repeat until no tasks remain:
+
 ```
-team_tasks_add tasks:[
-  { content: "<task text from tasks.md>", priority: "high" },
-  { content: "<dependent task>", priority: "high", depends_on: ["<real-id>"] }
-]
+eligible = unchecked tasks whose every depends_on is DONE (committed/checked)
+if eligible is empty but tasks remain  → STALL: report blocked tasks + the failed
+                                          dependency causing it, then STOP.
+groups   = pack eligible tasks that share a file (touches / codegraph_impact)
+           into ONE worker each, to run sequentially (the worker uses the task's `agent`)
+wave     = pick groups whose file-sets are pairwise DISJOINT, capped at maxConcurrentAgents
+           (you enforce the cap — opencode runs every task() you emit at once)
 ```
-Save every returned task ID. Do not proceed until the full board is built.
 
-**4. Context.** Before spawning, gather context to include in each spawn prompt:
-- Use `codegraph_search` and `codegraph_impact` to find relevant symbols and files for each task domain.
-- Use basic-memory (`search` to retrieve prior decisions and context, `write_note` to store new ones) so agents share knowledge across the session.
+**6. Context per group.** For each group, gather (when MCPs are healthy):
+- `codegraph_search` / `codegraph_impact` for the relevant symbols/files.
+- basic-memory `search` for prior decisions and the `change-<slug>-context` note (write that context note once before wave 1).
 
-**5. Spawn.** For each task group:
-- Agent and model tier come from the task annotations in `tasks.md` (`<!-- agent: <name>, modeltype: <tier> -->`, set during `/ob-propose`).
-- Resolve `modeltype` → concrete model id by reading `.opencode/ensemble.json` → `modelsByAgent[<tier>]` (e.g. `modeltype: build` → `modelsByAgent.build`). Fall back to `.opencode/opencode-onboard.json` `wizard.models[<tier>]`, then the active chat model if neither is set. Resolve fresh at spawn time so edits to `ensemble.json` take effect on re-apply.
-- If annotations are missing entirely: scan `.opencode/agents/` for the best agent match and use the `build` tier for engineers.
-- `team_spawn name:"<x>" agent:"<file>" model:"<resolved-id>" claim_task:"<task-id>" prompt:"..."`
-- Spawn prompt must start with: `Claim [<task-id>]: <task text>.` followed by relevant context.
-- Spawn sequentially — wait for each spawn result before the next.
-- Immediately after each spawn: `team_message to:"<x>" text:"Claim now: [<task-id>] <task text>"`
+**7. Spawn the wave — one assistant turn, multiple `task()` calls (they run in parallel).** For each group:
+- `subagent_type` = the task's `agent` **exactly as written** in `tasks.md` (e.g. `frontend-engineer`). It must be an agent file present in `.opencode/agents/`. If that agent is missing, fall back to `basic-engineer`. **Never** spawn the built-in `general` agent for implementation work — its model is wrong. The agent's own file carries its model.
+- `description` = `"<task-ids> — <short label>"` (e.g. `"2.1,2.2 — RPC endpoints"`) so the subagent is legible in the `←`/`→` list and the monitor.
+- `prompt` must contain: the exact task IDs + text, and the gathered context (codegraph symbols + relevant basic-memory notes). The worker follows the **Engineer workflow** defined once in `@ob-generic-guardrails` (load abilities → implement in dependency order → write a `task-<id>-result` note → return a summary) — do not restate it in the prompt.
+- Flip each spawned task's Todo item to `in_progress` and prefix its label with `<agent> · <model> — ` (e.g. `frontend-engineer · sonnet — 2.1 Consolidate logic`) so the running worker is visible in the Todo pane. On completion, drop the prefix and mark `completed`.
 
-**6. Wait.** Tell the user what is running. STOP. Do not poll. Teammates message you when done or blocked.
+**8. Collect the wave.** Each foreground `task()` returns its result to you. For each group:
+- **success** → `git add` the group's `touches` paths and commit `"{ids}: {summary}"`; mark its Todo items `completed`; check `[x]` in `tasks.md`.
+- **error / empty** → revert that group's impact paths (`git checkout -- <paths>`), mark `failed`, record reason (basic-memory note or `.ob-run.json`), then **retry once** (fresh spawn, shorter prompt). Still failing → leave failed and surface to the user; do not loop.
+- A failed group only blocks its dependents; unrelated tasks keep flowing.
 
-**7. Reassign or close.**
-- `team_results from:"<name>"` to read. `team_tasks_list` to check remaining tasks.
-- More tasks for this agent → send next batch with literal IDs via `team_message`.
-- No more tasks → `team_shutdown` → `team_merge`. On merge conflict: `git stash`, retry, `git stash pop`.
-- Agent idle (never claimed) → resend task ID once. Still idle → shutdown + respawn once with a shorter prompt. Still fails → continue in main session.
-- All agents done, tasks remain → spawn a new wave (back to step 5).
+**9. Progress guard.** If a full wave moved **zero** tasks to DONE → STOP (do not re-spawn the identical failing set). Otherwise recompute `eligible` and loop to step 5.
 
-**8. Verify.** Spawn the best available engineer with `worktree:false`. Wait → `team_results` → fix blockers → `team_shutdown`.
+**10. Verify.** In this (lead) session, run the change's tests/lint/build. On failure, reopen the offending tasks (uncheck, mark failed) → they re-enter `eligible` → run another wave.
 
-**9. Mark done.** Update `tasks.md` checkboxes. Run `openspec status --change "<name>" --json`.
+**11. Close.** Mark all `tasks.md` checkboxes, run `openspec status --change "<name>" --json`, report progress (N/M tasks). The wave state in `.opencode/.ob-run.json` and basic-memory persists for resume.
 
-**10. Cleanup.** Show progress (N/M tasks). `team_cleanup`.
+> **Resume:** re-running `/ob-apply` after any crash recomputes DONE / FAILED / eligible from `tasks.md` + git + basic-memory + `.ob-run.json` and continues. State is on disk, not in this conversation.

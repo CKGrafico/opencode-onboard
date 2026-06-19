@@ -1,12 +1,12 @@
 ---
-description: Quick direct implementation, no OpenSpec, no ensemble, no PRs. Just do it.
+description: Quick direct implementation, no OpenSpec, no subagent waves, no PRs. Just do it.
 ---
 
 Implement the task described after `/ob-main` directly and immediately.
 
 **Rules:**
 - No OpenSpec artifacts (no proposal, no specs, no tasks.md)
-- No ensemble team (no team_create, no team_spawn)
+- No subagent waves (work in this session only)
 - No branches, no PRs
 - Work directly in the current branch
 - Keep changes minimal and focused on exactly what was asked

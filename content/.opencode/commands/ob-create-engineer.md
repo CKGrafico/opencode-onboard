@@ -2,20 +2,23 @@
 description: Create a custom engineer agent from a description, with skills from skills.sh
 ---
 
-Create a new custom engineer agent based on the `basic-engineer.md` template.
+Create a new custom engineer agent based on the `basic-engineer.md` template. One file per engineer — no variants. The engineer's **model is fixed by its tier** (chosen here), since OpenCode resolves a subagent's model from its agent file.
 
-**Usage**: `/ob-create-engineer <name> "<description>"`
+**Usage**: `/ob-create-engineer <name> <tier> "<description>"`
 
-Example: `/ob-create-engineer frontend-engineer "A frontend engineer specialized in React, Next.js, and CSS"`
+- `<tier>` — one of `plan`, `build`, `fast`. Maps to `.opencode/opencode-onboard.json` → `wizard.models[<tier>]`. Use `build` for most specialists, `plan` for heavy-reasoning roles (e.g. an architect), `fast` for light helpers.
+
+Example: `/ob-create-engineer frontend-engineer build "A frontend engineer specialized in React, Next.js, and CSS"`
 
 **Steps**
 
 1. **Parse input**
 
-   Extract `<name>` and `<description>` from the arguments after `/ob-create-engineer`.
-   - Name should be kebab-case (e.g., `frontend-engineer`)
+   Extract `<name>`, `<tier>`, and `<description>` from the arguments after `/ob-create-engineer`.
+   - Name MUST be a single lowercase word followed by `-engineer` (match `^[a-z0-9]+-engineer$`), e.g. `frontend-engineer`, `di-engineer`, `architect-engineer`. If the given name doesn't match (e.g. `frontend-engineer-di`), normalize it to that form (pick the most descriptive single word, e.g. `di-engineer`) before continuing. The `-engineer` suffix is required — discovery globs `*-engineer.md`.
+   - Tier is one of `plan` / `build` / `fast` (default `build` if omitted)
    - Description is the quoted string explaining the agent's specialty
-   - If no input provided, use the AskUserQuestion tool to ask for both.
+   - If no input provided, use the AskUserQuestion tool to ask for name, tier, and description.
 
 2. **Search for relevant skills from skills.sh**
 
@@ -46,6 +49,7 @@ Example: `/ob-create-engineer frontend-engineer "A frontend engineer specialized
    ---
    description: <description>
    mode: subagent
+   model: <wizard.models[<tier>] from .opencode/opencode-onboard.json>
    color: <pick a theme color: primary|secondary|accent|success|warning|error|info>
    permission:
      edit: allow
@@ -60,21 +64,9 @@ Example: `/ob-create-engineer frontend-engineer "A frontend engineer specialized
    - Development: <@installed-skill-1>, <@installed-skill-2>, ...
    - Testing: <@installed-skill-for-testing>, ...
    - Infrastructure: <@installed-skill-for-devops-cicd>, ...
-
-   ## Workflow
-
-   When spawned by the lead:
-1. Call `team_tasks_list` immediately and identify your assigned task IDs.
-2. Claim the first assigned task that is unblocked with `team_claim task_id:<id>`. If the first assigned task is blocked, claim the next assigned task whose dependencies are already `done`. Do not wait once you have an unblocked assigned task.
-3. After claiming, load `@ob-global` first, then load mandatory ability `Guardrails`.
-4. Load additional abilities from the `## Abilities` section as needed for the claimed task domain (for example: development, testing, infrastructure). Each ability can include one or more skills; load all relevant skills listed under each selected ability.
-5. Send a short `team_message` to lead confirming the claimed task ID and loaded skills.
-6. Implement the task following all loaded skill rules.
-7. Call `team_tasks_complete task_id:<id>` after finishing that task.
-8. Repeat until all currently assigned tasks are completed or blocked.
-9. Message lead with results via `team_message`. Lead may assign more tasks, do NOT stop working or shut down until lead confirms no more tasks for you.
-10. If lead sends new task IDs via `team_message`, treat them as new assignments and go back to step 1.
 ```
+
+   Keep the file minimal — **identity + abilities + model only**, exactly like `basic-engineer.md`. Do **NOT** add a `## Workflow` section: the engineer workflow is defined once in `@ob-generic-guardrails` (every engineer loads it via its Guardrails ability), so it must not be duplicated in each agent file.
 
    Place the installed skills under the most relevant ability category:
    - **Development** — language frameworks, UI libraries, application code skills
@@ -83,17 +75,21 @@ Example: `/ob-create-engineer frontend-engineer "A frontend engineer specialized
 
    Distribute skills across ALL categories that apply. Only include categories that have at least one real skill assigned (besides Guardrails which is always present).
 
-5. **Update AGENTS.md**
+5. **Resolve the model from the tier**
+
+   Read `wizard.models[<tier>]` from `.opencode/opencode-onboard.json` and put it in the agent file's `model:` frontmatter line (step 4). This is the model the engineer runs on — OpenCode reads it from the agent file when the lead spawns it. If that tier's model is unset, omit `model:` (the engineer inherits the lead's model) and warn the user to run `/ob-set-model <tier> <model>`.
+
+6. **Update AGENTS.md**
 
    Add the new agent to the agents table in AGENTS.md:
    ```
     | `<name>` | .opencode/agents/<name>.md | <short role description> |
    ```
 
-6. **Show summary**
+7. **Show summary**
 
    Report:
-    - Agent file created at `.opencode/agents/<name>-engineer.md`
+    - Agent file created at `.opencode/agents/<name>.md` (tier `<tier>` → model `<resolved id>`)
    - Skills installed (list each with source)
    - How to use: "This agent will be spawned by the lead during `/ob-apply` for tasks matching its specialty."
 
@@ -106,4 +102,4 @@ Example: `/ob-create-engineer frontend-engineer "A frontend engineer specialized
 - Pick a color that doesn't conflict with existing agents (basic-engineer uses #68A063)
 - Skills should match both the agent description AND the project's tech stack
 - If `npx skills` CLI is not available, manually reference skills by their `owner/repo` name in the abilities section and tell the user to install them
-- Keep the worker startup sequence short. Claim comes before skill loading so the agent is visible on the board immediately.
+- One file per engineer — do NOT create `-build`/`-fast` variant files. The model comes from the chosen tier and is stamped into the single agent file.
