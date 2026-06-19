@@ -233,8 +233,11 @@ your-project/
 │   ├── opencode.json                ← default model + plugin config
 │   ├── opencode-onboard.json        ← onboarding metadata + runtime config (models, maxConcurrentAgents)
 │   ├── agents/                      ← basic-engineer + user-created *-engineer files (each carries its model)
+│   ├── tui.json                     ← registers the Subagents sidebar panel
+│   ├── tui/
+│   │   └── ob-subagents.tsx         ← TUI plugin: live Subagents panel in the sidebar
 │   └── plugins/
-│       └── ob-subagent-monitor.js   ← live subagent state → .opencode/.ob-run.json
+│       └── ob-subagent-monitor.js   ← server plugin: writes subagent state → .opencode/.ob-run.json
 └── .agents/
     └── skills/
         ├── ob-global/              ← baseline skill, load FIRST

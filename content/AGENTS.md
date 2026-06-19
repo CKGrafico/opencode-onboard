@@ -229,7 +229,7 @@ Parallel execution uses OpenCode's native `task` tool — no external plugin, no
 - **Explicit stalls.** If tasks remain but none are eligible (a dependency failed), or a full wave makes zero progress, STOP and report — never spin.
 - **Retry limit.** One retry per failed group, then surface to the user. Never retry indefinitely.
 
-**Live view:** the lead's native Todo list is the board; the `ob-subagent-monitor` plugin also writes `.opencode/.ob-run.json`. Navigate into any running subagent with `ctrl+x ↓` then `←`/`→`.
+**Live view:** the lead's native Todo list is the board; a **Subagents** panel (TUI plugin) also renders each subagent's agent · model · status live in the session sidebar, backed by `.opencode/.ob-run.json` (written by the `ob-subagent-monitor` server plugin). Navigate into any running subagent with `ctrl+x ↓` then `←`/`→`.
 
 **Recovery:** re-run `/ob-apply` — it rebuilds state from `tasks.md` + git + basic-memory + `.opencode/.ob-run.json` and continues. State is on disk, not in the session.
 
