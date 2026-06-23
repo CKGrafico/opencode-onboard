@@ -60,7 +60,7 @@
      --repository {repo} \
      --source-branch refs/heads/archive/{id}-{slug} \
      --target-branch refs/heads/main \
-     --title "archive(us-{id}): {title}" \
+     --title "archive: {title} ({id})" \
      --description "Archive SDD artifacts for us-{id} after merge of {sourceRefName}." \
      --auto-complete
    ```
