@@ -20,6 +20,8 @@ Display the following reference to the user exactly as written. Do not summarize
 
 **`/ob-main <task>`** — Skip the whole OpenSpec/wave flow. Just do the task directly in the current session. Best for small, focused changes that don't need a plan or parallel agents.
 
+**`/ob-autopilot <feature or URL>`** — Fully autonomous, no confirmations. Branches off `main`, then runs propose → apply → archive on that branch (each phase its own commit) and merges back to `main`. Built for loop-engineering / unattended runs. Stops only on a hard failure, leaving the branch unmerged.
+
 ---
 
 ### Done implementing?
