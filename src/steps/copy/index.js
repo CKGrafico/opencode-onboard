@@ -19,9 +19,10 @@ export async function copyContentStep(platform, ctx = {}) {
   try {
     await copyContent(CONTENT_DIR, dest, platform, ctx)
 
-    // .gitignore is not overwritten by fse.copy if it already exists (overwrite: false),
-    // so merge it manually to preserve both opencode's defaults and our additions.
-    const srcGitignore = path.join(CONTENT_DIR, ".opencode", ".gitignore")
+    // .gitignore is stripped by npm during publish, so the source file is _gitignore.
+    // Also, fse.copy with overwrite:false won't overwrite an existing .gitignore,
+    // so merge manually to preserve both opencode's defaults and our additions.
+    const srcGitignore = path.join(CONTENT_DIR, ".opencode", "_gitignore")
     const destGitignore = path.join(dest, ".opencode", ".gitignore")
     if (await fse.pathExists(srcGitignore)) {
       const srcLines = (await fse.readFile(srcGitignore, "utf-8")).split("\n").map(l => l.trim()).filter(Boolean)
