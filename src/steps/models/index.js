@@ -2,7 +2,6 @@ import { header, info, prompt, success, warn } from '../../utils/exec.js'
 import { fetchModels } from '../../utils/models-cache.js'
 import { buildDisplayModels, filterModelsByProvider, modelsPreset, pickModel, pickProvider } from './format.js'
 import { writeModelsToConfigs } from './write.js'
-import { stampAgentModels } from '../copy/agent-models.js'
 
 async function pickRoleModel(role, allModels) {
   const rolePreset = modelsPreset.roles[role]
@@ -56,7 +55,6 @@ export async function chooseModels() {
   const fastModel  = await pickRoleModel('fast',  models); console.log();
 
   await writeModelsToConfigs({ planModel, buildModel, fastModel });
-  await stampAgentModels({ models: { build: buildModel, fast: fastModel } });
 
   console.log();
   warn('Make sure you have API access to the selected models.');

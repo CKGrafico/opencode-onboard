@@ -5,9 +5,10 @@
     { "label": "[$$$]" }
   ],
   "providers": [
-    { "value": "opencode", "name": "OpenCode" },
-    { "value": "github",   "name": "GitHub Copilot" },
-    { "value": "anthropic","name": "Anthropic" },
+    { "value": "opencode", "name": "OpenCode Zen" },
+    { "value": "opencode-go", "name": "OpenCode Go" },
+    { "value": "github-copilot", "name": "GitHub Copilot" },
+    { "value": "anthropic", "name": "Anthropic" },
     { "value": "google",   "name": "Google" },
     { "value": "openai",   "name": "OpenAI" },
     { "value": "deepseek", "name": "DeepSeek" },
@@ -21,27 +22,29 @@
         "Needs to be strong. A weak model here will silently skip steps and break the workflow."
       ],
       "suggestions": {
-        "opencode":  null,
-        "github":    "github/claude-sonnet-4-5",
-        "anthropic": "anthropic/claude-sonnet-4-5",
-        "google":    "google/gemini-2.5-pro",
-        "openai":    "openai/o3",
-        "deepseek":  null
+        "opencode":        "opencode/claude-sonnet-4",
+        "opencode-go":     null,
+        "github-copilot":  "github-copilot/claude-sonnet-4.5",
+        "anthropic":       "anthropic/claude-sonnet-4-5",
+        "google":          "google/gemini-2.5-pro",
+        "openai":          "openai/o3",
+        "deepseek":        null
       }
     },
     "build": {
       "prompt": "Build model:",
       "info": [
         "BUILD — engineers: implements code, runs tests, commits.",
-        "Code quality matters here. DeepSeek V3 is outstanding value. Claude Sonnet is the gold standard."
+        "Code quality matters here. DeepSeek V4 is outstanding value. Claude Sonnet is the gold standard."
       ],
       "suggestions": {
-        "opencode":  null,
-        "github":    "github/claude-sonnet-4-5",
-        "anthropic": "anthropic/claude-sonnet-4-5",
-        "google":    "google/gemini-2.5-flash",
-        "openai":    "openai/gpt-4.1",
-        "deepseek":  "deepseek/deepseek-v3"
+        "opencode":        "opencode/deepseek-v4-flash",
+        "opencode-go":     "opencode-go/deepseek-v4-pro",
+        "github-copilot":  "github-copilot/claude-sonnet-4.5",
+        "anthropic":       "anthropic/claude-sonnet-4-5",
+        "google":          "google/gemini-2.5-flash",
+        "openai":          "openai/gpt-4.1",
+        "deepseek":        "deepseek/deepseek-v4-pro"
       },
       "agents": ["basic-engineer"]
     },
@@ -52,12 +55,13 @@
         "No heavy reasoning needed. Cheap and fast is the right call here."
       ],
       "suggestions": {
-        "opencode":  "opencode/big-pickle",
-        "github":    "github/gpt-4o-mini",
-        "anthropic": "anthropic/claude-haiku-4-5",
-        "google":    "google/gemini-2.0-flash",
-        "openai":    "openai/gpt-4o-mini",
-        "deepseek":  null
+        "opencode":        "opencode/glm-4.7",
+        "opencode-go":     "opencode-go/qwen3.6-plus",
+        "github-copilot":  "github-copilot/gpt-5.4-nano",
+        "anthropic":       "anthropic/claude-haiku-4-5",
+        "google":          "google/gemini-2.0-flash",
+        "openai":          "openai/gpt-4o-mini",
+        "deepseek":        null
       }
     }
   }
