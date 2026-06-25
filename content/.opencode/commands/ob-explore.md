@@ -15,10 +15,6 @@ Before exploring a new idea, inspect `openspec/changes/` (ignore `openspec/chang
 If any folder (`us-{id}-{slug}`) exist in `openspec/changes/`, list them and warn the user with this exact prompt:
 
 ```text
-Before exploring a new idea, inspect `openspec/changes/` (ignore `openspec/changes/archive`).
-If any folder (`us-{id}-{slug}`) exist in `openspec/changes/`, list them and warn the user with this exact prompt:
-
-```text
 There are unarchived changes pending to be archived:
   Name: {change-name}
   Name: {change-name}
