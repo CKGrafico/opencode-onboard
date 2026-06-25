@@ -1,29 +1,25 @@
 // ob-subagent-tiers
 //
 // On startup, reads *-engineer.md agent files (templates with no model) and
-// injects tier variants (*-engineer.build, *-engineer.fast, *-engineer.plan)
-// into the live config (cfg.agent) via the `config` hook, each with the model
-// resolved from wizard.models.
+// creates tier variant files (*-engineer.build.md, *-engineer.fast.md,
+// *-engineer.plan.md) on disk, each with the model resolved from wizard.models.
+// Then also injects them into cfg.agent in-memory for immediate availability.
 //
 // Model resolution priority:
 //   1. `.opencode/opencode-onboard.user.json` → wizard.models  (user override, gitignored)
 //   2. `.opencode/opencode-onboard.json`      → wizard.models  (team shared)
 //   3. unset → variant not created (the template inherits the lead's model)
 //
-// This lets /ob-propose annotate tasks with tier-suffixed agent names
-// (e.g. `backend-engineer.build`), and /ob-apply spawn them directly —
-// the model is baked in at config time, no mid-session file editing needed.
-//
-// Template agents (*-engineer.md) have NO model: — they are plain templates.
-// Tier variants are in-memory only (injected via the config hook); no
-// generated files, no git churn.  Restart opencode after /ob-set-model to
-// pick up model changes.
+// The variant files are gitignored (*-engineer.*.md in .opencode/.gitignore)
+// and regenerated on every startup — so /ob-set-model + restart picks up
+// new models without touching the template files.
 
 import fs from "node:fs/promises"
 import path from "node:path"
 
 export const ObSubagentTiers = async ({ directory }) => {
   const root = directory || process.cwd()
+  const agentsDir = path.join(root, ".opencode", "agents")
 
   const TIERS = ["build", "fast", "plan"]
 
@@ -46,7 +42,6 @@ export const ObSubagentTiers = async ({ directory }) => {
     const userModels = user?.wizard?.models ?? {}
     const teamModels = team?.wizard?.models ?? {}
 
-    // User overrides team
     const models = {}
     for (const tier of TIERS) {
       models[tier] = userModels[tier] ?? teamModels[tier] ?? null
@@ -54,46 +49,92 @@ export const ObSubagentTiers = async ({ directory }) => {
     return models
   }
 
-  return {
-    config: async (cfg) => {
-      const models = await resolveModels()
-      const available = TIERS.filter((t) => models[t])
-      if (available.length === 0) {
-        console.error("[ob-subagent-tiers] No tier models configured. Run /ob-set-model <tier> <model>.")
-        return
-      }
+  async function listEngineerTemplates() {
+    try {
+      const entries = await fs.readdir(agentsDir)
+      return entries
+        .filter((f) => /^[\w-]+-engineer\.md$/.test(f))
+        .map((f) => f.replace(/\.md$/, ""))
+    } catch {
+      return []
+    }
+  }
 
-      cfg.agent = cfg.agent || {}
+  function buildVariantContent(templateContent, model) {
+    const fmMatch = templateContent.match(/^---\r?\n([\s\S]*?)\r?\n---/)
+    if (!fmMatch) return templateContent
 
-      // Find all *-engineer agents in the config (loaded from .opencode/agents/*.md)
-      const engineerNames = Object.keys(cfg.agent).filter((name) =>
-        name.endsWith("-engineer")
-      )
+    const fm = fmMatch[1]
+    const modelLine = `model: ${model}`
 
-      if (engineerNames.length === 0) {
-        console.error("[ob-subagent-tiers] No *-engineer agents found in cfg.agent")
-        return
-      }
+    let newFm
+    if (/^model:\s*\S+/m.test(fm)) {
+      newFm = fm.replace(/^model:\s*\S+/m, modelLine)
+    } else {
+      newFm = modelLine + "\n" + fm
+    }
 
-      let injected = 0
-      for (const name of engineerNames) {
-        const template = cfg.agent[name]
-        if (!template) continue
+    return templateContent.replace(fmMatch[1], newFm)
+  }
 
-        for (const tier of available) {
-          const variantName = `${name}.${tier}`
-          // Shallow-clone the template (description, mode, permission, etc.)
-          // and stamp the model on top. cfg.agent entries use string model ids
-          // (e.g. "opencode/big-pickle") — the Agent layer parses them later.
-          cfg.agent[variantName] = {
-            ...template,
-            model: models[tier],
-          }
-          injected++
+  async function cleanStaleVariants(keepSet) {
+    try {
+      const entries = await fs.readdir(agentsDir)
+      for (const f of entries) {
+        const m = f.match(/^(.+)-engineer\.(build|fast|plan)\.md$/)
+        if (m && !keepSet.has(f)) {
+          await fs.unlink(path.join(agentsDir, f))
         }
       }
+    } catch {}
+  }
 
-      console.error(`[ob-subagent-tiers] Injected ${injected} tier variants for ${engineerNames.length} engineer(s)`)
+  return {
+    config: async (cfg) => {
+      try {
+        const models = await resolveModels()
+        const available = TIERS.filter((t) => models[t])
+
+        const templates = await listEngineerTemplates()
+
+        // Write physical files AND inject in-memory
+        const keepSet = new Set()
+
+        for (const name of templates) {
+          const templatePath = path.join(agentsDir, `${name}.md`)
+          const templateContent = await fs.readFile(templatePath, "utf-8")
+
+          for (const tier of available) {
+            const variantFile = `${name}.${tier}.md`
+            const variantPath = path.join(agentsDir, variantFile)
+            const variantContent = buildVariantContent(templateContent, models[tier])
+
+            await fs.writeFile(variantPath, variantContent, "utf-8")
+            keepSet.add(variantFile)
+
+            // Also inject in-memory for immediate availability
+            if (cfg?.agent) {
+              cfg.agent[`${name}.${tier}`] = {
+                ...cfg.agent[name],
+                model: models[tier],
+              }
+            }
+          }
+        }
+
+        // Clean stale variants
+        await cleanStaleVariants(keepSet)
+
+        // Log
+        const total = templates.length * available.length
+        if (total > 0) {
+          console.error(`[ob-subagent-tiers] Created ${total} variant files (${templates.length} engineers x ${available.length} tiers)`)
+        } else {
+          console.error(`[ob-subagent-tiers] No variants created. Models: ${JSON.stringify(models)}`)
+        }
+      } catch (err) {
+        console.error(`[ob-subagent-tiers] Error: ${err.message}`)
+      }
     },
   }
 }
