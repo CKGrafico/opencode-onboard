@@ -7,7 +7,7 @@ import { commandExists, error, info, loading, success, warn } from '../../utils/
  * Configures the basic-memory MCP server in .opencode/opencode.json
  * and installs the basic-memory skill.
  *
- * basic-memory runs via `uv tool run basic-memory mcp` (stdio, no Docker).
+ * basic-memory runs via `basic-memory mcp` (stdio, no Docker).
  * Requires uv: https://docs.astral.sh/uv/getting-started/installation/
  * Skill source: https://github.com/basicmachines-co/basic-memory (skills/ directory)
  */
@@ -21,9 +21,9 @@ export async function installMemory(options = {}) {
     warn('Install uv from https://docs.astral.sh/uv/getting-started/installation/')
   }
 
-  // Pre-install basic-memory so uvx starts instantly when OpenCode connects.
-  // Without this, uvx downloads ~50MB of ML packages on first MCP connection
-  // causing OpenCode's connection timeout to expire.
+  // Pre-install basic-memory so the `basic-memory` binary is on PATH.
+  // `uv tool install` puts it in ~/.local/bin (or equivalent),
+  // so opencode can call `basic-memory mcp` directly — no uvx resolution delay.
   loading('installing basic-memory (this may take a minute)...')
   try {
     const installResult = await execa('uv', ['tool', 'install', 'basic-memory'], {
@@ -53,7 +53,7 @@ export async function installMemory(options = {}) {
     if (!opencode.mcp['basic-memory']) {
       opencode.mcp['basic-memory'] = {
         type: 'local',
-        command: ['uv', 'tool', 'run', 'basic-memory', 'mcp'],
+        command: ['basic-memory', 'mcp'],
         enabled: true,
         timeout: 300000,
       }
