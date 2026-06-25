@@ -6,7 +6,7 @@ import { installBrowser } from '../steps/browser/index.js'
 import { checkRtk } from '../steps/optimization/index.js'
 import { installMemory } from '../steps/optimization/memory.js'
 import { checkPlatform, choosePlatform } from '../steps/platform/index.js'
-import { commandExists, header, info, success, warn } from '../utils/exec.js'
+import { commandExists, header, info, loading, success, warn, error } from '../utils/exec.js'
 import { readOnboardConfig } from './shared.js'
 
 export async function runJoin() {
@@ -28,6 +28,10 @@ export async function runJoin() {
   const savedWizard = saved?.wizard ?? {}
   const savedPlatform = savedWizard?.platform
   const installScope = savedWizard?.installScope ?? 'local'
+  const teamModels = savedWizard?.models ?? {}
+
+  const opencodeDir = path.join(process.cwd(), '.opencode')
+  const opencodeJsonPath = path.join(opencodeDir, 'opencode.json')
 
   // Step 1: Platform CLI check
   header('Step 1, Platform CLI check')
@@ -42,7 +46,6 @@ export async function runJoin() {
 
   // Step 2: Install OpenCode plugins
   header('Step 2, Installing OpenCode plugins')
-  const opencodeDir = path.join(process.cwd(), '.opencode')
   const pkgPath = path.join(opencodeDir, 'package.json')
   if (await fse.pathExists(pkgPath)) {
     try {
@@ -64,32 +67,150 @@ export async function runJoin() {
     warn('npx skills failed — skills may be missing')
   }
 
-  // Step 4: basic-memory check (if project uses it)
-  const opencodeJson = path.join(opencodeDir, 'opencode.json')
-  if (await fse.pathExists(opencodeJson)) {
+  // Step 4: OpenSpec CLI check
+  header('Step 4, Checking OpenSpec')
+  const openspecAvailable = await commandExists('openspec')
+  if (openspecAvailable) {
+    success('OpenSpec CLI is available')
+  } else {
+    info('OpenSpec not found on PATH — installing...')
     try {
-      const cfg = await fse.readJson(opencodeJson)
-      if (cfg?.mcp?.['basic-memory']) {
-        header('Step 4, Installing basic-memory')
-        const uvAvailable = await commandExists('uv')
-        if (uvAvailable) {
-          await installMemory({ skipHeader: true })
-        } else {
-          warn('uv not found — basic-memory MCP will not work. Install uv from https://docs.astral.sh/uv/')
-        }
+      const result = await execa('npm', ['install', '@fission-ai/openspec', '--global'], {
+        cwd: process.cwd(),
+        reject: false,
+        stdio: 'pipe',
+      })
+      if (result.exitCode === 0) {
+        success('OpenSpec installed')
+      } else {
+        warn('OpenSpec install failed — run `npm install -g @fission-ai/openspec` manually')
       }
+    } catch {
+      warn('OpenSpec install failed — run `npm install -g @fission-ai/openspec` manually')
+    }
+  }
+
+  // Step 5: basic-memory (if project uses it)
+  header('Step 5, Checking basic-memory')
+  let cfg = {}
+  if (await fse.pathExists(opencodeJsonPath)) {
+    try {
+      cfg = await fse.readJson(opencodeJsonPath)
     } catch {
       // ignore config read errors
     }
   }
 
-  // Step 5: RTK check
-  header('Step 5, Checking rtk')
+  if (cfg?.mcp?.['basic-memory']) {
+    info('Project uses basic-memory MCP')
+    const uvAvailable = await commandExists('uv')
+    if (uvAvailable) {
+      loading('installing basic-memory via uv tool install...')
+      try {
+        const installResult = await execa('uv', ['tool', 'install', 'basic-memory'], {
+          reject: false,
+          timeout: 300000,
+          stdio: 'pipe',
+        })
+        if (installResult.exitCode === 0) {
+          success('basic-memory installed')
+        } else {
+          const stderr = installResult.stderr?.trim() ?? ''
+          if (stderr.includes('already installed')) {
+            success('basic-memory already installed')
+          } else {
+            warn('basic-memory install exited with non-zero code — MCP may not work')
+          }
+        }
+      } catch (err) {
+        warn(`basic-memory install failed: ${err.message}`)
+      }
+    } else {
+      warn('uv not found — basic-memory MCP will not work. Install uv from https://docs.astral.sh/uv/')
+    }
+  } else {
+    info('basic-memory not configured for this project — skipping')
+  }
+
+  // Step 6: Codegraph (if project uses it)
+  header('Step 6, Checking codegraph')
+  if (cfg?.mcp?.['codegraph']) {
+    info('Project uses codegraph MCP — building index...')
+    try {
+      const result = await execa('npx', ['--yes', '@colbymchenry/codegraph', 'init', '-i'], {
+        cwd: process.cwd(),
+        reject: false,
+        stdio: 'pipe',
+        timeout: 120000,
+      })
+      if (result.exitCode === 0) {
+        success('codegraph index initialized')
+      } else {
+        warn('codegraph init failed — codegraph_search may be slow or unavailable')
+      }
+    } catch {
+      warn('codegraph init failed — codegraph_search may be slow or unavailable')
+    }
+  } else {
+    info('codegraph not configured for this project — skipping')
+  }
+
+  // Step 7: RTK check
+  header('Step 7, Checking rtk')
   await checkRtk({ skipHeader: true, skipPrompt: true })
 
-  // Step 6: Browser extension
-  header('Step 6, Installing opencode-browser')
+  // Step 8: Browser extension
+  header('Step 8, Installing opencode-browser')
   await installBrowser({ installScope })
+
+  // Step 9: Model tier guidance
+  header('Step 9, Model tiers')
+  const userConfigPath = path.join(opencodeDir, 'opencode-onboard.user.json')
+  const hasUserOverride = await fse.pathExists(userConfigPath)
+
+  if (teamModels && Object.keys(teamModels).length > 0) {
+    info('Team model configuration:')
+    for (const [tier, model] of Object.entries(teamModels)) {
+      info(`  ${tier}: ${model}`)
+    }
+    console.log()
+
+    if (hasUserOverride) {
+      info('You have a local model override (opencode-onboard.user.json).')
+      info('To change: /ob-set-model user <tier> <model>')
+    } else {
+      info('No local override — using team defaults.')
+      info('To override a tier for your machine: /ob-set-model user <tier> <model>')
+      info('  e.g. /ob-set-model user build current')
+    }
+    console.log()
+    info('The ob-subagent-tiers plugin will generate *-engineer.<tier>.md variants')
+    info('on opencode startup from these model configs.')
+  } else {
+    warn('No model tiers configured in opencode-onboard.json.')
+    warn('Run /ob-set-model <tier> <model> for plan, build, and fast.')
+  }
+
+  // Step 10: Ensure .opencode/.gitignore exists
+  header('Step 10, Checking .opencode/.gitignore')
+  const gitignorePath = path.join(opencodeDir, '.gitignore')
+  const requiredEntries = ['node_modules', '.ob-run.json', 'opencode-onboard.user.json', 'source-roots.json', '*-engineer.*.md']
+
+  if (await fse.pathExists(gitignorePath)) {
+    const content = await fse.readFile(gitignorePath, 'utf-8')
+    const existing = content.split('\n').map(l => l.trim()).filter(Boolean)
+    const missing = requiredEntries.filter(e => !existing.includes(e))
+    if (missing.length > 0) {
+      const merged = [...existing, ...missing].join('\n') + '\n'
+      await fse.writeFile(gitignorePath, merged, 'utf-8')
+      success(`Merged ${missing.length} missing .gitignore entries`)
+    } else {
+      success('.gitignore is up to date')
+    }
+  } else {
+    await fse.writeFile(gitignorePath, requiredEntries.join('\n') + '\n', 'utf-8')
+    success('Created .opencode/.gitignore')
+  }
 
   console.log()
   console.log(chalk.bold.green('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'))
@@ -97,6 +218,9 @@ export async function runJoin() {
   console.log(chalk.bold.green('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'))
   console.log()
   console.log('  Your local environment is ready.')
-  console.log('  Open the project in OpenCode and start coding!')
+  if (teamModels && Object.keys(teamModels).length > 0 && !hasUserOverride) {
+    console.log(chalk.dim('  Tip: Run /ob-set-model user <tier> current to override team models locally.'))
+  }
+  console.log(chalk.dim('  Restart opencode to pick up tier agent variants.'))
   console.log()
 }
