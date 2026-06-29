@@ -107,7 +107,7 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 | `/ob-pullrequest` | Create a PR for the current branch, or read and classify PR review comments. |
 | `/ob-archive` | Archive a completed OpenSpec change. |
 | `/ob-main <task>` | Quick direct implementation — no OpenSpec, no waves, no PR. Just do it. |
-| `/ob-autopilot <feature or URL>` | Autonomous, no-confirmation pipeline: branch off `main`, then propose → apply → archive (one commit per phase), then merge back to `main`. For loop-engineering. |
+| `/ob-autopilot <feature or URL>` | Autonomous, no-confirmation pipeline: branch off `main`, then propose → apply → archive (one commit per phase). Default: merge to `main` + delete branch. Add `push` keyword to push branch only. Add `pr` keyword to push + create a PR. For loop-engineering. |
 | `/ob-create-engineer <name> <tier> "<description>"` | Create a custom specialist engineer with skills auto-installed from [skills.sh](https://www.skills.sh/). Agent file is a template; tier variants are injected by the `ob-subagent-tiers` plugin at startup. |
 | `/ob-create-architecture` | Generate or regenerate `ARCHITECTURE.md` from the codebase. |
 | `/ob-create-design` | Generate or regenerate `DESIGN.md` from the design system. |

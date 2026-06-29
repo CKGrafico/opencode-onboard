@@ -14,12 +14,20 @@ Run the full change lifecycle end to end with **no human interaction**: branch o
 
 > **Hard rule — never ask the user to confirm anything.** Skip every checkpoint, confirmation, and "stop and ask" in the underlying commands. The only time you halt is a hard failure (see **Failure policy**). Each phase produces its own commit; the branch merges to `main` only after verification passes.
 
+**Output mode** — determined by detecting a keyword in `$ARGUMENTS`:
+- **Default (no keyword):** merge to `main` locally, delete the branch. No push, no PR.
+- **`pr` keyword** (e.g. `/ob-autopilot pr <description>`): push the branch to remote, then create a PR using the platform skill (`@ob-pullrequest`). Do NOT merge to `main` — leave the PR open for human review.
+- **`push` keyword** (e.g. `/ob-autopilot push <description>`): push the branch to remote only. No PR, no merge to `main`.
+
+Strip the keyword from `$ARGUMENTS` before resolving the input in Phase 0.
+
 Input: `$ARGUMENTS`
 
 ---
 
 **Phase 0 — Resolve input.**
-- If `$ARGUMENTS` is a GitHub Issue or Azure DevOps URL and `.opencode/opencode-onboard.json` → `wizard.platform` is not `none`: load `@ob-userstory` and fetch the work item via CLI. Otherwise treat `$ARGUMENTS` as a direct feature description.
+- Detect output mode (default / `pr` / `push`) from `$ARGUMENTS` and strip the keyword.
+- If the remaining `$ARGUMENTS` is a GitHub Issue or Azure DevOps URL and `.opencode/opencode-onboard.json` → `wizard.platform` is not `none`: load `@ob-userstory` and fetch the work item via CLI. Otherwise treat `$ARGUMENTS` as a direct feature description.
 - Derive a short kebab-case `{slug}` from the title/description for the initial branch name.
 
 **Phase 1 — Branch from main (before anything else).**
@@ -51,17 +59,37 @@ Input: `$ARGUMENTS`
 - Compare the archived change's specs against `ARCHITECTURE.md` and `DESIGN.md`; apply any needed doc updates directly (no approval prompt).
 - Commit: `git add -A && git commit -m "archive: {title} ({change-id})"`.
 
-**Phase 5 — Merge to main.**
+**Phase 5 — Output (mode-dependent).**
 - Proceed only if Phase 3 verification passed and the tree is clean. Otherwise → **Failure policy**.
+
+**Default mode (merge to main, delete branch):**
 - ```bash
   git switch main && git pull origin main
   git merge --no-ff "$BRANCH" -m "autopilot: {title} ({change-id})"
   ```
 - On a merge conflict you cannot resolve cleanly and automatically: `git merge --abort`, stay on `main`, and report (→ **Failure policy**). Never commit a conflicted or broken merge.
-- If the loop runs against a remote and the project ships `main` automatically, also `git push origin main`. (Skip if no `origin` / protected branch.)
+- If the project ships `main` automatically to a remote, also `git push origin main`. (Skip if no `origin` / protected branch.)
+- Delete the feature branch: `git branch -d "$BRANCH"`
 - If you stashed in Phase 1, `git stash pop`.
 
-**Phase 6 — Report.** One summary block: change id, branch, tasks N/N done, the commits made (propose / apply group commits / archive / merge), verification result, and merged-to-main status.
+**`push` mode (push branch only, no PR, no merge):**
+- ```bash
+  git push -u origin "$BRANCH"
+  ```
+- If you stashed in Phase 1, `git stash pop`.
+- Leave the branch open for manual review or future PR creation.
+
+**`pr` mode (push branch + create PR, no merge):**
+- ```bash
+  git push -u origin "$BRANCH"
+  ```
+- Load `@ob-pullrequest` skill and create a PR from `$BRANCH` to `main` with:
+  - Title: `{title}`
+  - Body: summary of the change (change id, tasks N/N, commit list)
+- If `@ob-pullrequest` is not available or PR creation fails: leave the branch pushed and report the error. Do NOT merge to `main`.
+- If you stashed in Phase 1, `git stash pop`.
+
+**Phase 6 — Report.** One summary block: change id, branch, tasks N/N done, the commits made (propose / apply group commits / archive), verification result, output mode (default/push/pr), and final state (merged to main / pushed branch / PR URL).
 
 ---
 
