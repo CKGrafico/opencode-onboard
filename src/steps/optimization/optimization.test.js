@@ -20,7 +20,7 @@ vi.mock('./caveman.js', () => ({ installCaveman: vi.fn() }))
 vi.mock('./codegraph.js', () => ({ installCodegraph: vi.fn() }))
 vi.mock('./memory.js', () => ({ installMemory: vi.fn() }))
 vi.mock('./caveman-guidance.js', () => ({ enableCavemanGuidance: vi.fn() }))
-vi.mock('./global.js', () => ({ configureAgentsMd: vi.fn() }))
+vi.mock('./global.js', () => ({ configureAgentsMd: vi.fn(), patchCommandFiles: vi.fn() }))
 
 vi.mock('fs-extra', () => ({
   default: {
@@ -46,7 +46,7 @@ import { installQuota } from './quota.js'
 import { installCaveman } from './caveman.js'
 import { installCodegraph } from './codegraph.js'
 import { enableCavemanGuidance } from './caveman-guidance.js'
-import { configureAgentsMd } from './global.js'
+import { configureAgentsMd, patchCommandFiles } from './global.js'
 import { tokenOptimizationStep } from './index.js'
 
 const checkboxMock = vi.mocked(checkbox)
@@ -56,6 +56,7 @@ const installCavemanMock = vi.mocked(installCaveman)
 const installCodegraphMock = vi.mocked(installCodegraph)
 const enableCavemanGuidanceMock = vi.mocked(enableCavemanGuidance)
 const configureAgentsMdMock = vi.mocked(configureAgentsMd)
+const patchCommandFilesMock = vi.mocked(patchCommandFiles)
 
 describe('tokenOptimizationStep()', () => {
   beforeEach(() => {
@@ -73,6 +74,7 @@ describe('tokenOptimizationStep()', () => {
     installCodegraphMock.mockResolvedValue({ optedIn: true, installed: true })
     enableCavemanGuidanceMock.mockResolvedValue({ enabled: true })
     configureAgentsMdMock.mockResolvedValue({ configured: true })
+    patchCommandFilesMock.mockResolvedValue({ configured: true, patched: 0 })
 
     const result = await tokenOptimizationStep()
 

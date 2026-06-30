@@ -43,7 +43,27 @@
       "disabled": "Codegraph was not selected during onboarding. Use standard grep/glob/read for code exploration."
     },
     "memory": {
-      "enabled": "## Basic Memory\n\nPersistent knowledge graph active (`uv tool run basic-memory mcp`, stdio MCP). Notes stored as plain Markdown files — readable by both agents and humans.\n\nKey tools:\n- `write_note` / `edit_note` — store a decision, architectural note, or finding\n- `search` — find relevant notes by semantic search\n- `build_context` — navigate related notes via wikilinks\n- `recent_activity` — see what was written recently in this session\n\nStore: architecture decisions, resolved ambiguities, cross-agent context, discovered constraints.\nQuery before implementing unfamiliar areas or picking up a long-running task.",
+      "enabled": "## Basic Memory\n\nPersistent knowledge graph active (`basic-memory mcp`, stdio MCP). Notes stored as plain Markdown files — readable by both agents and humans.\n\nKey tools:\n- `write_note` / `edit_note` — store a decision, architectural note, or finding\n- `search` — find relevant notes by semantic search\n- `build_context` — navigate related notes via wikilinks\n- `recent_activity` — see what was written recently in this session\n\nStore: architecture decisions, resolved ambiguities, cross-agent context, discovered constraints.\nQuery before implementing unfamiliar areas or picking up a long-running task.",
+      "disabled": ""
+    }
+  },
+  "commandMarkers": {
+    "rtk": {
+      "start": "<!-- OB-CMD-RTK-START -->",
+      "end": "<!-- OB-CMD-RTK-END -->",
+      "enabled": "Prefix all bash commands with `rtk` when RTK is enabled.",
+      "disabled": ""
+    },
+    "codegraph": {
+      "start": "<!-- OB-CMD-CODEGRAPH-START -->",
+      "end": "<!-- OB-CMD-CODEGRAPH-END -->",
+      "enabled": "Use codegraph MCP for code intelligence:",
+      "disabled": ""
+    },
+    "memory": {
+      "start": "<!-- OB-CMD-MEMORY-START -->",
+      "end": "<!-- OB-CMD-MEMORY-END -->",
+      "enabled": "Use basic-memory MCP for persistent context:",
       "disabled": ""
     }
   }

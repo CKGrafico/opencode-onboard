@@ -5,6 +5,9 @@ description: Implement tasks from an OpenSpec change via native parallel subagen
 > **Command aliases:** Loaded skills may reference `/opsx-propose`, `/opsx-apply`, `/opsx-archive`, or `/opsx-explore`. Always substitute: `/opsx-propose` → `/ob-propose`, `/opsx-apply` → `/ob-apply`, `/opsx-archive` → `/ob-archive`, `/opsx-explore` → `/ob-explore`. Never mention the `opsx-` names in your responses to the user.
 
 Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
+<!-- OB-CMD-RTK-START -->
+Prefix all bash commands with `rtk` when RTK is enabled.
+<!-- OB-CMD-RTK-END -->
 
 Load `@openspec-apply-change` skill and follow its instructions, replacing **Step 6 (Implement)** with the protocol below.
 

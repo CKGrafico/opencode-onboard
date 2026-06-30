@@ -5,6 +5,9 @@ description: Parse a work item or idea and propose a change plan with enriched t
 > **Command aliases:** Loaded skills may reference `/opsx-propose`, `/opsx-apply`, `/opsx-archive`, or `/opsx-explore`. Always substitute: `/opsx-propose` → `/ob-propose`, `/opsx-apply` → `/ob-apply`, `/opsx-archive` → `/ob-archive`, `/opsx-explore` → `/ob-explore`. Never mention the `opsx-` names in your responses to the user.
 
 Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
+<!-- OB-CMD-RTK-START -->
+Prefix all bash commands with `rtk` when RTK is enabled.
+<!-- OB-CMD-RTK-END -->
 
 
 **Step 0.a - Check for unarchived changes**
@@ -34,6 +37,18 @@ Wait for the user to respond:
 Load `@openspec-propose` skill and follow its instructions.
 
 > ⚠️ **CHECKPOINT — `tasks.md` was just written. STOP. Do NOT show the plan yet. You MUST complete the enrichment below before continuing. Skipping this breaks `/ob-apply`.**
+
+<!-- OB-CMD-CODEGRAPH-START -->
+Use codegraph MCP for code intelligence:
+- Use `codegraph_search` to understand the real file/symbol landscape for the proposed tasks.
+- Use `codegraph_impact` to trace which files each task truly affects — this makes `touches` annotations accurate instead of guessed.
+<!-- OB-CMD-CODEGRAPH-END -->
+
+<!-- OB-CMD-MEMORY-START -->
+Use basic-memory MCP for persistent context:
+- `search` for any prior exploration notes or decisions related to this change that `/ob-explore` may have stored.
+- Write the proposal context to a `change-{slug}-context` note so `/ob-apply` can pick it up for subagent spawns.
+<!-- OB-CMD-MEMORY-END -->
 
 1. List every `*-engineer.md` file in `.opencode/agents/`. For each file read:
    - `description:` from the YAML frontmatter — the engineer's specialization summary
@@ -67,5 +82,10 @@ Example result (note same-file tasks like 1.1/1.2 share `touches`, so `/ob-apply
 `/ob-apply` reads these annotations to build conflict-free waves: `depends_on` gates ordering, `touches` keeps concurrent agents file-disjoint, and the tier suffix in `agent` determines the model (resolved at startup by the `ob-subagent-tiers` plugin). **`depends_on` is mandatory; `touches` is a best-effort hint** that codegraph impact refines at apply time.
 
 **After enrichment, show the plan:** change name, total task count, full task list with agent (including tier suffix) and dependency annotations.
+
+<!-- OB-CMD-MEMORY-START -->
+After showing the plan:
+- `write_note` with title `proposal-{change-slug}` containing the change id, task count, and agent+tier assignments. This lets `/ob-apply` verify the plan on resume.
+<!-- OB-CMD-MEMORY-END -->
 
 **Stop.** Ask the user: "Ready to implement? Run `/ob-apply` to start." Do NOT run `/ob-apply` automatically.

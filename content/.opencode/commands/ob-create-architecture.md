@@ -1,8 +1,13 @@
 ---
-description: Generate or regenerate ARCHITECTURE.md by analyzing the codebase structure. Safe to run at any time.
+description: Generate or update ARCHITECTURE.md by analyzing the codebase structure. Safe to run at any time.
 ---
 
-Analyze the architecture of this codebase and generate a populated `ARCHITECTURE.md` in the project root.
+Analyze the architecture of this codebase and generate or update `ARCHITECTURE.md` in the project root.
+
+Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
+<!-- OB-CMD-RTK-START -->
+Prefix all bash commands with `rtk` when RTK is enabled.
+<!-- OB-CMD-RTK-END -->
 
 Reference material:
   Website : https://architecture.md/
@@ -12,30 +17,48 @@ Reference material:
 
 1. **Check current state**
 
-   Read `ARCHITECTURE.md`. If it already contains real content (not the placeholder), warn the user:
-   > "ARCHITECTURE.md already has content. Running this will overwrite it. Proceeding..."
+   Read `ARCHITECTURE.md`. Determine which mode to use:
+   - **Does not exist** or is a placeholder (no real content) → **Generate mode**: create from scratch.
+   - **Exists with content** and has a `<!-- Last updated:` footer → **Update mode**: incrementally update (see step 2b).
+   - **Exists with content** but no timestamp → warn the user, then proceed in **Generate mode** (full regeneration).
 
-   Then continue regardless — this command is always safe to rerun.
+2a. **Generate mode — analyze the codebase**
 
-2. **Check for source roots**
+   Read `.opencode/source-roots.json` when present. Only analyze those roots plus this repo's docs/config files.
 
-   Load `.opencode/source-roots.json` when present. Only analyze those roots plus this repo's docs/config files.
+   Use file tools to discover the architecture: `glob` for folder structure, `grep` for route/model/schema definitions, `read` config files, CI/CD workflows, Dockerfiles, README, changelogs, ADRs.
 
-3. **Analyze the codebase**
+<!-- OB-CMD-CODEGRAPH-START -->
+   Use codegraph MCP for code intelligence:
+   - `codegraph_search` to find components, entry points, and module boundaries.
+   - `codegraph_impact` to trace dependency chains between modules.
+<!-- OB-CMD-CODEGRAPH-END -->
 
-   Read:
-   - Folder structure, root-level config files
-   - Route/controller definitions
-   - Data models, schemas, migrations
-   - Integration points, external API calls
-   - Build config, CI/CD workflows, Dockerfiles
-   - README, changelogs, ADRs, any existing docs
+<!-- OB-CMD-MEMORY-START -->
+   Use basic-memory MCP for persistent context:
+   - `search` for any prior architecture notes, ADRs, or decisions stored by previous runs or agents.
+<!-- OB-CMD-MEMORY-END -->
 
-   Do not rely on prior knowledge — read the actual files.
+   Do not rely on prior knowledge — read the actual files and query the actual code graph.
 
-4. **Write ARCHITECTURE.md**
+2b. **Update mode — incremental analysis**
 
-   Overwrite `ARCHITECTURE.md` with a complete document following this structure:
+   Extract the `<!-- Last updated: <ISO date> -->` timestamp from the existing file. Then:
+   - Run `git log --oneline --since="<date>" -- <source roots}` to find what changed since the last analysis.
+   - If nothing changed: report "Architecture unchanged since last update" and stop.
+   - For each changed area, understand what's affected.
+<!-- OB-CMD-CODEGRAPH-START -->
+   - Use `codegraph_search` / `codegraph_impact` to understand what's affected.
+<!-- OB-CMD-CODEGRAPH-END -->
+<!-- OB-CMD-MEMORY-START -->
+   - Use `basic-memory` `search` for the `architecture-summary` note from the previous run to compare.
+<!-- OB-CMD-MEMORY-END -->
+   - Update only the affected sections. Preserve manually-added content in unchanged sections.
+   - If the changes are too pervasive (more than ~40% of sections affected), fall back to **Generate mode**.
+
+3. **Write ARCHITECTURE.md**
+
+   Write (or update) `ARCHITECTURE.md` following this structure:
 
    - **Architecture Overview** — what the system is, what problem it solves, major architectural style
    - **1. Project Structure** — annotated directory tree with purpose of each major directory
@@ -61,6 +84,11 @@ Reference material:
    - **17. Project Identification** — name, language, type, runtime, date of review, maintainer
    - **18. Glossary / Acronyms** — project-specific terms an agent or new developer needs to know
 
+   Append at the very end of the file:
+   ```
+   <!-- Last updated: <current ISO timestamp> -->
+   ```
+
    Rules:
    - Be specific and concrete — include actual directories, files, modules, commands
    - Do NOT invent systems, services, or integrations not supported by repository evidence
@@ -68,9 +96,25 @@ Reference material:
    - Use Mermaid diagrams where helpful
    - Write as if this document will be committed and maintained over time
 
+4. **Store summary in basic-memory**
+
+<!-- OB-CMD-MEMORY-START -->
+   `write_note` with title `architecture-summary` containing:
+   - The ISO timestamp of this run
+   - A bullet list of top-level components found
+   - Any key architectural decisions or risks identified
+   This lets future runs and other agents reference the last known state.
+<!-- OB-CMD-MEMORY-END -->
+
 5. **Report**
 
    Tell the user:
-   - `ARCHITECTURE.md` generated successfully
+   - Whether ARCHITECTURE.md was generated or updated (and which sections changed)
+<!-- OB-CMD-CODEGRAPH-START -->
+   - Whether codegraph / basic-memory were used or degraded to file tools
+<!-- OB-CMD-CODEGRAPH-END -->
+<!-- OB-CMD-MEMORY-START -->
+   - Whether basic-memory was used or degraded to file tools
+<!-- OB-CMD-MEMORY-END -->
    - Top-level components found
    - Tip: "Rerun `/ob-create-architecture` any time the architecture changes significantly."

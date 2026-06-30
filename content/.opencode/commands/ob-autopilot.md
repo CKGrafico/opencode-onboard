@@ -5,6 +5,9 @@ description: Autonomous pipeline - propose, apply, then archive on one branch of
 > **Command aliases:** Loaded skills may reference `/opsx-propose`, `/opsx-apply`, `/opsx-archive`, or `/opsx-explore`. Always substitute: `/opsx-propose` → `/ob-propose`, `/opsx-apply` → `/ob-apply`, `/opsx-archive` → `/ob-archive`, `/opsx-explore` → `/ob-explore`. Never mention the `opsx-` names in your responses to the user.
 
 Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
+<!-- OB-CMD-RTK-START -->
+Prefix all bash commands with `rtk` when RTK is enabled.
+<!-- OB-CMD-RTK-END -->
 
 ```
 /ob-autopilot <feature description | GitHub Issue URL | Azure DevOps URL>
@@ -42,12 +45,18 @@ Input: `$ARGUMENTS`
 
 **Phase 2 — Propose (no confirmation).**
 - Run the `/ob-propose` protocol with these overrides: **skip its Step 0 unarchived-changes prompt** (treat the answer as `continue`), do **not** pause at the enrichment checkpoint, and **skip the final "Stop / ask the user" step**. Enrich silently.
+<!-- OB-CMD-CODEGRAPH-START -->
+- Use codegraph MCP for accurate `touches` annotations in the proposed tasks.
+<!-- OB-CMD-CODEGRAPH-END -->
+<!-- OB-CMD-MEMORY-START -->
+- Use basic-memory MCP for proposal context notes (`change-{slug}-context`).
+<!-- OB-CMD-MEMORY-END -->
 - Load `@openspec-propose`, generate `proposal.md`, specs, and `tasks.md`, then annotate every task line with `<!-- agent, depends_on, touches -->` exactly as `/ob-propose` specifies (agent name includes tier suffix e.g. `backend-engineer.build`; `depends_on` mandatory; `touches` best-effort).
 - If the canonical change slug differs from `{slug}`, rename the branch to match: `git branch -m feature/{change-slug}` and refresh `BRANCH="$(git branch --show-current)"`.
 - Commit: `git add -A && git commit -m "propose: {title} ({change-id})"`.
 
 **Phase 3 — Apply (no confirmation).**
-- Run the `/ob-apply` Step 6 wave protocol to completion. You are already on `$BRANCH`, so **skip its branch-creation step (1)**; start from "Load the plan".
+- Run the `/ob-apply` Step 6 wave protocol to completion. You are already on `$BRANCH`, so **skip its branch-creation step (1)**; start from "Load the plan". The wave protocol already has its own codegraph/basic-memory markers — no extra wiring needed here.
 - Spawn subagent waves by `depends_on` / `touches`, committing each group `"{ids}: {summary}"` as that protocol dictates. Honour `wizard.maxConcurrentAgents`.
 - Do **not** return control to the user between waves — keep looping until every task is DONE, or the progress guard / one-retry limit trips (→ **Failure policy**).
 - Run the verify step (tests / lint / build) from this lead session. Reopen and re-wave failing tasks as the protocol allows.
@@ -57,6 +66,12 @@ Input: `$ARGUMENTS`
 - Do **not** run the platform PR archive flow and do **not** create an `archive/` branch. Archive in place on `$BRANCH`.
 - Load `@openspec-archive-change` and archive the change you just implemented, by its id.
 - Compare the archived change's specs against `ARCHITECTURE.md` and `DESIGN.md`; apply any needed doc updates directly (no approval prompt).
+<!-- OB-CMD-CODEGRAPH-START -->
+- Use codegraph MCP `codegraph_impact` to identify exactly which doc sections need updates.
+<!-- OB-CMD-CODEGRAPH-END -->
+<!-- OB-CMD-MEMORY-START -->
+- `write_note` with title `archive-{slug}` summarizing what was archived and what docs changed.
+<!-- OB-CMD-MEMORY-END -->
 - Commit: `git add -A && git commit -m "archive: {title} ({change-id})"`.
 
 **Phase 5 — Output (mode-dependent).**

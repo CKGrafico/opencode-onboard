@@ -1,8 +1,13 @@
 ---
-description: Generate or regenerate DESIGN.md by analyzing the codebase design system. Safe to run at any time.
+description: Generate or update DESIGN.md by analyzing the codebase design system. Safe to run at any time.
 ---
 
-Analyze the design system of this codebase and generate a populated `DESIGN.md` in the project root.
+Analyze the design system of this codebase and generate or update `DESIGN.md` in the project root.
+
+Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
+<!-- OB-CMD-RTK-START -->
+Prefix all bash commands with `rtk` when RTK is enabled.
+<!-- OB-CMD-RTK-END -->
 
 Reference material:
   Overview : https://stitch.withgoogle.com/docs/design-md/overview/
@@ -17,37 +22,75 @@ Examples from the spec repo:
 
 1. **Check current state**
 
-   Read `DESIGN.md`. If it already contains real content (not the placeholder), warn the user:
-   > "DESIGN.md already has content. Running this will overwrite it. Proceeding..."
+   Read `DESIGN.md`. Determine which mode to use:
+   - **Does not exist** or is a placeholder (no real content) → **Generate mode**: create from scratch.
+   - **Exists with content** and has a `<!-- Last updated:` footer → **Update mode**: incrementally update (see step 2b).
+   - **Exists with content** but no timestamp → warn the user, then proceed in **Generate mode** (full regeneration).
 
-   Then continue regardless — this command is always safe to rerun.
+2a. **Generate mode — analyze the codebase**
 
-2. **Check for source roots**
+   Read `.opencode/source-roots.json` when present. Only analyze those roots.
 
-   Load `.opencode/source-roots.json` when present. Only analyze those roots.
+   Use file tools to discover the design system: `glob` for CSS files, Tailwind config, PostCSS config, component files, design token definitions (JS/TS/JSON/YAML), theme files, UI framework config (shadcn, MUI, Chakra, etc.).
 
-3. **Analyze the codebase**
+<!-- OB-CMD-CODEGRAPH-START -->
+   Use codegraph MCP for code intelligence:
+   - `codegraph_search` to find component definitions, style utilities, and theme/token modules. Trace how design tokens flow into components.
+<!-- OB-CMD-CODEGRAPH-END -->
 
-   Look for:
-   - CSS files, Tailwind config, PostCSS config
-   - Component files with inline styles or class usage
-   - Design token definitions (JS/TS/JSON/YAML)
-   - Theme files or style constants
-   - UI framework config (shadcn, MUI, Chakra, etc.)
+<!-- OB-CMD-MEMORY-START -->
+   Use basic-memory MCP for persistent context:
+   - `search` for any prior design notes or token summaries stored by previous runs.
+<!-- OB-CMD-MEMORY-END -->
 
    If access to a running local server or screenshots is available, use them to validate visual identity.
 
-4. **Write DESIGN.md**
+2b. **Update mode — incremental analysis**
 
-   Overwrite `DESIGN.md` with the result. The output must:
+   Extract the `<!-- Last updated: <ISO date> -->` timestamp from the existing file. Then:
+   - Run `git log --oneline --since="<date>" -- <source roots}` to find what changed since the last analysis.
+   - If nothing changed: report "Design system unchanged since last update" and stop.
+   - For changed CSS/token/component files, understand what uses them.
+<!-- OB-CMD-CODEGRAPH-START -->
+   - Use `codegraph_search` to understand what uses changed design tokens.
+<!-- OB-CMD-CODEGRAPH-END -->
+<!-- OB-CMD-MEMORY-START -->
+   - Use `basic-memory` `search` for the `design-summary` note from the previous run to compare.
+<!-- OB-CMD-MEMORY-END -->
+   - Update only the affected tokens and sections. Preserve manually-added content in unchanged sections.
+   - If the changes are too pervasive (entire token system replaced), fall back to **Generate mode**.
+
+3. **Write DESIGN.md**
+
+   Write (or update) `DESIGN.md`. The output must:
    - Begin with YAML frontmatter containing all structured design tokens (colors, typography, spacing, elevation, motion, radii, shadows, etc.)
    - Follow with free-form Markdown describing the look & feel and capturing design intent that token values alone cannot convey
    - Be entirely self-contained — do not reference any files, variables, or paths from the codebase
    - Use valid YAML design token format for all token values
 
+   Append at the very end of the file:
+   ```
+   <!-- Last updated: <current ISO timestamp> -->
+   ```
+
+4. **Store summary in basic-memory**
+
+<!-- OB-CMD-MEMORY-START -->
+   `write_note` with title `design-summary` containing:
+   - The ISO timestamp of this run
+   - Key design tokens found (color palette, fonts, spacing scale)
+   This lets future runs and other agents reference the last known state.
+<!-- OB-CMD-MEMORY-END -->
+
 5. **Report**
 
    Tell the user:
-   - `DESIGN.md` generated successfully
+   - Whether DESIGN.md was generated or updated (and which tokens/sections changed)
+<!-- OB-CMD-CODEGRAPH-START -->
+   - Whether codegraph / basic-memory were used or degraded to file tools
+<!-- OB-CMD-CODEGRAPH-END -->
+<!-- OB-CMD-MEMORY-START -->
+   - Whether basic-memory was used or degraded to file tools
+<!-- OB-CMD-MEMORY-END -->
    - Key design tokens found (color palette, fonts, spacing scale)
    - Tip: "Rerun `/ob-create-design` any time your design system changes."

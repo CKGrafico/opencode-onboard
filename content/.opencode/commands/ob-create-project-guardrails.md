@@ -1,12 +1,24 @@
 ---
-description: Generate a project-guardrails skill from ARCHITECTURE.md and relevant project files.
+description: Generate or update a project-guardrails skill from ARCHITECTURE.md and relevant project files.
 ---
 
-Analyze `ARCHITECTURE.md` and other project files to generate a `project-guardrails` skill — a set of rules and constraints extracted from the project's own documentation that agents must follow.
+Analyze `ARCHITECTURE.md` and other project files to generate or update a `project-guardrails` skill — a set of rules and constraints extracted from the project's own documentation that agents must follow.
+
+Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
+<!-- OB-CMD-RTK-START -->
+Prefix all bash commands with `rtk` when RTK is enabled.
+<!-- OB-CMD-RTK-END -->
 
 **Steps**
 
-1. **Read source documents**
+1. **Check current state**
+
+   Read `.agents/skills/project-guardrails/SKILL.md`. Determine which mode to use:
+   - **Does not exist** → **Generate mode**: create from scratch.
+   - **Exists** and has a `<!-- Last updated:` footer → **Update mode**: incrementally update.
+   - **Exists** but no timestamp → proceed in **Generate mode** (full regeneration).
+
+2a. **Generate mode — read source documents**
 
    Read ALL of the following that exist:
    - `ARCHITECTURE.md` (primary source)
@@ -19,13 +31,41 @@ Analyze `ARCHITECTURE.md` and other project files to generate a `project-guardra
    - Root config files: `package.json`, `tsconfig.json`, `biome.json`, `.eslintrc*`, `Cargo.toml`, `go.mod`, `pyproject.toml`, `pom.xml` — whatever exists
    - CI/CD workflows: `.github/workflows/*`, `azure-pipelines.yml` — whatever exists
 
-   Do not rely on prior knowledge — read the actual files.
+   Use file tools to discover constraints: `read` the documents above, `grep` for lint/formatter config rules.
 
-2. **Extract guardrails**
+<!-- OB-CMD-CODEGRAPH-START -->
+   Use codegraph MCP for code intelligence:
+   - `codegraph_search` to find module boundaries, forbidden cross-imports, and dependency violations.
+   - `codegraph_impact` to understand which modules are coupled.
+<!-- OB-CMD-CODEGRAPH-END -->
 
-   From the documents above, extract concrete, actionable rules in these categories. Only include a category if you found real evidence for it:
+<!-- OB-CMD-MEMORY-START -->
+   Use basic-memory MCP for persistent context:
+   - `search` for any prior `guardrails-summary` note from a previous run.
+<!-- OB-CMD-MEMORY-END -->
 
-   - **Architecture constraints** — layer boundaries, module dependencies, forbidden imports, directory ownership rules (e.g. "src/api/ must not import from src/ui/")
+   Do not rely on prior knowledge — read the actual files and query the actual code graph.
+
+2b. **Update mode — incremental analysis**
+
+   Extract the `<!-- Last updated: <ISO date> -->` timestamp from the existing skill file. Then:
+   - Read `ARCHITECTURE.md` and check its `<!-- Last updated:` timestamp. If ARCHITECTURE.md hasn't changed since the guardrails were last generated, report "Guardrails up to date" and stop.
+   - Run `git log --oneline --since="<date>" -- <config files, lint configs, CI workflows}` to find what convention/config files changed.
+   - If nothing changed: report "Guardrails up to date" and stop.
+<!-- OB-CMD-CODEGRAPH-START -->
+   - Use `codegraph_search` to check if module boundaries or import patterns changed.
+<!-- OB-CMD-CODEGRAPH-END -->
+<!-- OB-CMD-MEMORY-START -->
+   - Use `basic-memory` `search` for the `guardrails-summary` note from the previous run to compare.
+<!-- OB-CMD-MEMORY-END -->
+   - Update only the affected rule categories. Preserve manually-added rules in unchanged categories.
+   - If changes are pervasive (new architecture, new framework, new platform), fall back to **Generate mode**.
+
+3. **Extract guardrails**
+
+   From the documents and code graph analysis, extract concrete, actionable rules in these categories. Only include a category if you found real evidence for it:
+
+   - **Architecture constraints** — layer boundaries, module dependencies, forbidden imports, directory ownership rules (e.g. "src/api/ must not import from src/ui/"). Use codegraph to verify actual import boundaries.
    - **Naming conventions** — file naming, component naming, API route conventions, branch naming
    - **Code style** — formatter config, lint rules, import ordering, max line length — derive from actual config files, not guesses
    - **Testing rules** — test file locations, naming, coverage gates, what must be tested before merge
@@ -38,12 +78,12 @@ Analyze `ARCHITECTURE.md` and other project files to generate a `project-guardra
 
    Each rule must be:
    - **Concrete** — "Use `pnpm` not `npm`" not "Use the right package manager"
-   - **Evidence-based** — derive from the files you read, do not invent rules
+   - **Evidence-based** — derive from the files/code graph you analyzed, do not invent rules
    - **Actionable** — an agent can check it before acting
 
-3. **Write the skill**
+4. **Write the skill**
 
-   Create `.agents/skills/project-guardrails/SKILL.md`:
+   Write (or update) `.agents/skills/project-guardrails/SKILL.md`:
 
    ```markdown
    ---
@@ -83,25 +123,36 @@ Analyze `ARCHITECTURE.md` and other project files to generate a `project-guardra
 
    ## Git Workflow
    - <rule>
+
+   <!-- Last updated: <current ISO timestamp> -->
    ```
 
    Only include sections that have real rules. Omit empty sections.
 
-4. **Update agents**
+5. **Update agents**
 
-   For every `*-engineer.md` in `.opencode/agents/`, add `@project-guardrails` to the Guardrails ability line:
-
+   For every `*-engineer.md` in `.opencode/agents/`, add `@project-guardrails` to the Guardrails ability line (skip if already present):
    ```markdown
    ## Abilities
    - Guardrails: @ob-generic-guardrails, @project-guardrails, @ob-default
    ```
 
-   If `@project-guardrails` is already present, skip that agent.
+   Exclude tier variant files (`*-engineer.build.md`, `*-engineer.fast.md`, `*-engineer.plan.md`) — they are generated copies; only update the base templates.
 
-5. **Report**
+6. **Store summary in basic-memory**
+
+<!-- OB-CMD-MEMORY-START -->
+   `write_note` with title `guardrails-summary` containing:
+   - The ISO timestamp of this run
+   - Number of rules per category
+   This lets future runs compare and incrementally update.
+<!-- OB-CMD-MEMORY-END -->
+
+7. **Report**
 
    Tell the user:
-   - Skill created at `.agents/skills/project-guardrails/SKILL.md`
+   - Whether the skill was generated or updated (and which categories changed)
+   - Whether codegraph / basic-memory were used or degraded to file tools
    - Number of rules extracted per category
    - Number of agent files updated
    - Tip: "Rerun `/ob-create-project-guardrails` any time the architecture or conventions change significantly."

@@ -25,7 +25,6 @@ function replaceBetween(content, start, end, replacement) {
   return content.replace(pattern, `${start}\n${replacement.trim()}\n${end}`)
 }
 
-
 export async function configureAgentsMd(tokenOpt = {}) {
   const cwd = process.cwd()
   const agentsMdPath = path.join(cwd, 'AGENTS.md')
@@ -43,4 +42,49 @@ export async function configureAgentsMd(tokenOpt = {}) {
   await fse.writeFile(agentsMdPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
   success('AGENTS.md optimization markers updated')
   return { configured: true, path: agentsMdPath }
+}
+
+export async function patchCommandFiles(tokenOpt = {}) {
+  const cwd = process.cwd()
+  const commandsDir = path.join(cwd, '.opencode', 'commands')
+
+  if (!await fse.pathExists(commandsDir)) {
+    warn('.opencode/commands/ not found, skipping command file optimization markers')
+    return { configured: false }
+  }
+
+  const markers = optimizationPreset.commandMarkers
+  const codegraphEnabled = !!tokenOpt?.codegraph?.optedIn
+  const memoryEnabled = !!tokenOpt?.memory?.optedIn
+
+  let patched = 0
+  const entries = await fse.readdir(commandsDir)
+  for (const file of entries) {
+    if (!file.endsWith('.md')) continue
+    const filePath = path.join(commandsDir, file)
+    let content = await fse.readFile(filePath, 'utf-8')
+    let changed = false
+
+    if (content.includes(markers.codegraph.start) && content.includes(markers.codegraph.end)) {
+      const replacement = codegraphEnabled ? markers.codegraph.enabled : markers.codegraph.disabled
+      content = replaceBetween(content, markers.codegraph.start, markers.codegraph.end, replacement)
+      changed = true
+    }
+
+    if (content.includes(markers.memory.start) && content.includes(markers.memory.end)) {
+      const replacement = memoryEnabled ? markers.memory.enabled : markers.memory.disabled
+      content = replaceBetween(content, markers.memory.start, markers.memory.end, replacement)
+      changed = true
+    }
+
+    if (changed) {
+      await fse.writeFile(filePath, content, 'utf-8')
+      patched++
+    }
+  }
+
+  if (patched > 0) {
+    success(`${patched} command file(s) optimization markers updated`)
+  }
+  return { configured: true, patched }
 }
