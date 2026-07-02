@@ -65,6 +65,11 @@
     }
   },
   {
+    "value": "browser",
+    "name": "Others (Browser)",
+    "backlogOnly": true
+  },
+  {
     "value": "none",
     "name": "None"
   }

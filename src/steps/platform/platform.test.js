@@ -114,6 +114,38 @@ describe('choosePlatform()', () => {
     expect(success).toHaveBeenCalledWith('Repo platform: GitLab')
   })
 
+  it('returns browser backlog + github repo', async () => {
+    select.mockResolvedValueOnce('browser').mockResolvedValueOnce('github')
+
+    const result = await choosePlatform()
+
+    expect(result).toEqual({ backlogPlatform: 'browser', repoPlatform: 'github' })
+    expect(success).toHaveBeenCalledWith('Backlog platform: Others (Browser)')
+    expect(success).toHaveBeenCalledWith('Repo platform: GitHub')
+  })
+
+  it('excludes gitlab from backlog choices (repoOnly)', async () => {
+    select.mockResolvedValueOnce('github').mockResolvedValueOnce('gitlab')
+
+    await choosePlatform()
+
+    const firstCall = select.mock.calls[0][0]
+    const choiceValues = firstCall.choices.map(c => c.value)
+    expect(choiceValues).not.toContain('gitlab')
+  })
+
+  it('excludes browser and jira from repo choices (backlogOnly)', async () => {
+    select.mockResolvedValueOnce('github').mockResolvedValueOnce('gitlab')
+
+    await choosePlatform()
+
+    const secondCall = select.mock.calls[1][0]
+    const choiceValues = secondCall.choices.map(c => c.value)
+    expect(choiceValues).not.toContain('browser')
+    expect(choiceValues).not.toContain('jira')
+    expect(choiceValues).toContain('gitlab')
+  })
+
   describe('checkPlatform()', () => {
     describe('github path', () => {
       it('prints success when gh is installed and authenticated', async () => {
@@ -202,6 +234,16 @@ describe('choosePlatform()', () => {
         expect(commandExists).not.toHaveBeenCalled()
         expect(execa).not.toHaveBeenCalled()
         expect(success).toHaveBeenCalledWith('Platform: None')
+      })
+    })
+
+    describe('browser path', () => {
+      it('skips CLI checks for browser backlog platform', async () => {
+        await checkPlatform('browser')
+
+        expect(commandExists).not.toHaveBeenCalled()
+        expect(execa).not.toHaveBeenCalled()
+        expect(success).toHaveBeenCalledWith('Platform: Others (Browser)')
       })
     })
 

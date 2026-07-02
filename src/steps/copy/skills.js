@@ -12,17 +12,19 @@ const GITHUB_ONLY_SKILLS = new Set(['ob-userstory-gh', 'ob-pullrequest-gh'])
 const AZURE_ONLY_SKILLS  = new Set(['ob-userstory-az', 'ob-pullrequest-az'])
 const JIRA_ONLY_SKILLS   = new Set(['ob-userstory-jira'])
 const GITLAB_ONLY_SKILLS = new Set(['ob-pullrequest-gl'])
+const BROWSER_ONLY_SKILLS = new Set(['ob-userstory-browser'])
 
 // Platform-specific skills are renamed to their generic form on install.
-// The -gh / -az / -jira / -gl suffix is only needed here to keep all variants in source.
+// The -gh / -az / -jira / -gl / -browser suffix is only needed here to keep all variants in source.
 // After install only one platform is present so no suffix is needed.
 const SKILL_RENAME = {
-  'ob-userstory-gh':    'ob-userstory',
-  'ob-userstory-az':    'ob-userstory',
-  'ob-userstory-jira':  'ob-userstory',
-  'ob-pullrequest-gh':  'ob-pullrequest',
-  'ob-pullrequest-az':  'ob-pullrequest',
-  'ob-pullrequest-gl':  'ob-pullrequest',
+  'ob-userstory-gh':      'ob-userstory',
+  'ob-userstory-az':      'ob-userstory',
+  'ob-userstory-jira':    'ob-userstory',
+  'ob-userstory-browser': 'ob-userstory',
+  'ob-pullrequest-gh':    'ob-pullrequest',
+  'ob-pullrequest-az':    'ob-pullrequest',
+  'ob-pullrequest-gl':    'ob-pullrequest',
 }
 
 function shouldInstallSkill(skill, backlogPlatform, repoPlatform) {
@@ -30,6 +32,7 @@ function shouldInstallSkill(skill, backlogPlatform, repoPlatform) {
   if (AZURE_ONLY_SKILLS.has(skill))  return backlogPlatform === 'azure' || repoPlatform === 'azure'
   if (JIRA_ONLY_SKILLS.has(skill))   return backlogPlatform === 'jira'
   if (GITLAB_ONLY_SKILLS.has(skill)) return repoPlatform === 'gitlab'
+  if (BROWSER_ONLY_SKILLS.has(skill)) return backlogPlatform === 'browser'
   return true
 }
 
