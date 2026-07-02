@@ -102,7 +102,7 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 | `/ob-help` | Show all commands and when to use each one. Start here if you're unsure. |
 | `/ob-init` | Initialize the project. Asks greenfield vs brownfield, then activates the agent team. |
 | `/ob-explore` | Think through an idea or investigate a problem before committing to a plan. |
-| `/ob-propose <url or idea>` | Parse a GitHub Issue / Azure DevOps URL or a direct idea into a structured plan (proposal, specs, tasks). Enriches each task with agent and model assignments. |
+| `/ob-propose <url or idea>` | Parse a GitHub Issue / Azure DevOps / Jira / browser URL or a direct idea into a structured plan (proposal, specs, tasks). Enriches each task with agent and model assignments. |
 | `/ob-apply` | Implement tasks from the current OpenSpec change via parallel subagent waves (native `task` tool). |
 | `/ob-pullrequest` | Create a PR for the current branch, or read and classify PR review comments. |
 | `/ob-archive` | Archive a completed OpenSpec change. |
@@ -138,7 +138,7 @@ Project-specific specialization comes from user-created custom engineers via `/o
 
 Skills define _what to know_. They provide project rules, platform behavior, and task-specific execution guidance. Agents auto-detect/load relevant skills; **you do not manually choose skills per prompt**.
 
-If you choose platform `None` during onboarding, no userstory or pull-request platform skills are injected into the workflow. The project works from direct conversation, local repo context, and optional OpenSpec artifacts only.
+If you choose backlog platform `None`, no userstory skills are injected into the workflow. The project works from direct conversation, local repo context, and optional OpenSpec artifacts only. If you choose repo platform `None`, no pull-request skills are injected.
 
 Current loading model:
 
@@ -167,7 +167,12 @@ Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 | `ob-generic-guardrails` | Foundation for user guardrails skills                                                                            |
 | `ob-userstory-gh`       | Parse a GitHub Issue URL into a structured work item                                                             |
 | `ob-userstory-az`       | Parse an Azure DevOps work item URL                                                                              |
-| `browser-automation`    | Browser control via `@different-ai/opencode-browser`                                                             |
+| `ob-userstory-jira`     | Parse a Jira issue URL via `acli` CLI                                                                            |
+| `ob-userstory-browser`  | Parse work item from any URL via browser automation (Linear, Trello, etc.)                                       |
+| `ob-pullrequest-gh`     | Create GitHub PRs with screenshots, triage review feedback                                                      |
+| `ob-pullrequest-az`     | Create Azure DevOps PRs, triage review feedback                                                                 |
+| `ob-pullrequest-gl`     | Create GitLab merge requests, triage review feedback                                                             |
+| `browser-automation`    | Browser control via `@different-ai/opencode-browser` (localhost + browser backlog exception)                    |
 
 Skills live in `.agents/skills/`. Any `SKILL.md` file in a subdirectory is automatically discoverable, write your own and agents will pick them up.
 
@@ -187,7 +192,7 @@ Models are fetched live from [models.dev](https://models.dev) (3000+ models, cac
 
 ## The pipeline
 
-When you give the lead agent a work item URL, execution follows this pipeline. If onboarding platform is `None`, skip the work item / PR stages and work directly from conversation plus optional OpenSpec artifacts:
+When you give the lead agent a work item URL, execution follows this pipeline. If backlog platform is `None`, skip the work item stage. If repo platform is `None`, skip the PR stage:
 
 ```
 lead (load ob-global first)
@@ -209,7 +214,7 @@ lead (load ob-global first)
 ```
 
 1. Load `ob-global` baseline rules
-2. Load platform userstory skill (`ob-userstory-gh` or `ob-userstory-az`)
+2. Load platform userstory skill (`ob-userstory-gh`, `ob-userstory-az`, `ob-userstory-jira`, or `ob-userstory-browser` depending on backlog platform)
 3. Run `/ob-propose` to produce `proposal.md`, specs, and `tasks.md`
 4. Confirm with user before implementation
 5. Run `/ob-apply` to orchestrate implementation in waves
@@ -243,7 +248,7 @@ your-project/
         ├── ob-global/              ← baseline skill, load FIRST
         ├── ob-default/             ← fallback skill
         ├── ob-generic-guardrails/  ← foundation for user guardrails
-        ├── ob-userstory-gh/      ← or -az, depending on platform
+        ├── ob-userstory-gh/      ← or -az, -jira, -browser depending on backlog platform
         ├── ob-userstory-az/
         └── browser-automation/
 ```
