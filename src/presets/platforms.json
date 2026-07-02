@@ -50,6 +50,21 @@
     }
   },
   {
+    "value": "gitlab",
+    "name": "GitLab",
+    "repoOnly": true,
+    "cli": {
+      "command": "glab",
+      "displayName": "GitLab CLI (glab)",
+      "installUrl": "https://gitlab.com/gitlab-org/cli/#installation",
+      "authCheck": {
+        "args": ["auth", "status"],
+        "notAuthenticatedMessage": "GitLab CLI not authenticated. Run:",
+        "commands": ["glab auth login"]
+      }
+    }
+  },
+  {
     "value": "none",
     "name": "None"
   }

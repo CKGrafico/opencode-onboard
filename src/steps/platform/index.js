@@ -24,9 +24,10 @@ export async function checkPlatform(platform) {
 export async function choosePlatform() {
   header('Step 3, Version control platform')
 
+  const backlogChoices = platformsPreset.filter(p => !p.repoOnly)
   const backlogPlatform = await select({
     message: 'Where is your backlog (work items / issues)?',
-    choices: platformsPreset.map(p => ({ name: p.name, value: p.value })),
+    choices: backlogChoices.map(p => ({ name: p.name, value: p.value })),
   })
 
   const backlogPreset = platformsPreset.find(p => p.value === backlogPlatform)
@@ -34,7 +35,7 @@ export async function choosePlatform() {
 
   let repoPlatform = backlogPlatform
   if (backlogPlatform !== 'none') {
-    // Jira is backlog-only — exclude it from repo platform choices
+    // Exclude backlog-only platforms (e.g. Jira) from repo choices
     const repoChoices = platformsPreset.filter(p => !p.backlogOnly)
     repoPlatform = await select({
       message: 'Where is your code repository (PRs / code reviews)?',

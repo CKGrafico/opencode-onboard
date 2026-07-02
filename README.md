@@ -6,7 +6,7 @@
 
 **Prepare any codebase for AI. Wires [OpenCode](https://opencode.ai), [OpenSpec](https://github.com/fission-ai/openspec), [codegraph](https://github.com/colbymchenry/codegraph), and [basic-memory](https://github.com/basicmachines-co/basic-memory) into a multi-agent development workflow powered by native parallel subagents.**
 
-GitHub, Azure DevOps, Jira + GitHub, Jira + Azure DevOps, or no platform at all.
+GitHub, Azure DevOps, Jira, GitLab, or combinations (e.g. Jira backlog + GitHub repo, Jira backlog + GitLab repo).
 
 [![npm version](https://img.shields.io/npm/v/opencode-onboard?style=flat-square&color=black)](https://www.npmjs.com/package/opencode-onboard)
 [![npm downloads](https://img.shields.io/npm/dm/opencode-onboard?style=flat-square&color=black)](https://www.npmjs.com/package/opencode-onboard)
@@ -74,8 +74,8 @@ The CLI runs a 10-step onboarding wizard. It keeps the current step visible, plu
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **1. Source scope**               | Choose current repo or sibling source roots for code analysis                                                                                                        |
 | **2. Clean AI files**             | Detects existing `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, `.agents/` etc. and removes them, preserves your `.agents/skills/`                                        |
-| **3. Choose platform**            | Backlog (GitHub / Azure DevOps / Jira / None) + repo (GitHub / Azure DevOps / None). Supports mixed platforms e.g. Jira backlog + GitHub repo
-| **4. Check platform CLI**         | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps) or `acli` (Jira), or skips checks when platform is None |
+| **3. Choose platform**            | Backlog (GitHub / Azure DevOps / Jira / None) + repo (GitHub / Azure DevOps / GitLab / None). Supports mixed platforms e.g. Jira backlog + GitHub repo, Jira backlog + GitLab repo
+| **4. Check platform CLI**         | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps) or `acli` (Jira) or `glab` (GitLab), or skips checks when platform is None |
 | **5. Copy scaffolding**           | Copies agents + built-in skills + bootstrap docs, writes source-roots metadata, applies AGENTS bootstrap patching, copies `skills-lock.json`, then runs `npx skills` |
 | **6. Init OpenSpec**              | Runs `npx @fission-ai/openspec init` silently for structured change management                                                                                       |
 | **7. Choose models**              | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing                   |
@@ -309,6 +309,7 @@ Long unattended agent sessions can consume significant tokens. Set these control
 | **[gh CLI](https://cli.github.com)**                                                                 | GitHub platform, must be authenticated                                 |
 | **[az CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)** + azure-devops extension | Azure DevOps platform                                                  |
 | **[acli](https://developer.atlassian.com/cloud/acli/guides/install-acli/)**                           | Jira (Atlassian) backlog platform, must be authenticated               |
+| **[glab](https://gitlab.com/gitlab-org/cli/#installation)**                                           | GitLab repo platform, must be authenticated                            |
 
 ---
 

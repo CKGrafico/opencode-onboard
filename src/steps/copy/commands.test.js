@@ -55,4 +55,19 @@ describe('platform patching', () => {
     expect(content).not.toContain('gh pr list --repo {owner}/{repo} --state merged')
     expect(content).not.toContain('az repos pr list --repository {repo} --status completed')
   })
+
+  it('patches ob-archive for gitlab platform', async () => {
+    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'ob-archive.md')
+    const dest = path.join(tmpDir, '.opencode', 'commands', 'ob-archive.md')
+    await fse.ensureDir(path.dirname(dest))
+    await fse.copyFile(source, dest)
+
+    await patchArchiveCommand('gitlab', tmpDir)
+
+    const content = await fse.readFile(dest, 'utf-8')
+    expect(content).toContain('glab mr list --repo {owner}/{repo} --state merged')
+    expect(content).toContain('glab mr create')
+    expect(content).not.toContain('gh pr list --repo {owner}/{repo} --state merged')
+    expect(content).not.toContain('az repos pr list --repository {repo} --status completed')
+  })
 })

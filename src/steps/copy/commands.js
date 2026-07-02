@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const _content = {
   azure: await fse.readFile(path.resolve(__dirname, '../../presets/ob-archive-az.md'), 'utf-8'),
   github: await fse.readFile(path.resolve(__dirname, '../../presets/ob-archive-gh.md'), 'utf-8'),
+  gitlab: await fse.readFile(path.resolve(__dirname, '../../presets/ob-archive-gl.md'), 'utf-8'),
   none: await fse.readFile(path.resolve(__dirname, '../../presets/ob-archive-none.md'), 'utf-8'),
 }
 
