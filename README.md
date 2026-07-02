@@ -6,7 +6,7 @@
 
 **Prepare any codebase for AI. Wires [OpenCode](https://opencode.ai), [OpenSpec](https://github.com/fission-ai/openspec), [codegraph](https://github.com/colbymchenry/codegraph), and [basic-memory](https://github.com/basicmachines-co/basic-memory) into a multi-agent development workflow powered by native parallel subagents.**
 
-GitHub, Azure DevOps, or no platform at all.
+GitHub, Azure DevOps, Jira + GitHub, Jira + Azure DevOps, or no platform at all.
 
 [![npm version](https://img.shields.io/npm/v/opencode-onboard?style=flat-square&color=black)](https://www.npmjs.com/package/opencode-onboard)
 [![npm downloads](https://img.shields.io/npm/dm/opencode-onboard?style=flat-square&color=black)](https://www.npmjs.com/package/opencode-onboard)
@@ -74,8 +74,8 @@ The CLI runs a 10-step onboarding wizard. It keeps the current step visible, plu
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **1. Source scope**               | Choose current repo or sibling source roots for code analysis                                                                                                        |
 | **2. Clean AI files**             | Detects existing `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, `.agents/` etc. and removes them, preserves your `.agents/skills/`                                        |
-| **3. Choose platform**            | GitHub, Azure DevOps, or None                                                                                                                                       |
-| **4. Check platform CLI**         | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps), or skips checks when platform is None                                                              |
+| **3. Choose platform**            | Backlog (GitHub / Azure DevOps / Jira / None) + repo (GitHub / Azure DevOps / None). Supports mixed platforms e.g. Jira backlog + GitHub repo
+| **4. Check platform CLI**         | Verifies `gh` (GitHub) or `az` + `azure-devops` (Azure DevOps) or `acli` (Jira), or skips checks when platform is None |
 | **5. Copy scaffolding**           | Copies agents + built-in skills + bootstrap docs, writes source-roots metadata, applies AGENTS bootstrap patching, copies `skills-lock.json`, then runs `npx skills` |
 | **6. Init OpenSpec**              | Runs `npx @fission-ai/openspec init` silently for structured change management                                                                                       |
 | **7. Choose models**              | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing                   |
@@ -306,8 +306,9 @@ Long unattended agent sessions can consume significant tokens. Set these control
 | ---------------------------------------------------------------------------------------------------- | -------------------------------------- |
 | **Node.js 18+**                                                                                      | Required                               |
 | **[OpenCode](https://opencode.ai)**                                                                  | The agent runtime                      |
-| **[gh CLI](https://cli.github.com)**                                                                 | GitHub platform, must be authenticated |
-| **[az CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)** + azure-devops extension | Azure DevOps platform                  |
+| **[gh CLI](https://cli.github.com)**                                                                 | GitHub platform, must be authenticated                                 |
+| **[az CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)** + azure-devops extension | Azure DevOps platform                                                  |
+| **[acli](https://developer.atlassian.com/cloud/acli/guides/install-acli/)**                           | Jira (Atlassian) backlog platform, must be authenticated               |
 
 ---
 
@@ -316,7 +317,7 @@ Long unattended agent sessions can consume significant tokens. Set these control
 Wizard choices and defaults live in `src/presets/` where possible:
 
 - `source.json` controls source-scope prompt options
-- `platforms.json` controls platform labels and CLI checks
+- `platforms.json` controls platform labels, CLI checks, and backlog-only flags
 - `clean.json` controls AI file detection and preservation
 - `models.json` controls model role prompts and agent assignments
 - `optimization.json` controls RTK/quota/caveman checklist defaults

@@ -64,6 +64,30 @@ describe('choosePlatform()', () => {
     expect(select).toHaveBeenCalledTimes(1)
   })
 
+  it('returns jira backlog + github repo', async () => {
+    select.mockResolvedValueOnce('jira').mockResolvedValueOnce('github')
+
+    const result = await choosePlatform()
+
+    expect(result).toEqual({ backlogPlatform: 'jira', repoPlatform: 'github' })
+    expect(success).toHaveBeenCalledWith('Backlog platform: Jira (Atlassian)')
+    expect(success).toHaveBeenCalledWith('Repo platform: GitHub')
+  })
+
+  it('excludes jira from repo platform choices', async () => {
+    select.mockResolvedValueOnce('jira').mockResolvedValueOnce('github')
+
+    await choosePlatform()
+
+    // Second select call should not include jira in choices
+    const secondCall = select.mock.calls[1][0]
+    const choiceValues = secondCall.choices.map(c => c.value)
+    expect(choiceValues).not.toContain('jira')
+    expect(choiceValues).toContain('github')
+    expect(choiceValues).toContain('azure')
+    expect(choiceValues).toContain('none')
+  })
+
   describe('checkPlatform()', () => {
     describe('github path', () => {
       it('prints success when gh is installed and authenticated', async () => {
@@ -152,6 +176,36 @@ describe('choosePlatform()', () => {
         expect(commandExists).not.toHaveBeenCalled()
         expect(execa).not.toHaveBeenCalled()
         expect(success).toHaveBeenCalledWith('Platform: None')
+      })
+    })
+
+    describe('jira path', () => {
+      it('prints success when acli is installed and authenticated', async () => {
+        commandExists.mockResolvedValue(true)
+        execa.mockResolvedValue({ exitCode: 0, stdout: '' })
+
+        await checkPlatform('jira')
+
+        expect(success).toHaveBeenCalledWith('Atlassian CLI (acli) available')
+        expect(success).toHaveBeenCalledWith('Atlassian CLI (acli) authenticated')
+      })
+
+      it('warns when acli is installed but not authenticated', async () => {
+        commandExists.mockResolvedValue(true)
+        execa.mockResolvedValue({ exitCode: 1, stdout: '' })
+
+        await checkPlatform('jira')
+
+        expect(success).toHaveBeenCalledWith('Atlassian CLI (acli) available')
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('not authenticated'))
+      })
+
+      it('warns when acli is not installed', async () => {
+        commandExists.mockResolvedValue(false)
+
+        await checkPlatform('jira')
+
+        expect(warn).toHaveBeenCalledWith('Atlassian CLI (acli) not found.')
       })
     })
   })

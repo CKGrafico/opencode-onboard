@@ -10,20 +10,23 @@ const CONTENT_SKILLS_LOCK = path.resolve(__dirname, '../../../content/skills-loc
 
 const GITHUB_ONLY_SKILLS = new Set(['ob-userstory-gh', 'ob-pullrequest-gh'])
 const AZURE_ONLY_SKILLS  = new Set(['ob-userstory-az', 'ob-pullrequest-az'])
+const JIRA_ONLY_SKILLS   = new Set(['ob-userstory-jira'])
 
 // Platform-specific skills are renamed to their generic form on install.
-// The -gh / -az suffix is only needed here to keep both variants in source.
+// The -gh / -az / -jira suffix is only needed here to keep all variants in source.
 // After install only one platform is present so no suffix is needed.
 const SKILL_RENAME = {
-  'ob-userstory-gh':  'ob-userstory',
-  'ob-userstory-az':  'ob-userstory',
-  'ob-pullrequest-gh': 'ob-pullrequest',
-  'ob-pullrequest-az': 'ob-pullrequest',
+  'ob-userstory-gh':    'ob-userstory',
+  'ob-userstory-az':    'ob-userstory',
+  'ob-userstory-jira':  'ob-userstory',
+  'ob-pullrequest-gh':  'ob-pullrequest',
+  'ob-pullrequest-az':  'ob-pullrequest',
 }
 
 function shouldInstallSkill(skill, backlogPlatform, repoPlatform) {
   if (GITHUB_ONLY_SKILLS.has(skill)) return backlogPlatform === 'github' || repoPlatform === 'github'
   if (AZURE_ONLY_SKILLS.has(skill))  return backlogPlatform === 'azure' || repoPlatform === 'azure'
+  if (JIRA_ONLY_SKILLS.has(skill))   return backlogPlatform === 'jira'
   return true
 }
 

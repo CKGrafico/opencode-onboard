@@ -34,10 +34,12 @@ export async function choosePlatform() {
 
   let repoPlatform = backlogPlatform
   if (backlogPlatform !== 'none') {
+    // Jira is backlog-only — exclude it from repo platform choices
+    const repoChoices = platformsPreset.filter(p => !p.backlogOnly)
     repoPlatform = await select({
       message: 'Where is your code repository (PRs / code reviews)?',
-      choices: platformsPreset.map(p => ({ name: p.name, value: p.value })),
-      default: backlogPlatform,
+      choices: repoChoices.map(p => ({ name: p.name, value: p.value })),
+      default: backlogPreset.backlogOnly ? 'github' : backlogPlatform,
     })
     const repoPreset = platformsPreset.find(p => p.value === repoPlatform)
     success(`Repo platform: ${repoPreset?.name || repoPlatform}`)

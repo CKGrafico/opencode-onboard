@@ -35,6 +35,21 @@
     }
   },
   {
+    "value": "jira",
+    "name": "Jira (Atlassian)",
+    "backlogOnly": true,
+    "cli": {
+      "command": "acli",
+      "displayName": "Atlassian CLI (acli)",
+      "installUrl": "https://developer.atlassian.com/cloud/acli/guides/install-acli/",
+      "authCheck": {
+        "args": ["jira", "auth", "status"],
+        "notAuthenticatedMessage": "Atlassian CLI not authenticated. Run:",
+        "commands": ["acli jira auth login --site <yoursite>.atlassian.net --email <email> --token"]
+      }
+    }
+  },
+  {
     "value": "none",
     "name": "None"
   }
