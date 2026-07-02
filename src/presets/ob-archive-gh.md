@@ -53,14 +53,14 @@
 
    ```bash
    git add -A
-   git commit -m "archive: {title} ({id})"
+   git commit -m "archive: {title}"
    git push origin archive/{id}-{slug}
 
    gh pr create \
       --repo {owner}/{repo} \
       --base main \
       --head archive/{id}-{slug} \
-      --title "archive: {title} ({id})" \
+      --title "archive: {title}" \
       --body "Archive SDD artifacts for {id} after merge."
    ```
 

@@ -53,14 +53,14 @@
 
    ```bash
    git add -A
-   git commit -m "archive: {title} ({id})"
+   git commit -m "archive: {title}"
    git push origin archive/{id}-{slug}
 
    az repos pr create \
      --repository {repo} \
      --source-branch refs/heads/archive/{id}-{slug} \
      --target-branch refs/heads/main \
-     --title "archive: {title} ({id})" \
+     --title "archive: {title}" \
      --description "Archive SDD artifacts for us-{id} after merge of {sourceRefName}." \
      --auto-complete
    ```

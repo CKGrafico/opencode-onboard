@@ -40,7 +40,7 @@
 
    ```bash
    git add -A
-   git commit -m "archive: {title} ({id})"
+   git commit -m "archive: {title}"
    ```
 
    No PR is created in this mode. Leave the `archive/{id}-{slug}` branch for the user to merge or push manually if they choose.
