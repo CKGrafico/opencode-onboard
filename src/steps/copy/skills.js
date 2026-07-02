@@ -21,13 +21,14 @@ const SKILL_RENAME = {
   'ob-pullrequest-az': 'ob-pullrequest',
 }
 
-function shouldInstallSkill(skill, platform) {
-  if (GITHUB_ONLY_SKILLS.has(skill)) return platform === 'github'
-  if (AZURE_ONLY_SKILLS.has(skill))  return platform === 'azure'
+function shouldInstallSkill(skill, backlogPlatform, repoPlatform) {
+  if (GITHUB_ONLY_SKILLS.has(skill)) return backlogPlatform === 'github' || repoPlatform === 'github'
+  if (AZURE_ONLY_SKILLS.has(skill))  return backlogPlatform === 'azure' || repoPlatform === 'azure'
   return true
 }
 
-async function installObSkills(platform = 'github') {
+async function installObSkills(backlogPlatform = 'github', repoPlatform) {
+  const repo = repoPlatform ?? backlogPlatform
   const destSkillsDir = path.join(process.cwd(), '.agents', 'skills')
   await fse.ensureDir(destSkillsDir)
 
@@ -38,8 +39,8 @@ async function installObSkills(platform = 'github') {
     const dest = path.join(destSkillsDir, destName)
     const stat = await fse.stat(src)
     if (!stat.isDirectory()) continue
-    if (!shouldInstallSkill(skill, platform)) {
-      info(`Skipping skill: ${skill} (not needed for platform: ${platform})`)
+    if (!shouldInstallSkill(skill, backlogPlatform, repo)) {
+      info(`Skipping skill: ${skill} (not needed for platforms: ${backlogPlatform}/${repo})`)
       continue
     }
     if (await fse.pathExists(dest)) {
@@ -51,9 +52,9 @@ async function installObSkills(platform = 'github') {
   }
 }
 
-export async function installSkills(platform = 'github') {
+export async function installSkills(backlogPlatform = 'github', repoPlatform) {
   info('Installing built-in ob-skills...')
-  await installObSkills(platform)
+  await installObSkills(backlogPlatform, repoPlatform)
   console.log()
 
   if (await fse.pathExists(CONTENT_SKILLS_LOCK)) {

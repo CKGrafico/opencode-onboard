@@ -48,7 +48,8 @@ describe('writeOnboardConfig()', () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1.2.3', stderr: '' })
 
     await writeOnboardConfig({
-      platform: 'github',
+      backlogPlatform: 'github',
+      repoPlatform: 'github',
       sourceMode: 'current',
       sourceRoots: ['/test/path'],
       hasDesign: true,
@@ -69,55 +70,76 @@ describe('writeOnboardConfig()', () => {
     const payload = lastPayload()
     expect(payload.schema).toBe(1)
     expect(payload.wizard.platform).toBe('github')
+    expect(payload.wizard.backlogPlatform).toBe('github')
+    expect(payload.wizard.repoPlatform).toBe('github')
     expect(payload.wizard.models.build).toBe('build-model')
     expect(payload.wizard.maxConcurrentAgents).toBe(4)
     expect(payload.wizard.optionalTools).toEqual(['rtk'])
   })
 
+  it('writes mixed platforms (azure backlog + github repo)', async () => {
+    execa.mockResolvedValue({ exitCode: 0, stdout: '1.2.3', stderr: '' })
+
+    await writeOnboardConfig({
+      backlogPlatform: 'azure',
+      repoPlatform: 'github',
+      sourceMode: 'current',
+      sourceRoots: [],
+      cwd: tmpDir,
+    })
+
+    const payload = lastPayload()
+    expect(payload.wizard.backlogPlatform).toBe('azure')
+    expect(payload.wizard.repoPlatform).toBe('github')
+    expect(payload.wizard.platform).toBe('github')
+  })
+
   it('detects opencode version from CLI', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '2.0.0', stderr: '' })
-    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
+    await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
     expect(lastPayload().opencodeVersion).toBe('2.0.0')
   })
 
   it('handles missing opencode gracefully', async () => {
     execa.mockResolvedValue({ exitCode: 1, stdout: '', stderr: '' })
-    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
+    await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
     expect(lastPayload().opencodeVersion).toBe(null)
   })
 
   it('note marks runtime config as load-bearing', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
-    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
+    await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
     expect(lastPayload().note).toContain('wizard.maxConcurrentAgents')
   })
 
   it('persists none as an explicit platform mode', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
-    await writeOnboardConfig({ platform: 'none', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
+    await writeOnboardConfig({ backlogPlatform: 'none', repoPlatform: 'none', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
     expect(lastPayload().wizard.platform).toBe('none')
+    expect(lastPayload().wizard.backlogPlatform).toBe('none')
+    expect(lastPayload().wizard.repoPlatform).toBe('none')
   })
 
   it('omits model metadata when no model is selected and none exists', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
-    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
+    await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
     expect(lastPayload().wizard.models).toBeUndefined()
   })
 
   it('defaults maxConcurrentAgents to 3 when unset', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
-    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
+    await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
     expect(lastPayload().wizard.maxConcurrentAgents).toBe(3)
   })
 
   it('clamps maxConcurrentAgents to the 1..5 range', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
 
-    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [], maxConcurrentAgents: 9, cwd: tmpDir })
+    await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], maxConcurrentAgents: 9, cwd: tmpDir })
     expect(lastPayload().wizard.maxConcurrentAgents).toBe(5)
 
     fse.writeJson.mockClear()
-    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [], maxConcurrentAgents: 0, cwd: tmpDir })
+    await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], maxConcurrentAgents: 0, cwd: tmpDir })
     expect(lastPayload().wizard.maxConcurrentAgents).toBe(1)
   })
 
@@ -127,7 +149,7 @@ describe('writeOnboardConfig()', () => {
       wizard: { models: { plan: 'p', build: 'b', fast: 'f' }, maxConcurrentAgents: 5 },
     })
 
-    await writeOnboardConfig({ platform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
+    await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
 
     const payload = lastPayload()
     expect(payload.wizard.models).toEqual({ plan: 'p', build: 'b', fast: 'f' })
@@ -141,7 +163,8 @@ describe('writeOnboardConfig()', () => {
     })
 
     await writeOnboardConfig({
-      platform: 'github',
+      backlogPlatform: 'github',
+      repoPlatform: 'github',
       sourceMode: 'current',
       sourceRoots: [],
       buildModel: 'new',

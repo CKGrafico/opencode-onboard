@@ -19,8 +19,10 @@ export async function runSingleCommand(command) {
     sourceRoots: Array.isArray(savedWizard?.sourceRoots) ? savedWizard.sourceRoots : [],
     maxConcurrentAgents: savedWizard?.maxConcurrentAgents ?? 3,
   }
-  const platform = savedWizard?.platform
-  const resolvedPlatform = platform === 'azure' || platform === 'github' || platform === 'none' ? platform : 'github'
+  const backlogPlatform = savedWizard?.backlogPlatform ?? savedWizard?.platform
+  const repoPlatform = savedWizard?.repoPlatform ?? savedWizard?.platform
+  const resolvedBacklog = backlogPlatform === 'azure' || backlogPlatform === 'github' || backlogPlatform === 'none' ? backlogPlatform : 'github'
+  const resolvedRepo = repoPlatform === 'azure' || repoPlatform === 'github' || repoPlatform === 'none' ? repoPlatform : 'github'
 
   const handlers = {
     clean: async () => {
@@ -30,7 +32,7 @@ export async function runSingleCommand(command) {
       await choosePlatform()
     },
     copy: async () => {
-      await copyContentStep(resolvedPlatform, ctx)
+      await copyContentStep({ backlogPlatform: resolvedBacklog, repoPlatform: resolvedRepo }, ctx)
     },
     openspec: async () => {
       await initOpenspec()
@@ -47,7 +49,8 @@ export async function runSingleCommand(command) {
     metadata: async () => {
       await writeOnboardConfig({
         ...ctx,
-        platform: resolvedPlatform,
+        backlogPlatform: resolvedBacklog,
+        repoPlatform: resolvedRepo,
         maxConcurrentAgents: savedWizard?.maxConcurrentAgents ?? 3,
         additionalSkillsProvider: 'npx-skills',
         planModel: savedWizard?.models?.plan ?? null,

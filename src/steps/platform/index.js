@@ -24,15 +24,33 @@ export async function checkPlatform(platform) {
 export async function choosePlatform() {
   header('Step 3, Version control platform')
 
-  const platform = await select({
-    message: 'Which platform are you using?',
+  const backlogPlatform = await select({
+    message: 'Where is your backlog (work items / issues)?',
     choices: platformsPreset.map(p => ({ name: p.name, value: p.value })),
   })
 
-  const preset = platformsPreset.find(p => p.value === platform)
-  success(`Platform: ${preset?.name || platform}`)
-  await checkPlatform(platform)
-  return platform
+  const backlogPreset = platformsPreset.find(p => p.value === backlogPlatform)
+  success(`Backlog platform: ${backlogPreset?.name || backlogPlatform}`)
+
+  let repoPlatform = backlogPlatform
+  if (backlogPlatform !== 'none') {
+    repoPlatform = await select({
+      message: 'Where is your code repository (PRs / code reviews)?',
+      choices: platformsPreset.map(p => ({ name: p.name, value: p.value })),
+      default: backlogPlatform,
+    })
+    const repoPreset = platformsPreset.find(p => p.value === repoPlatform)
+    success(`Repo platform: ${repoPreset?.name || repoPlatform}`)
+  }
+
+  // Check CLIs for both platforms (deduped)
+  const platformsToCheck = [...new Set([backlogPlatform, repoPlatform])].filter(p => p !== 'none')
+  for (const p of platformsToCheck) {
+    const preset = platformsPreset.find(x => x.value === p)
+    if (preset?.cli) await checkPlatformCli(preset)
+  }
+
+  return { backlogPlatform, repoPlatform }
 }
 
 async function checkPlatformCli(platformPreset) {

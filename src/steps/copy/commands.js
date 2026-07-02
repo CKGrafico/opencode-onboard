@@ -14,18 +14,20 @@ const PLATFORM_ARCHIVE_START = '<!-- OB-PLATFORM-ARCHIVE-START -->'
 const PLATFORM_ARCHIVE_END = '<!-- OB-PLATFORM-ARCHIVE-END -->'
 
 export async function patchArchiveCommand(platform, cwd = process.cwd()) {
+  // platform can be a single string or { backlogPlatform, repoPlatform }
+  const repoPlatform = typeof platform === 'object' ? (platform.repoPlatform ?? platform.backlogPlatform ?? 'github') : platform
   const targetPath = path.join(cwd, '.opencode', 'commands', 'ob-archive.md')
   if (!await fse.pathExists(targetPath)) return
 
   let content = await fse.readFile(targetPath, 'utf-8')
   if (!content.includes(PLATFORM_ARCHIVE_START) || !content.includes(PLATFORM_ARCHIVE_END)) return
 
-  const replacement = _content[platform]
+  const replacement = _content[repoPlatform]
   if (!replacement) return
 
   const pattern = new RegExp(`${PLATFORM_ARCHIVE_START}[\\s\\S]*?${PLATFORM_ARCHIVE_END}`)
   content = content.replace(pattern, `${PLATFORM_ARCHIVE_START}\n${replacement.trim()}\n${PLATFORM_ARCHIVE_END}`)
   await fse.writeFile(targetPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
-  success(`ob-archive.md archive flow injected for platform: ${platform}`)
+  success(`ob-archive.md archive flow injected for platform: ${repoPlatform}`)
 }
 

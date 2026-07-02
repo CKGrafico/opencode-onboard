@@ -27,31 +27,41 @@ describe('choosePlatform()', () => {
     vi.clearAllMocks()
   })
 
-  it('returns "github" when user selects GitHub', async () => {
-    select.mockResolvedValue('github')
+  it('returns both platforms as github when user selects GitHub for both', async () => {
+    select.mockResolvedValueOnce('github').mockResolvedValueOnce('github')
 
     const result = await choosePlatform()
 
-    expect(result).toBe('github')
-    expect(success).toHaveBeenCalledWith('Platform: GitHub')
+    expect(result).toEqual({ backlogPlatform: 'github', repoPlatform: 'github' })
+    expect(success).toHaveBeenCalledWith('Backlog platform: GitHub')
+    expect(success).toHaveBeenCalledWith('Repo platform: GitHub')
   })
 
-  it('returns "azure" when user selects Azure DevOps', async () => {
-    select.mockResolvedValue('azure')
+  it('returns both platforms as azure when user selects Azure DevOps for both', async () => {
+    select.mockResolvedValueOnce('azure').mockResolvedValueOnce('azure')
 
     const result = await choosePlatform()
 
-    expect(result).toBe('azure')
-    expect(success).toHaveBeenCalledWith('Platform: Azure DevOps')
+    expect(result).toEqual({ backlogPlatform: 'azure', repoPlatform: 'azure' })
+    expect(success).toHaveBeenCalledWith('Backlog platform: Azure DevOps')
+    expect(success).toHaveBeenCalledWith('Repo platform: Azure DevOps')
   })
 
-  it('returns "none" when user selects None', async () => {
-    select.mockResolvedValue('none')
+  it('returns mixed azure backlog + github repo', async () => {
+    select.mockResolvedValueOnce('azure').mockResolvedValueOnce('github')
 
     const result = await choosePlatform()
 
-    expect(result).toBe('none')
-    expect(success).toHaveBeenCalledWith('Platform: None')
+    expect(result).toEqual({ backlogPlatform: 'azure', repoPlatform: 'github' })
+  })
+
+  it('skips repo question when backlog is none', async () => {
+    select.mockResolvedValueOnce('none')
+
+    const result = await choosePlatform()
+
+    expect(result).toEqual({ backlogPlatform: 'none', repoPlatform: 'none' })
+    expect(select).toHaveBeenCalledTimes(1)
   })
 
   describe('checkPlatform()', () => {

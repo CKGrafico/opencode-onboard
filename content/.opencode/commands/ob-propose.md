@@ -32,7 +32,7 @@ Wait for the user to respond:
 
 **Step 0.b - Load proposal skill**
 
-**If a work item URL is provided** (GitHub Issue or Azure DevOps work item): load `@ob-userstory` skill and fetch the work item via CLI before continuing. Platform is set in `.opencode/opencode-onboard.json` `wizard.platform`. If platform is `none`, skip this step and work from direct user input.
+**If a work item URL is provided** (GitHub Issue or Azure DevOps work item): load `@ob-userstory` skill and fetch the work item via CLI before continuing. Backlog platform is set in `.opencode/opencode-onboard.json` → `wizard.backlogPlatform` (falls back to `wizard.platform` for older configs). If backlog platform is `none`, skip this step and work from direct user input.
 
 Load `@openspec-propose` skill and follow its instructions.
 

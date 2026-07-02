@@ -16,6 +16,10 @@ export async function copyContentStep(platform, ctx = {}) {
 
   const dest = process.cwd()
 
+  // Support both old single-string platform and new { backlogPlatform, repoPlatform }
+  const backlogPlatform = typeof platform === 'object' ? platform.backlogPlatform : platform
+  const repoPlatform = typeof platform === 'object' ? platform.repoPlatform : platform
+
   try {
     await copyContent(CONTENT_DIR, dest, platform, ctx)
 
@@ -43,12 +47,12 @@ export async function copyContentStep(platform, ctx = {}) {
       { spaces: 2 },
     )
 
-    await patchAgentGuidance(platform)
-    await patchArchiveCommand(platform)
+    await patchAgentGuidance(backlogPlatform, repoPlatform)
+    await patchArchiveCommand({ backlogPlatform, repoPlatform })
     await patchAgentsMd(ctx)
     await patchConcurrency(ctx)
 
-    await installSkills(platform)
+    await installSkills(backlogPlatform, repoPlatform)
     success("Files copied to project root")
   } catch (err) {
     error(`Failed to copy content: ${err.message}`)

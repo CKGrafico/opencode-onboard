@@ -26,7 +26,8 @@ export async function runJoin() {
   }
 
   const savedWizard = saved?.wizard ?? {}
-  const savedPlatform = savedWizard?.platform
+  const backlogPlatform = savedWizard?.backlogPlatform ?? savedWizard?.platform
+  const repoPlatform = savedWizard?.repoPlatform ?? savedWizard?.platform
   const installScope = savedWizard?.installScope ?? 'local'
   const teamModels = savedWizard?.models ?? {}
 
@@ -35,13 +36,15 @@ export async function runJoin() {
 
   // Step 1: Platform CLI check
   header('Step 1, Platform CLI check')
-  if (savedPlatform) {
-    const display = savedPlatform === 'github' ? 'GitHub' : savedPlatform === 'azure' ? 'Azure DevOps' : 'None'
-    info(`Detected project platform: ${display}`)
-    await checkPlatform(savedPlatform)
+  const platformsToCheck = [...new Set([backlogPlatform, repoPlatform])].filter(p => p && p !== 'none')
+  if (platformsToCheck.length === 0) {
+    info('No platform integration selected, skipping CLI checks.')
   } else {
-    const platform = await choosePlatform()
-    void platform
+    for (const p of platformsToCheck) {
+      const display = p === 'github' ? 'GitHub' : p === 'azure' ? 'Azure DevOps' : p
+      info(`Checking platform: ${display}`)
+      await checkPlatform(p)
+    }
   }
 
   // Step 2: Install OpenCode plugins

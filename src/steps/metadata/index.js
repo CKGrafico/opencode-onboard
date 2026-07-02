@@ -52,7 +52,9 @@ export async function writeOnboardConfig(data) {
     onboardVersion,
     opencodeVersion,
     wizard: {
-      platform: data.platform,
+      platform: data.repoPlatform ?? data.platform ?? 'none',
+      backlogPlatform: data.backlogPlatform ?? data.platform ?? 'none',
+      repoPlatform: data.repoPlatform ?? data.platform ?? 'none',
       sourceMode: data.sourceMode,
       sourceRoots: data.sourceRoots,
       maxConcurrentAgents,

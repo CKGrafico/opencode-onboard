@@ -19,7 +19,7 @@ Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash
 - `write_note` with title `pr-{branch-name}` storing the PR URL and review status for future reference.
 <!-- OB-CMD-MEMORY-END -->
 
-Load `@ob-pullrequest` skill and follow its instructions.
+The `@ob-pullrequest` skill is platform-specific. Repo platform is set in `.opencode/opencode-onboard.json` → `wizard.repoPlatform` (falls back to `wizard.platform` for older configs). Load the skill matching the repo platform and follow its instructions.
 
 **Create mode** (default): creates a PR for the current feature branch with screenshots if UI changed.
 

@@ -21,7 +21,7 @@ describe('platform patching', () => {
     const dest = path.join(tmpDir, 'AGENTS.md')
     await fse.copyFile(source, dest)
 
-    await patchAgentGuidance('none', tmpDir)
+    await patchAgentGuidance('none', 'none', tmpDir)
 
     const content = await fse.readFile(dest, 'utf-8')
     expect(content).toContain('GitHub Issue URLs, Azure DevOps work item URLs, and PR URLs are NOT automatic triggers in this mode.')

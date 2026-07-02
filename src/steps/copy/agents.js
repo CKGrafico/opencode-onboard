@@ -52,6 +52,17 @@ function platformContent(platform, key) {
   return p[key] ?? ''
 }
 
+function mixedPlatformContent(backlogPlatform, repoPlatform, key) {
+  if (backlogPlatform === repoPlatform) {
+    return platformContent(backlogPlatform, key)
+  }
+  const backlog = agentsContent.platform[backlogPlatform] ?? agentsContent.platform.github
+  const repo = agentsContent.platform[repoPlatform] ?? agentsContent.platform.github
+  const mixed = agentsContent.platform.mixed ?? {}
+  const mixedKey = `${backlogPlatform}-${repoPlatform}`
+  return mixed[mixedKey]?.[key] ?? mixed.default?.[key]?.replace('{backlog}', backlog[key] ?? '').replace('{repo}', repo[key] ?? '') ?? platformContent(repoPlatform, key)
+}
+
 function replaceBetween(content, start, end, replacement) {
   if (!content.includes(start) || !content.includes(end)) return content
   const pattern = new RegExp(`${start}[\\s\\S]*?${end}`)
@@ -123,15 +134,17 @@ export async function patchAgentsMd(ctx) {
   }
 }
 
-export async function patchAgentGuidance(platform, cwd = process.cwd()) {
+export async function patchAgentGuidance(backlogPlatform, repoPlatform, cwd = process.cwd()) {
   const agentsMdPath = path.join(cwd, 'AGENTS.md')
   if (await fse.pathExists(agentsMdPath)) {
+    const repo = repoPlatform ?? backlogPlatform ?? 'github'
     let content = await fse.readFile(agentsMdPath, 'utf-8')
-    content = replaceBetween(content, PLATFORM_WORKFLOW_START, PLATFORM_WORKFLOW_END, platformContent(platform, 'workflow'))
-    content = replaceBetween(content, PLATFORM_PIPELINE_START, PLATFORM_PIPELINE_END, platformContent(platform, 'pipeline'))
-    content = replaceBetween(content, PLATFORM_SKILLS_GUIDE_START, PLATFORM_SKILLS_GUIDE_END, platformContent(platform, 'skillsGuide'))
+    content = replaceBetween(content, PLATFORM_WORKFLOW_START, PLATFORM_WORKFLOW_END, mixedPlatformContent(backlogPlatform, repo, 'workflow'))
+    content = replaceBetween(content, PLATFORM_PIPELINE_START, PLATFORM_PIPELINE_END, mixedPlatformContent(backlogPlatform, repo, 'pipeline'))
+    content = replaceBetween(content, PLATFORM_SKILLS_GUIDE_START, PLATFORM_SKILLS_GUIDE_END, mixedPlatformContent(backlogPlatform, repo, 'skillsGuide'))
     await fse.writeFile(agentsMdPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
-    success(`AGENTS.md patched for platform workflow: ${platform}`)
+    const label = backlogPlatform === repo ? repo : `${backlogPlatform}→${repo}`
+    success(`AGENTS.md patched for platform workflow: ${label}`)
   }
 }
 

@@ -30,7 +30,7 @@ Input: `$ARGUMENTS`
 
 **Phase 0 — Resolve input.**
 - Detect output mode (default / `pr` / `push`) from `$ARGUMENTS` and strip the keyword.
-- If the remaining `$ARGUMENTS` is a GitHub Issue or Azure DevOps URL and `.opencode/opencode-onboard.json` → `wizard.platform` is not `none`: load `@ob-userstory` and fetch the work item via CLI. Otherwise treat `$ARGUMENTS` as a direct feature description.
+- If the remaining `$ARGUMENTS` is a GitHub Issue or Azure DevOps URL and `.opencode/opencode-onboard.json` → `wizard.backlogPlatform` (or `wizard.platform` for older configs) is not `none`: load `@ob-userstory` and fetch the work item via CLI. Otherwise treat `$ARGUMENTS` as a direct feature description.
 - Derive a short kebab-case `{slug}` from the title/description for the initial branch name.
 
 **Phase 1 — Branch from main (before anything else).**

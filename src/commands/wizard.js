@@ -79,9 +79,9 @@ export async function runWizard(version) {
   const preserve = await cleanAiFiles()
   const ctx = { ...preserve, ...scope, maxConcurrentAgents, installScope }
 
-  const platform = await choosePlatform()
+  const { backlogPlatform, repoPlatform } = await choosePlatform()
 
-  await copyContentStep(platform, ctx)
+  await copyContentStep({ backlogPlatform, repoPlatform }, ctx)
 
   const openspec = await initOpenspec()
 
@@ -94,7 +94,8 @@ export async function runWizard(version) {
 
   await writeOnboardConfig({
     ...ctx,
-    platform,
+    backlogPlatform,
+    repoPlatform,
     openspec,
     maxConcurrentAgents,
     installScope,
