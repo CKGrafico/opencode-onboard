@@ -1,6 +1,6 @@
 import { execa } from 'execa'
 import fse from 'fs-extra'
-import { header, success, warn, error } from '../../utils/exec.js'
+import { code, header, info, success, warn, error } from '../../utils/exec.js'
 import os from 'os'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -20,6 +20,8 @@ export async function installBrowser(ctx = {}) {
     response: a.response === '__LOCATION__' ? locationAnswer : a.response,
   }))
 
+  let extensionPathShown = false
+
   try {
     const child = execa(browserPreset.installer.command, browserPreset.installer.args, {
       cwd: os.homedir(),
@@ -38,8 +40,32 @@ export async function installBrowser(ctx = {}) {
 
       if (show) process.stdout.write(chunk)
 
+      // Detect the extension path from the installer output to show it clearly
+      if (!extensionPathShown) {
+        const pathMatch = text.match(/(C:\\[^\s]+(?:extension|opencode-browser[^\s]*))/i) ||
+                          text.match(/((?:\/|~)[^\s]*(?:extension|opencode-browser[^\s]*))/i)
+        if (pathMatch) {
+          extensionPathShown = true
+        }
+      }
+
       for (let i = 0; i < triggers.length; i++) {
         if (text.includes(triggers[i].trigger)) {
+          // When the installer asks to press Enter after loading the extension,
+          // show the manual steps clearly before auto-answering
+          if (triggers[i].trigger === browserPreset.output.hideAfter) {
+            info('')
+            warn('Manual step required: load the browser extension before pressing Enter')
+            code([
+              '1. Open chrome://extensions',
+              '2. Enable Developer mode (top-right toggle)',
+              '3. Click "Load unpacked"',
+              '4. Select the extension folder shown above',
+              '5. Pin the extension: open the Extensions menu (puzzle icon) and click the pin',
+            ])
+            info('Auto-confirming in 5 seconds...')
+          }
+
           child.stdin.write(`${triggers[i].response}\n`)
           triggers.splice(i, 1)
           break
@@ -53,6 +79,9 @@ export async function installBrowser(ctx = {}) {
 
     if (result.exitCode === 0) {
       success('opencode-browser installed')
+      if (extensionPathShown) {
+        info('If you skipped loading the extension, run: npx @different-ai/opencode-browser install')
+      }
     } else {
       warn('opencode-browser install exited with non-zero code')
     }
