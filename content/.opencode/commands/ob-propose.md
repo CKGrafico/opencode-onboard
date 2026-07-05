@@ -2,8 +2,6 @@
 description: Parse a work item or idea and propose a change plan with enriched task assignments.
 ---
 
-> **Command aliases:** Loaded skills may reference `/opsx-propose`, `/opsx-apply`, `/opsx-archive`, or `/opsx-explore`. Always substitute: `/opsx-propose` → `/ob-propose`, `/opsx-apply` → `/ob-apply`, `/opsx-archive` → `/ob-archive`, `/opsx-explore` → `/ob-explore`. Never mention the `opsx-` names in your responses to the user.
-
 Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
 <!-- OB-CMD-RTK-START -->
 Prefix all bash commands with `rtk` when RTK is enabled.
@@ -12,10 +10,10 @@ Prefix all bash commands with `rtk` when RTK is enabled.
 
 **Step 0.a - Check for unarchived changes**
 
-**IMPORTANT**: Never skip this step. User must give a response before proceeding.
+**IMPORTANT**: Never skip this step, with one exception: a calling command may explicitly override it (`/ob-autopilot` does — treat the answer as `continue`). Otherwise the user must give a response before proceeding.
 
-Before proposing a new change, inspect `openspec/changes/` (ignore `openspec/changes/archive`). 
-If any folder (`us-{id}-{slug}`) exist in `openspec/changes/`, list them and warn the user with this exact prompt:
+Before proposing a new change, inspect `openspec/changes/` (ignore `openspec/changes/archive`).
+If any change folder exists in `openspec/changes/` (names vary by platform: `gh-*`, `us-*`, or a plain slug), list them and warn the user with this exact prompt:
 
 ```text
 There are unarchived changes pending to be archived:
@@ -32,7 +30,7 @@ Wait for the user to respond:
 
 **Step 0.b - Load proposal skill**
 
-**If a work item URL is provided** (GitHub Issue or Azure DevOps work item): load `@ob-userstory` skill and fetch the work item via CLI before continuing. Backlog platform is set in `.opencode/opencode-onboard.json` → `wizard.backlogPlatform` (falls back to `wizard.platform` for older configs). If backlog platform is `none`, skip this step and work from direct user input.
+**If a work item URL or issue key is provided** (GitHub Issue, Azure DevOps work item, Jira issue, or browser-based backlog): load `@ob-userstory` skill and fetch the work item before continuing. Backlog platform is set in `.opencode/opencode-onboard.json` → `wizard.backlogPlatform` (falls back to `wizard.platform` for older configs). If backlog platform is `none`, skip this step and work from direct user input.
 
 Load `@openspec-propose` skill and follow its instructions.
 

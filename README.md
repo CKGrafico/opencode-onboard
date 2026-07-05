@@ -62,7 +62,7 @@ Typical flow for reruns:
 
 - Run `clean` if you want to reset old AI files
 - Run `copy` if templates/skills changed in a new onboard release
-- Run `optimization` if you want to reconfigure RTK/quota/caveman + `ob-global`
+- Run `optimization` if you want to reconfigure RTK/quota/caveman and the AGENTS.md optimization markers
 - Run `metadata` last to refresh `.opencode/opencode-onboard.json`
 - Run `join` if you're a new member of an existing onboarded project and want to sync the latest onboarding metadata
 
@@ -81,7 +81,7 @@ The CLI runs a 10-step onboarding wizard. It keeps the current step visible, plu
 | **5. Copy scaffolding**           | Copies agents + built-in skills + bootstrap docs, writes source-roots metadata, applies AGENTS bootstrap patching, copies `skills-lock.json`, then runs `npx skills` |
 | **6. Init OpenSpec**              | Runs `npx @fission-ai/openspec init` silently for structured change management                                                                                       |
 | **7. Choose models**              | Fetches live model list from [models.dev](https://models.dev), lets you pick plan / build / fast models with cost indicators and canonical pricing                   |
-| **8. Token optimization tools**   | Optional (recommended). One checklist step for RTK check, opencode-quota setup, caveman install, and dynamic `ob-global` token-optimization rule injection           |
+| **8. Token optimization tools**   | Optional (recommended). One checklist step for RTK check, opencode-quota setup, caveman install, and token-optimization rule injection into AGENTS.md + command files |
 | **9. Install browser plugin**     | Installs `@different-ai/opencode-browser` globally for agent browser automation                                                                                      |
 | **10. Write onboarding metadata** | Writes `.opencode/opencode-onboard.json` with selected setup details                                                                                                 |
 
@@ -144,9 +144,9 @@ If you choose backlog platform `None`, no userstory skills are injected into the
 
 Current loading model:
 
-- `ob-global` is baseline and should be loaded first
+- `ob-generic-guardrails` is mandatory baseline for every agent (git/secrets/quality rules + the engineer workflow)
 - `ob-default` is fallback when nothing else matches
-- `ob-generic-guardrails` is a minimal base users can extend with custom guardrail skills
+- Baseline context rules and token-optimization guidance live in `AGENTS.md` (always in context), not in a skill
 
 Default `basic-engineer` abilities:
 
@@ -164,8 +164,7 @@ Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 
 | Skill                   | Purpose                                                                                                          |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `ob-global`             | Baseline skill loaded first: context rules, source-roots scope, git/secrets guardrails, token-optimization rules |
-| `ob-default`            | Fallback, when no other skill matches. Still loads ob-global first                                               |
+| `ob-default`            | Fallback, when no other skill matches                                                                            |
 | `ob-generic-guardrails` | Foundation for user guardrails skills                                                                            |
 | `ob-userstory-gh`       | Parse a GitHub Issue URL into a structured work item                                                             |
 | `ob-userstory-az`       | Parse an Azure DevOps work item URL                                                                              |
@@ -197,7 +196,7 @@ Models are fetched live from [models.dev](https://models.dev) (3000+ models, cac
 When you give the lead agent a work item URL, execution follows this pipeline. If backlog platform is `None`, skip the work item stage. If repo platform is `None`, skip the PR stage:
 
 ```
-lead (load ob-global first)
+lead
                   ↓
          parse work item via userstory skill
                   ↓
@@ -215,15 +214,14 @@ lead (load ob-global first)
   commit → push → PR → feedback loop
 ```
 
-1. Load `ob-global` baseline rules
-2. Load platform userstory skill (`ob-userstory-gh`, `ob-userstory-az`, `ob-userstory-jira`, or `ob-userstory-browser` depending on backlog platform)
-3. Run `/ob-propose` to produce `proposal.md`, specs, and `tasks.md`
-4. Confirm with user before implementation
-5. Run `/ob-apply` to orchestrate implementation in waves
-6. Each wave spawns engineers in parallel (`basic-engineer` and/or custom engineers, each carrying its own model), capped at `maxConcurrentAgents`
-7. Each subagent receives its task IDs in its prompt, loads relevant abilities, implements, and returns; the lead commits each group
-8. Verify with tests/build/lint according to task scope
-9. Ship/update PR via lead flow
+1. Load the platform userstory skill (installed as `ob-userstory`, from the variant matching your backlog platform)
+2. Run `/ob-propose` to produce `proposal.md`, specs, and `tasks.md`
+3. Confirm with user before implementation
+4. Run `/ob-apply` to orchestrate implementation in waves
+5. Each wave spawns engineers in parallel (`basic-engineer` and/or custom engineers, each carrying its own tier model), capped at `maxConcurrentAgents`
+6. Each subagent receives its task IDs in its prompt, loads relevant abilities, implements, and returns; the lead commits each group
+7. Verify with tests/build/lint according to task scope
+8. Ship/update PR via lead flow
 
 Agents run as native OpenCode subagents in parallel waves — no external plugin, no git worktrees. The lead's Todo pane is the live board, and the `ob-subagent-monitor` plugin mirrors state to `.opencode/.ob-run.json`. Navigate into any running subagent with `ctrl+x ↓` then `←`/`→`.
 
@@ -247,15 +245,14 @@ your-project/
 │       └── ob-subagent-monitor.js   ← server plugin: writes subagent state → .opencode/.ob-run.json
 └── .agents/
     └── skills/
-        ├── ob-global/              ← baseline skill, load FIRST
         ├── ob-default/             ← fallback skill
         ├── ob-generic-guardrails/  ← foundation for user guardrails
-        ├── ob-userstory-gh/      ← or -az, -jira, -browser depending on backlog platform
-        ├── ob-userstory-az/
+        ├── ob-userstory/           ← the variant matching your backlog platform, renamed on install
+        ├── ob-pullrequest/         ← the variant matching your repo platform, renamed on install
         └── browser-automation/
 ```
 
-`ob-global` is the baseline skill template. During onboarding, source-roots and token-optimization sections are injected into that template.
+Platform skills ship as suffixed variants (`ob-userstory-gh/-az/-jira/-browser`, `ob-pullrequest-gh/-az/-gl`) and the installer copies only the matching one, renamed to its generic name. Source-roots metadata lands in `.opencode/source-roots.json`; token-optimization guidance is injected into AGENTS.md marker blocks during onboarding.
 
 ---
 
@@ -299,7 +296,7 @@ Long unattended agent sessions can consume significant tokens. Set these control
 
 2. **Route models by task type** — use a fast/cheap model (e.g. `haiku`, `gpt-4o-mini`) for orchestration and status loops; reserve expensive models (e.g. `sonnet`, `opus`, `gpt-4o`) for implementation tasks only.
 
-3. **Install the quota plugin** — the [`opencode-quota`](https://github.com/opencode-ai/opencode-quota) plugin adds `/quota` and `/quota_status` commands that surface real-time token usage inside OpenCode sessions.
+3. **Install the quota plugin** — the [`@slkiser/opencode-quota`](https://www.npmjs.com/package/@slkiser/opencode-quota) plugin adds `/quota` and `/quota_status` commands that surface real-time token usage inside OpenCode sessions.
 
 4. **Use `/quota` checkpoints** — run `/quota` before starting any `/ob-apply` session and after each agent wave. Pause at 75% consumed; stop at 90%.
 

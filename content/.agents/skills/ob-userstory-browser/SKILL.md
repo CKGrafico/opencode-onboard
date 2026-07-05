@@ -81,7 +81,8 @@ This skill is used when the backlog platform is set to "Others (Browser)" — wh
    - Title: {title}
    - ID: {id} (if found)
    - OpenSpec change created: {change-name}
-   - Next: run `/ob-propose` to enrich tasks or `/ob-apply` to implement
+
+After reporting, the lead MUST run `/ob-propose` to generate the proposal, specs, and tasks. After `/ob-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"** — do NOT proceed to `/ob-apply` until confirmed.
 
 ---
 

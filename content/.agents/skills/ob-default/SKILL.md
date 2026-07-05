@@ -1,6 +1,6 @@
 ---
 name: ob-default
-description: Fallback skill, used when no other skill matches. Still loads ob-global for baseline rules. Use when task is unclear or no specialized skill applies.
+description: Fallback skill, used when no other skill matches. Use when the task is unclear or no specialized skill applies.
 license: MIT
 ---
 
@@ -8,18 +8,11 @@ license: MIT
 
 - No other skill matches the user's request
 - Task is unclear or ambiguous
-- Load ob-global first for baseline rules
 
 ## Approach
 
-1. **Understand the ask**, Clarify if ambiguous
-2. **Check existing context**, Read DESIGN.md, ARCHITECTURE.md first
-3. **Start small**, MVP, iterate
-4. **Verify**, Run tests + build before claiming done
-5. **Report results**, Show what was done, what remains
-
-## Communication
-
-- Ask for clarification if unclear
-- Report blockers immediately
-- Show progress when asked
+1. **Understand the ask** — clarify if ambiguous
+2. **Check existing context** — read DESIGN.md and ARCHITECTURE.md first
+3. **Start small** — MVP, iterate
+4. **Verify** — run tests + build before claiming done
+5. **Report results** — show what was done, what remains

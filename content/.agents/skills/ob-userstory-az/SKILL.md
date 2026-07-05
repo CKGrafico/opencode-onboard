@@ -19,7 +19,10 @@ az config set extension.dynamic_install_allow_preview=true
 az extension add --name azure-devops
 az login
 az devops login --organization https://dev.azure.com/{org}
+az devops configure --defaults organization=https://dev.azure.com/{org} project={project}
 ```
+
+The `configure --defaults` line is required — every command below relies on the default org/project instead of passing `--organization`.
 
 **PAT Token**, go to `https://dev.azure.com/{org}/_usersSettings/tokens`
 Create with scopes: **Work Items (Read & Write)** + **Code (Read & Write)**

@@ -1,5 +1,5 @@
 // ============================================================
-// opencode-onboard landing — copy buttons, terminal animation,
+// opencode-onboard landing - copy buttons, terminal animation,
 // scroll reveals
 // ============================================================
 
@@ -11,7 +11,7 @@ document.querySelectorAll('.copy-btn').forEach((btn) => {
       btn.classList.add('copied')
       setTimeout(() => btn.classList.remove('copied'), 2000)
     } catch {
-      /* clipboard unavailable (e.g. non-secure context) — ignore */
+      /* clipboard unavailable (e.g. non-secure context), ignore */
     }
   })
 })
@@ -47,25 +47,25 @@ const LINES = [
   ['br', '', 0],
   ['t-dim', '   Prepare any codebase for AI\n\n', 4],
   ['t-ok', '  ✔ ', 0],
-  [null, 'Source scope — current repo\n', 4],
+  [null, 'Source scope: current repo\n', 4],
   ['t-ok', '  ✔ ', 0],
-  [null, 'Clean AI files — 3 stale files removed\n', 4],
+  [null, 'Clean AI files: 3 stale files removed\n', 4],
   ['t-ok', '  ✔ ', 0],
-  [null, 'Platform — GitHub backlog + GitHub repo\n', 4],
+  [null, 'Platform: GitHub backlog + GitHub repo\n', 4],
   ['t-ok', '  ✔ ', 0],
-  [null, 'Platform CLI — gh authenticated\n', 4],
+  [null, 'Platform CLI: gh authenticated\n', 4],
   ['t-ok', '  ✔ ', 0],
-  [null, 'Scaffolding — agents, skills & commands copied\n', 4],
+  [null, 'Scaffolding: agents, skills & commands copied\n', 4],
   ['t-ok', '  ✔ ', 0],
-  [null, 'OpenSpec — initialized\n', 4],
+  [null, 'OpenSpec: initialized\n', 4],
   ['t-ok', '  ✔ ', 0],
-  [null, 'Models — plan / build / fast selected\n', 4],
+  [null, 'Models: plan / build / fast selected\n', 4],
   ['t-ok', '  ✔ ', 0],
-  [null, 'Token optimization — ob-global rules injected\n', 4],
+  [null, 'Token optimization: AGENTS.md rules injected\n', 4],
   ['t-ok', '  ✔ ', 0],
-  [null, 'Browser plugin — installed\n', 4],
+  [null, 'Browser plugin: installed\n', 4],
   ['t-ok', '  ✔ ', 0],
-  [null, 'Metadata — .opencode/opencode-onboard.json written\n\n', 4],
+  [null, 'Metadata: .opencode/opencode-onboard.json written\n\n', 4],
   ['t-accent', '  ✨ Your codebase is ready for AI.\n', 12],
   ['t-dim', '  Open OpenCode and type ', 8],
   ['t-accent', '/ob-init', 40],

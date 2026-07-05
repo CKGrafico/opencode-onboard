@@ -1,8 +1,9 @@
 {
   "dependencies": {
-    "@opencode-ai/plugin": "latest",
-    "opencode-plugin-openspec": "latest",
-    "@different-ai/opencode-browser": "latest",
+    "@opencode-ai/plugin": "^1.17.13",
+    "opencode-plugin-openspec": "^0.1.4",
+    "@different-ai/opencode-browser": "^4.6.1",
+    "@mohak34/opencode-notifier": "^0.2.8",
     "@opentui/core": "0.3.4",
     "@opentui/solid": "0.3.4",
     "solid-js": "1.9.10"

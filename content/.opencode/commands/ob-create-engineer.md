@@ -100,7 +100,7 @@ Example: `/ob-create-engineer frontend-engineer build "A frontend engineer speci
 - **Development** = language/framework/UI skills. **Testing** = test/lint/typecheck skills. **Infrastructure** = DevOps, CI/CD, cloud, deployment skills. Never put UI/CSS skills under Infrastructure.
 - Distribute installed skills across the appropriate categories — not just Development
 - Only include ability categories that have at least one real skill assigned
-- Pick a color that doesn't conflict with existing agents (basic-engineer uses #68A063)
+- Pick a theme color not used by existing agents — read their `color:` frontmatter first (basic-engineer uses `success`)
 - Skills should match both the agent description AND the project's tech stack
 - If `npx skills` CLI is not available, manually reference skills by their `owner/repo` name in the abilities section and tell the user to install them
 - One file per engineer — do NOT create `-build`/`-fast` variant files. The agent file is a template with no `model:`. The `ob-subagent-tiers` plugin injects tier variants at startup.

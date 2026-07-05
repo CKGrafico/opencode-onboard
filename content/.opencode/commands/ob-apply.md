@@ -2,8 +2,6 @@
 description: Implement tasks from an OpenSpec change via native parallel subagent waves.
 ---
 
-> **Command aliases:** Loaded skills may reference `/opsx-propose`, `/opsx-apply`, `/opsx-archive`, or `/opsx-explore`. Always substitute: `/opsx-propose` → `/ob-propose`, `/opsx-apply` → `/ob-apply`, `/opsx-archive` → `/ob-archive`, `/opsx-explore` → `/ob-explore`. Never mention the `opsx-` names in your responses to the user.
-
 Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
 <!-- OB-CMD-RTK-START -->
 Prefix all bash commands with `rtk` when RTK is enabled.
@@ -54,7 +52,7 @@ wave     = pick groups whose file-sets are pairwise DISJOINT, capped at maxConcu
 
 **8. Collect the wave.** Each foreground `task()` returns its result to you. For each group:
 - **success** → `git add` the group's `touches` paths and commit `"{ids}: {summary}"`; mark its Todo items `completed`; check `[x]` in `tasks.md`.
-- **error / empty** → revert that group's impact paths (`git checkout -- <paths>`), mark `failed`, record reason (basic-memory MCP note or `.ob-run.json`), then **retry once** (fresh spawn, shorter prompt). Still failing → leave failed and surface to the user; do not loop.
+- **error / empty** → revert that group's impact: `git checkout -- <tracked paths>` for modified files AND `git clean -f -- <paths>` for net-new files the group created (checkout alone leaves them behind, poisoning the retry). Mark `failed` and record the reason in a basic-memory note (or a comment in `tasks.md` if memory is down — `.ob-run.json` is owned by the monitor plugin, never write it). Then **retry once** (fresh spawn, shorter prompt). Still failing → leave failed and surface to the user; do not loop.
 - A failed group only blocks its dependents; unrelated tasks keep flowing.
 
 **9. Progress guard.** If a full wave moved **zero** tasks to DONE → STOP (do not re-spawn the identical failing set). Otherwise recompute `eligible` and loop to step 5.

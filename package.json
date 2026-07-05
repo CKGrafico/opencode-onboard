@@ -1,6 +1,6 @@
 {
   "name": "opencode-onboard",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Prepare any codebase for AI. Wires OpenCode, OpenSpec, codegraph, and basic-memory into a multi-agent development workflow powered by native parallel subagents.",
   "keywords": [
     "opencode",
@@ -12,6 +12,13 @@
     "cli"
   ],
   "homepage": "https://github.com/ckgrafico/opencode-onboard",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ckgrafico/opencode-onboard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ckgrafico/opencode-onboard/issues"
+  },
   "license": "MIT",
   "author": "ckgrafico",
   "type": "module",
@@ -20,11 +27,15 @@
   },
   "files": [
     "src",
-    "content"
+    "!src/**/*.test.js",
+    "!src/**/__tests__",
+    "content",
+    "!content/**/node_modules"
   ],
   "engines": {
     "node": ">=18"
   },
+  "packageManager": "pnpm@10.30.3",
   "dependencies": {
     "@inquirer/prompts": "^7.0.0",
     "chalk": "^5.0.0",
@@ -37,7 +48,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run lint && npm run test"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

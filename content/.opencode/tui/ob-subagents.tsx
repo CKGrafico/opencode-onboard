@@ -20,6 +20,7 @@ const tui: TuiPlugin = async (api) => {
   const [rows, setRows] = createSignal<Row[]>([])
   // Only show live subagents — finished/failed ones are kept in .ob-run.json
   // for recovery but are not navigable targets the user cares about here.
+  // Entries marked stale (left "running" by a crashed process) are not live.
   const active = () => rows().filter((r) => r.status === "running")
 
   const refresh = async () => {
@@ -27,25 +28,37 @@ const tui: TuiPlugin = async (api) => {
       const data = JSON.parse(await readFile(statePath, "utf-8"))
       const agents = data?.agents ?? {}
       setRows(
-        Object.entries(agents).map(([sid, a]: [string, any]) => ({
-          id: sid,
-          agent: a?.agent ?? "?",
-          model: a?.model ?? "",
-          task: Array.isArray(a?.tasks) && a.tasks.length ? a.tasks.join(",") : (a?.title ?? ""),
-          status: a?.status ?? "running",
-        })),
+        Object.entries(agents)
+          .filter(([, a]: [string, any]) => !a?.stale)
+          .map(([sid, a]: [string, any]) => ({
+            id: sid,
+            agent: a?.agent ?? "?",
+            model: a?.model ?? "",
+            task: Array.isArray(a?.tasks) && a.tasks.length ? a.tasks.join(",") : (a?.title ?? ""),
+            status: a?.status ?? "running",
+          })),
       )
-    } catch {
-      setRows([])
+    } catch (err: any) {
+      // Missing file = genuinely idle. Anything else (transient read/parse
+      // hiccup) keeps the last good rows instead of flashing "idle" mid-run.
+      if (err?.code === "ENOENT") setRows([])
     }
   }
 
   await refresh()
+  // session.updated fires constantly; debounce so we don't re-read the file
+  // on every keystroke-sized event.
+  let timer: ReturnType<typeof setTimeout> | null = null
+  const scheduleRefresh = () => {
+    if (timer) return
+    timer = setTimeout(() => {
+      timer = null
+      void refresh()
+    }, 200)
+  }
   for (const evt of ["session.created", "session.idle", "session.updated"]) {
     try {
-      api.event.on(evt as any, () => {
-        void refresh()
-      })
+      api.event.on(evt as any, scheduleRefresh)
     } catch {
       /* event type unavailable on this host — ignore */
     }

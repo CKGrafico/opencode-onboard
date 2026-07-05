@@ -20,10 +20,12 @@ Triggered when the lead runs `/ob-pullrequest`.
 ### Step 1: Verify feature branch
 
 ```bash
-git branch --show-current
+BRANCH="$(git branch --show-current)"
+DEFAULT_BRANCH="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
+[ -z "$DEFAULT_BRANCH" ] && DEFAULT_BRANCH="main"
 ```
 
-Branch must be `feature/{id}-{slug}`. NEVER push to `main`.
+`$BRANCH` must be a work branch (`feature/*` or `bugfix/*` — `/ob-apply` creates `feature/{change-slug}`). NEVER push the default branch.
 
 ### Step 2: Capture screenshots (if UI changes exist)
 
@@ -37,10 +39,12 @@ Save to: `openspec/changes/{change-name}/images/{feature}.png`
 
 ### Step 3: Commit and push
 
+`/ob-apply` already committed each task group — usually only screenshots or small residuals remain. Stage **specific paths only** (never `git add -A`, it sweeps unrelated files into the ship commit):
+
 ```bash
-git add -A
-git commit -m "{change}: {summary}"
-git push -u origin feature/{id}-{slug}
+git add openspec/changes/{change-name}/images/  # plus any other paths you actually changed
+git commit -m "{change}: {summary}"   # only if there is something to commit
+git push -u origin "$BRANCH"
 ```
 
 ### Step 4: Upload screenshots (if any)
@@ -51,7 +55,9 @@ If screenshots exist, upload them so they can be referenced in the MR descriptio
 glab api --method POST "projects/:id/uploads" -f "file=@openspec/changes/{change-name}/images/{feature}.png"
 ```
 
-Parse the returned `markdown` field — use it to embed the image in the MR description.
+(`:id` is glab's placeholder for the current project — this is the one sanctioned use of git context in this skill.)
+
+Parse the returned `markdown` field — use it to embed the image in the MR description. If the upload fails (the endpoint needs multipart form data and `-f` support varies by glab version), fall back to referencing the image committed on the branch instead.
 
 If no UI changes, skip this step.
 
@@ -59,8 +65,8 @@ If no UI changes, skip this step.
 
 ```bash
 glab mr create \
-  --source-branch "feature/{id}-{slug}" \
-  --target-branch "main" \
+  --source-branch "$BRANCH" \
+  --target-branch "$DEFAULT_BRANCH" \
   --title "{title}" \
   --description "Closes {issue-link}
 
@@ -87,8 +93,8 @@ Display:
 Merge Request created
   MR: {mr-url}
   Title: {title}
-  Source: feature/{id}-{slug}
-  Target: main
+  Source: {branch}
+  Target: {default-branch}
 ```
 
 ---
@@ -154,8 +160,8 @@ This mode only triages. Fixing is done via `/ob-apply`. Tell the user what needs
 
 ```bash
 # List merge requests
-glab mr list --repo {owner}/{repo} --state merged
-glab mr list --repo {owner}/{repo} --state opened
+glab mr list --repo {owner}/{repo} --merged
+glab mr list --repo {owner}/{repo} --opened
 
 # View a merge request
 glab mr view {number} --repo {owner}/{repo}
@@ -167,10 +173,7 @@ glab mr note list {number} --repo {owner}/{repo}
 glab api "projects/:id/merge_requests/{number}/discussions"
 
 # Reply to a comment
-glab mr note add {number} --repo {owner}/{repo} --message "Reply text"
-
-# Merge a merge request (human-only — never agent-merge)
-glab mr merge {number} --repo {owner}/{repo}
+glab mr note create {number} --repo {owner}/{repo} -m "Reply text"
 ```
 
 ---

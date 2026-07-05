@@ -1,6 +1,6 @@
 ---
 name: ob-userstory
-description: Parse Jira work item URL and create OpenSpec change. Use when user provides a Jira URL.
+description: Parse a Jira work item and create an OpenSpec change. Use when the user provides a Jira URL or a bare issue key (e.g. PROJ-123).
 license: MIT
 compatibility: Requires openspec CLI and Atlassian CLI (acli).
 metadata:
@@ -51,12 +51,13 @@ Generate API token at: https://id.atlassian.com/manage-profile/security/api-toke
    - **Assignee** → who requested it
    - **Priority** → complexity hint
 
-3. **Transition Work Item to In Progress**
+3. **Offer to transition the Work Item to In Progress**
+
+   This writes to Jira, so ask first: "Move {KEY} to In Progress? [yes/no]". Only if the user confirms AND the status is currently "To Do" or "Backlog":
    ```bash
    acli jira workitem transition --key "PROJ-123" --status "In Progress"
    ```
-
-   Only do this if the status is currently "To Do" or "Backlog". If already "In Progress", skip.
+   In unattended runs (`/ob-autopilot`), skip the question and the transition entirely.
 
 4. **Create OpenSpec Change**
    ```bash
@@ -73,8 +74,9 @@ Generate API token at: https://id.atlassian.com/manage-profile/security/api-toke
    Tell the user:
    - Jira issue `{KEY}` fetched: {summary}
    - OpenSpec change created: {change-name}
-   - Work item transitioned to In Progress
-   - Next: run `/ob-propose` to enrich tasks or `/ob-apply` to implement
+   - Work item transition: {done / skipped}
+
+After reporting, the lead MUST run `/ob-propose` to generate the proposal, specs, and tasks. After `/ob-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"** — do NOT proceed to `/ob-apply` until confirmed.
 
 ---
 
@@ -100,10 +102,10 @@ acli jira workitem transition --key "PROJ-123" --status "In Progress"
 acli jira workitem transition --key "PROJ-123" --status "Done"
 
 # Search with JQL
-acli jira workitem list --jql "project = PROJ AND status = 'To Do' ORDER BY priority DESC"
+acli jira workitem search --jql "project = PROJ AND status = 'To Do' ORDER BY priority DESC"
 
-# Edit work item (e.g. add a comment)
-acli jira workitem comment add --key "PROJ-123" --comment "Implementation started"
+# Add a comment
+acli jira workitem comment create --key "PROJ-123" --body "Implementation started"
 ```
 
 ---

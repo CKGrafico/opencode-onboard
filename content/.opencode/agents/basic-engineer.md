@@ -1,5 +1,5 @@
 ---
-description: Basic Engineer Agent.
+description: Fallback implementation worker for tasks with no matching specialist. Ability-driven generalist that implements assigned OpenSpec tasks; prefer a custom *-engineer when its domain matches.
 mode: subagent
 color: success
 permission:

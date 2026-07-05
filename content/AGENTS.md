@@ -6,7 +6,9 @@
 
 ## Trigger
 
-When the user says anything resembling initialization, "/ob-init", "initialize", "setup", "start", "bootstrap", "get started", "prepare", execute the steps below. Follow the greenfield/brownfield branching exactly.
+When the user runs `/ob-init` or explicitly asks to initialize or bootstrap **this project's agent setup** ("initialize the project", "bootstrap", "run the onboarding init"), execute the steps below. Follow the greenfield/brownfield branching exactly.
+
+Ambiguous words alone ("start", "setup", "prepare") are NOT triggers — they usually refer to normal dev work. If unsure, ask: "Do you want to run the one-time project initialization (/ob-init)?"
 
 ---
 
@@ -109,6 +111,10 @@ This installs all plugin packages into `.opencode/node_modules/`. If you ever se
 
 Replace the entire contents of this file (`AGENTS.md`) with everything below the line `<!-- AGENTS-TEMPLATE-START -->` in this same file. Delete the bootstrap section and the template marker, the file should contain only the template content when done.
 
+Copy the template content **verbatim** — keep every HTML comment (`<!-- OB-... -->` markers) exactly as is; the onboarding CLI patches those markers on re-runs.
+
+Self-check after writing: the file must start with `# AGENTS.md`, must NOT contain `AGENTS-TEMPLATE-START`, and must still contain `OB-RTK-START`. If any check fails, redo this step.
+
 ---
 
 ### Step 8, Confirm
@@ -186,19 +192,19 @@ This is the agent orchestration layer for your project. It provides:
 
 Load DESIGN.md for design principles and guidelines. Load ARCHITECTURE.md for system architecture and component interactions. These files are generated during initialization and updated as the codebase evolves.
 
+**Command aliases:** OpenSpec skills may reference `/opsx-propose`, `/opsx-apply`, `/opsx-archive`, or `/opsx-explore`. Always substitute them with `/ob-propose`, `/ob-apply`, `/ob-archive`, `/ob-explore` respectively, and never mention the `opsx-` names to the user.
+
 ## I Am the Lead, Full Workflow Ownership
 
 <!-- OB-PLATFORM-WORKFLOW-START -->
-When the user provides a work item URL or says "implement the plan" or "I've added comments to the PR", **I own the full lifecycle**. I load `ob-global` skill first, then the appropriate userstory skill, and coordinate implementation as native subagent waves via `/ob-apply`.
+When the user provides a work item URL or says "implement the plan" or "I've added comments to the PR", **I own the full lifecycle**. I load the appropriate userstory skill and coordinate implementation as native subagent waves via `/ob-apply`.
 
 Trigger patterns, I recognize ALL of these, exact wording does not matter:
-- User pastes or mentions a GitHub Issue URL → load `ob-userstory` skill → parse issue → run `/ob-propose` → confirm with user → run `/ob-apply` → ship
-- User pastes or mentions an Azure DevOps URL → load `ob-userstory` skill → parse work item → run `/ob-propose` → confirm with user → run `/ob-apply` → ship
-- `implement the plan` / `implement` / `start` / `go` → run `/ob-apply` → ship
-- `I've added comments to the PR` → read PR comments → fix → update PR
-- Any GitHub/Azure DevOps PR URL in a feedback/fix request (e.g. "check comments", "fix PR feedback") → run PR Feedback Loop
+- User pastes or mentions a work item URL → load `ob-userstory` skill → parse it → run `/ob-propose` → confirm with user → run `/ob-apply` → ship
+- `implement the plan` / `implement` / `start` / `go` (referring to the current plan) → run `/ob-apply` → ship
+- `I've added comments to the PR` or a PR URL in a feedback/fix request → load `ob-pullrequest` → classify feedback → fix via `/ob-apply` → update PR
 
-**A GitHub or Azure DevOps URL anywhere in the user's message is always a trigger, regardless of surrounding words.**
+**A work-item URL in the user's message is a strong trigger — follow the pipeline unless the user explicitly asks for analysis or context only.**
 <!-- OB-PLATFORM-WORKFLOW-END -->
 
 **Never delegate without a plan. Default to specialists for implementation. If a subagent wave repeatedly fails (a group errors after one retry, or a full wave makes zero progress), stop forcing it: report the failure, then continue in the main session or ask the user whether to retry later.**
@@ -216,16 +222,13 @@ Before spawning implementation workers:
 
 Parallel execution uses OpenCode's native `task` tool — no external plugin, no worktrees. The lead spawns subagents in **waves**: a set of foreground `task()` calls in a single turn that run concurrently and return their results to the lead. Subagents are navigable (`ctrl+x ↓`, `←`/`→`) and ephemeral (one batch, then they exit).
 
-**How a wave works:**
+**The full wave protocol is defined in `/ob-apply` — that command is authoritative during implementation.** Key mechanics:
 - **Push assignment.** Each subagent's task IDs + text go in its spawn prompt — there is no claim step, so a worker can never sit idle waiting for work.
-- **Eligibility.** A task runs only when every `depends_on` is done.
-- **Conflict safety (no worktrees).** Concurrent subagents must touch disjoint files (codegraph impact → `touches` globs → `git diff`). Same-file tasks are packed into one worker and run sequentially.
-- **Checkpoints.** The lead commits each group on success; on failure it reverts that group's paths and retries once.
-- **Per-agent model.** Each engineer's model is set in its own agent file (chosen by tier when the engineer is created); the lead spawns the plain agent name.
+- **Per-agent model.** Tasks name a tier-suffixed agent (e.g. `backend-engineer.build`); the `ob-subagent-tiers` plugin injects those variants at startup with models from `wizard.models`. If a variant is missing, fall back to the plain template agent (strip the `.<tier>` suffix).
 
-**Hard limits:**
-- **Max {{MAX_CONCURRENT_AGENTS}} concurrent subagents per wave** (set during onboarding, 1–5). The lead enforces the cap by emitting at most that many `task()` calls per turn; overflow queues to the next wave.
-- **Non-overlapping file domains.** Two concurrent subagents must NEVER touch the same file.
+**Hard limits (always apply):**
+- **Max {{MAX_CONCURRENT_AGENTS}} concurrent subagents per wave.** The authoritative value is `wizard.maxConcurrentAgents` in `.opencode/opencode-onboard.json` — re-read it before each run. The lead enforces the cap; overflow queues to the next wave.
+- **Non-overlapping file domains.** Two concurrent subagents must NEVER touch the same file. Same-file tasks are packed into one worker and run sequentially.
 - **Explicit stalls.** If tasks remain but none are eligible (a dependency failed), or a full wave makes zero progress, STOP and report — never spin.
 - **Retry limit.** One retry per failed group, then surface to the user. Never retry indefinitely.
 

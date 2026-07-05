@@ -131,10 +131,10 @@ Prefix all bash commands with `rtk` when RTK is enabled.
 
 5. **Update agents**
 
-   For every `*-engineer.md` in `.opencode/agents/`, add `@project-guardrails` to the Guardrails ability line (skip if already present):
+   For every `*-engineer.md` in `.opencode/agents/`, add `@project-guardrails` to the Guardrails ability line (skip if already present). Keep the line's existing entries exactly as they are — only insert `@project-guardrails` after `@ob-generic-guardrails`, never add or remove other skills:
    ```markdown
    ## Abilities
-   - Guardrails: @ob-generic-guardrails, @project-guardrails, @ob-default
+   - Guardrails: @ob-generic-guardrails, @project-guardrails[, ...existing entries unchanged]
    ```
 
    Exclude tier variant files (`*-engineer.build.md`, `*-engineer.fast.md`, `*-engineer.plan.md`) — they are generated copies; only update the base templates.

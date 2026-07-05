@@ -62,19 +62,23 @@ export const ObSubagentTiers = async ({ directory }) => {
 
   function buildVariantContent(templateContent, model) {
     const fmMatch = templateContent.match(/^---\r?\n([\s\S]*?)\r?\n---/)
-    if (!fmMatch) return templateContent
+    const modelLine = `model: ${model}`
+    if (!fmMatch) return `---\n${modelLine}\n---\n\n${templateContent}`
 
     const fm = fmMatch[1]
-    const modelLine = `model: ${model}`
+    const newFm = /^model:/m.test(fm)
+      ? fm.replace(/^model:.*$/m, modelLine)
+      : `${modelLine}\n${fm}`
 
-    let newFm
-    if (/^model:\s*\S+/m.test(fm)) {
-      newFm = fm.replace(/^model:\s*\S+/m, modelLine)
-    } else {
-      newFm = modelLine + "\n" + fm
-    }
+    // Rebuild by slicing at the matched frontmatter's end. Never String.replace
+    // with content-derived strings: it matches the wrong occurrence and expands
+    // `$&`-style sequences that may appear in descriptions.
+    return `---\n${newFm}\n---${templateContent.slice(fmMatch[0].length)}`
+  }
 
-    return templateContent.replace(fmMatch[1], newFm)
+  function templateDescription(templateContent) {
+    const m = templateContent.match(/^description:\s*(.+)$/m)
+    return m ? m[1].trim() : null
   }
 
   async function cleanStaleVariants(keepSet) {
@@ -112,12 +116,19 @@ export const ObSubagentTiers = async ({ directory }) => {
             await fs.writeFile(variantPath, variantContent, "utf-8")
             keepSet.add(variantFile)
 
-            // Also inject in-memory for immediate availability
+            // Also inject in-memory for immediate availability. If the base
+            // agent isn't merged into cfg.agent yet (hook ordering), build a
+            // minimal safe definition from the template — never inject a
+            // bare `{ model }` that could surface as a primary agent.
             if (cfg?.agent) {
-              cfg.agent[`${name}.${tier}`] = {
-                ...cfg.agent[name],
-                model: models[tier],
-              }
+              const base = cfg.agent[name]
+              cfg.agent[`${name}.${tier}`] = base
+                ? { ...base, model: models[tier] }
+                : {
+                    mode: "subagent",
+                    description: templateDescription(templateContent) ?? `${name} (${tier} tier)`,
+                    model: models[tier],
+                  }
             }
           }
         }

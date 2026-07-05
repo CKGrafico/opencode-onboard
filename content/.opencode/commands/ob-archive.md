@@ -2,8 +2,6 @@
 description: Archive the oldest merged unarchived OpenSpec change and update documentation.
 ---
 
-> **Command aliases:** Loaded skills may reference `/opsx-propose`, `/opsx-apply`, `/opsx-archive`, or `/opsx-explore`. Always substitute: `/opsx-propose` -> `/ob-propose`, `/opsx-apply` -> `/ob-apply`, `/opsx-archive` -> `/ob-archive`, `/opsx-explore` -> `/ob-explore`. Never mention the `opsx-` names in your responses to the user.
-
 Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
 <!-- OB-CMD-RTK-START -->
 Prefix all bash commands with `rtk` when RTK is enabled.
@@ -30,12 +28,15 @@ Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash
 
    ```bash
    REPO_ROOT="$(git rev-parse --show-toplevel)"
+   DEFAULT_BRANCH="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
+   [ -z "$DEFAULT_BRANCH" ] && DEFAULT_BRANCH="main"
    ```
 
-   If not on `main` with uncommitted changes, stash them (`git stash push -m "WIP before archive"`) and warn the user before exit. Then sync `main`:
+   1. If the tree has uncommitted changes: `git stash push -u -m "WIP before archive"` and tell the user their work is stashed (it is restored in step 6).
+   2. Sync the default branch (skip the pull if there is no `origin` remote):
 
    ```bash
-   git switch main && git pull origin main
+   git switch "$DEFAULT_BRANCH" && git pull origin "$DEFAULT_BRANCH"
    ```
 
 <!-- OB-PLATFORM-ARCHIVE-START -->

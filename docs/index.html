@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>opencode-onboard — Prepare any codebase for AI</title>
+  <title>opencode-onboard: Prepare any codebase for AI</title>
   <meta name="description" content="Prepare any codebase for AI. Wires OpenCode, OpenSpec, codegraph, and basic-memory into a multi-agent development workflow powered by native parallel subagents." />
   <link rel="icon" type="image/png" href="assets/logo.png" />
-  <meta property="og:title" content="opencode-onboard — Prepare any codebase for AI" />
+  <meta property="og:title" content="opencode-onboard: Prepare any codebase for AI" />
   <meta property="og:description" content="One interactive wizard that wires OpenCode, OpenSpec, codegraph, and basic-memory into a multi-agent development workflow." />
   <meta property="og:image" content="https://opencode.ckgrafico.com/assets/logo.png" />
   <meta property="og:url" content="https://opencode.ckgrafico.com" />
@@ -36,7 +36,7 @@
   <main id="top">
     <section class="hero">
       <div class="container hero-inner">
-        <img class="hero-logo" src="assets/logo.png" alt="opencode-onboard — a friendly toolbox" width="140" height="140" />
+        <img class="hero-logo" src="assets/logo.png" alt="opencode-onboard, a friendly toolbox" width="140" height="140" />
         <h1>Prepare any codebase <span class="accent">for AI</span></h1>
         <p class="hero-sub">
           One interactive wizard that wires <a href="https://opencode.ai" target="_blank" rel="noopener">OpenCode</a>,
@@ -63,7 +63,7 @@
         </div>
 
         <p class="hero-platforms">
-          GitHub &middot; Azure DevOps &middot; Jira &middot; GitLab &middot; browser-based backlogs — or any combination.
+          GitHub &middot; Azure DevOps &middot; Jira &middot; GitLab &middot; browser-based backlogs, or any combination.
         </p>
       </div>
     </section>
@@ -74,9 +74,9 @@
         <div class="terminal reveal" aria-label="Terminal demo of the onboarding wizard">
           <div class="terminal-bar">
             <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-            <span class="terminal-title">your-project — opencode-onboard</span>
+            <span class="terminal-title">your-project: opencode-onboard</span>
           </div>
-          <div class="terminal-body" id="terminal-body" aria-live="polite"></div>
+          <div class="terminal-body" id="terminal-body"></div>
         </div>
       </div>
     </section>
@@ -88,7 +88,7 @@
         <p class="section-sub">
           Most codebases have no <code>AGENTS.md</code>, no architecture docs agents can read, and no defined
           workflow for picking up tasks. Agents end up improvising, producing inconsistent results.
-          <strong>opencode-onboard fixes that in a single interactive wizard</strong> — it installs an agent team,
+          <strong>opencode-onboard fixes that in a single interactive wizard</strong>. It installs an agent team,
           platform skills, slash commands, and structured change management. Everything agents need to plan,
           implement, and ship.
         </p>
@@ -102,7 +102,7 @@
         <div class="cards-grid reveal">
           <a class="card" href="https://opencode.ai" target="_blank" rel="noopener">
             <h3>OpenCode</h3>
-            <p>The agent runtime. Native parallel subagent waves — no external plugins, no git worktrees.</p>
+            <p>The agent runtime. Native parallel subagent waves, no external plugins, no git worktrees.</p>
           </a>
           <a class="card" href="https://github.com/fission-ai/openspec" target="_blank" rel="noopener">
             <h3>OpenSpec</h3>
@@ -114,7 +114,7 @@
           </a>
           <a class="card" href="https://github.com/basicmachines-co/basic-memory" target="_blank" rel="noopener">
             <h3>basic-memory</h3>
-            <p>Shared context across agent sessions — decisions persist beyond a single conversation.</p>
+            <p>Shared context across agent sessions, decisions persist beyond a single conversation.</p>
           </a>
         </div>
       </div>
@@ -127,18 +127,18 @@
         <p class="section-sub reveal">Run it once. Progress stays visible the whole way through.</p>
         <ol class="timeline">
           <li class="reveal"><h3>Source scope</h3><p>Choose current repo or sibling source roots for code analysis.</p></li>
-          <li class="reveal"><h3>Clean AI files</h3><p>Detects existing <code>AGENTS.md</code>, <code>.cursorrules</code>, <code>CLAUDE.md</code> and removes them — your <code>.agents/skills/</code> are preserved.</p></li>
+          <li class="reveal"><h3>Clean AI files</h3><p>Detects existing <code>AGENTS.md</code>, <code>.cursorrules</code>, <code>CLAUDE.md</code> and removes them, your <code>.agents/skills/</code> are preserved.</p></li>
           <li class="reveal"><h3>Choose platform</h3><p>Backlog (GitHub / Azure DevOps / Jira / Browser / None) + repo (GitHub / Azure DevOps / GitLab / None). Mix freely.</p></li>
           <li class="reveal"><h3>Check platform CLI</h3><p>Verifies <code>gh</code>, <code>az</code> + azure-devops, <code>acli</code>, or <code>glab</code> as needed.</p></li>
-          <li class="reveal"><h3>Copy scaffolding</h3><p>Agents, built-in skills, bootstrap docs, source-roots metadata — then runs <code>npx skills</code>.</p></li>
+          <li class="reveal"><h3>Copy scaffolding</h3><p>Agents, built-in skills, bootstrap docs, source-roots metadata, then runs <code>npx skills</code>.</p></li>
           <li class="reveal"><h3>Init OpenSpec</h3><p>Runs <code>npx @fission-ai/openspec init</code> silently for structured change management.</p></li>
-          <li class="reveal"><h3>Choose models</h3><p>Live list from models.dev — pick plan / build / fast models with canonical cost indicators.</p></li>
-          <li class="reveal"><h3>Token optimization</h3><p>Optional checklist: RTK, opencode-quota, caveman, and dynamic <code>ob-global</code> rule injection.</p></li>
+          <li class="reveal"><h3>Choose models</h3><p>Live list from models.dev, pick plan / build / fast models with canonical cost indicators.</p></li>
+          <li class="reveal"><h3>Token optimization</h3><p>Optional checklist: RTK, opencode-quota, caveman, and dynamic rule injection into <code>AGENTS.md</code>.</p></li>
           <li class="reveal"><h3>Browser plugin</h3><p>Installs <code>@different-ai/opencode-browser</code> for agent browser automation.</p></li>
           <li class="reveal"><h3>Write metadata</h3><p>Saves <code>.opencode/opencode-onboard.json</code> so reruns and teammates reuse your setup.</p></li>
         </ol>
         <p class="section-sub reveal center">
-          Then open OpenCode in your project and type <code class="accent-code">/ob-init</code> — brownfield projects
+          Then open OpenCode in your project and type <code class="accent-code">/ob-init</code>, brownfield projects
           get <code>ARCHITECTURE.md</code> and <code>DESIGN.md</code> generated from the actual codebase.
         </p>
       </div>
@@ -150,18 +150,20 @@
         <h2 class="reveal">Slash commands, installed and ready</h2>
         <p class="section-sub reveal">Custom commands land in <code>.opencode/commands/</code> and are available directly in OpenCode.</p>
         <div class="commands-grid">
-          <div class="command reveal"><code>/ob-init</code><p>Initialize the project — greenfield or brownfield — and activate the agent team.</p></div>
+          <div class="command reveal"><code>/ob-help</code><p>Show all commands and when to use each one. Start here if you're unsure.</p></div>
+          <div class="command reveal"><code>/ob-init</code><p>Initialize the project, greenfield or brownfield, and activate the agent team.</p></div>
           <div class="command reveal"><code>/ob-explore</code><p>Think through an idea or investigate a problem before committing to a plan.</p></div>
           <div class="command reveal"><code>/ob-propose</code><p>Parse an issue URL or idea into a structured plan: proposal, specs, tasks.</p></div>
           <div class="command reveal"><code>/ob-apply</code><p>Implement tasks via parallel subagent waves with the native task tool.</p></div>
           <div class="command reveal"><code>/ob-pullrequest</code><p>Create a PR for the current branch, or read and classify review comments.</p></div>
           <div class="command reveal"><code>/ob-archive</code><p>Archive a completed OpenSpec change.</p></div>
-          <div class="command reveal"><code>/ob-main</code><p>Quick direct implementation — no OpenSpec, no waves, no PR. Just do it.</p></div>
+          <div class="command reveal"><code>/ob-main</code><p>Quick direct implementation, no OpenSpec, no waves, no PR. Just do it.</p></div>
           <div class="command reveal"><code>/ob-autopilot</code><p>Autonomous pipeline: branch → propose → apply → archive. One commit per phase.</p></div>
           <div class="command reveal"><code>/ob-create-engineer</code><p>Create a custom specialist engineer with skills auto-installed from skills.sh.</p></div>
           <div class="command reveal"><code>/ob-create-architecture</code><p>Generate or regenerate <code>ARCHITECTURE.md</code> from the codebase.</p></div>
           <div class="command reveal"><code>/ob-create-design</code><p>Generate or regenerate <code>DESIGN.md</code> from the design system.</p></div>
-          <div class="command reveal"><code>/ob-set-model</code><p>Set the model for a tier — plan, build, or fast — per team or per user.</p></div>
+          <div class="command reveal"><code>/ob-create-project-guardrails</code><p>Generate a project-guardrails skill from <code>ARCHITECTURE.md</code> and project config.</p></div>
+          <div class="command reveal"><code>/ob-set-model</code><p>Set the model for a tier (plan, build, or fast) per team or per user.</p></div>
         </div>
       </div>
     </section>
@@ -174,11 +176,11 @@
         <div class="pipeline reveal">
           <div class="pipe-step"><span class="pipe-num">1</span><div><h3>Parse work item</h3><p>The platform userstory skill turns a GitHub / Azure DevOps / Jira / browser URL into a structured work item.</p></div></div>
           <div class="pipe-arrow" aria-hidden="true">↓</div>
-          <div class="pipe-step"><span class="pipe-num">2</span><div><h3>Propose</h3><p><code>/ob-propose</code> produces proposal.md, specs, and tasks.md — enriched with agent and model assignments.</p></div></div>
+          <div class="pipe-step"><span class="pipe-num">2</span><div><h3>Propose</h3><p><code>/ob-propose</code> produces proposal.md, specs, and tasks.md, enriched with agent and model assignments.</p></div></div>
           <div class="pipe-arrow" aria-hidden="true">↓</div>
           <div class="pipe-step"><span class="pipe-num">3</span><div><h3>Confirm</h3><p>You review the plan before any implementation starts.</p></div></div>
           <div class="pipe-arrow" aria-hidden="true">↓</div>
-          <div class="pipe-step highlight"><span class="pipe-num">4</span><div><h3>Parallel subagent waves</h3><p>Engineers spawn in parallel — each carries its own model tier, implements its tasks, and returns. The lead commits each group. Watch it live in the Subagents panel.</p></div></div>
+          <div class="pipe-step highlight"><span class="pipe-num">4</span><div><h3>Parallel subagent waves</h3><p>Engineers spawn in parallel, each carries its own model tier, implements its tasks, and returns. The lead commits each group. Watch it live in the Subagents panel.</p></div></div>
           <div class="pipe-arrow" aria-hidden="true">↓</div>
           <div class="pipe-step"><span class="pipe-num">5</span><div><h3>Verify</h3><p>Tests, build, and lint run according to task scope.</p></div></div>
           <div class="pipe-arrow" aria-hidden="true">↓</div>
@@ -193,15 +195,15 @@
         <h2 class="reveal">Agents, skills, and model tiers</h2>
         <div class="cards-grid three reveal">
           <div class="card">
-            <h3>Agents — how to work</h3>
+            <h3>Agents: how to work</h3>
             <p>Universal personas: a <strong>lead</strong> orchestrator plus ability-driven <strong>engineers</strong>. Add project specialists with <code>/ob-create-engineer</code>.</p>
           </div>
           <div class="card">
-            <h3>Skills — what to know</h3>
+            <h3>Skills: what to know</h3>
             <p>Platform knowledge and project rules, auto-detected and auto-loaded. Drop a <code>SKILL.md</code> in <code>.agents/skills/</code> and agents pick it up.</p>
           </div>
           <div class="card">
-            <h3>Models — plan / build / fast</h3>
+            <h3>Models: plan / build / fast</h3>
             <p>Three tiers picked from 3000+ live models: strong reasoning for the lead, capable for engineers, fast and cheap for helpers.</p>
           </div>
         </div>

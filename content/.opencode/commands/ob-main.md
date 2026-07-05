@@ -25,7 +25,7 @@ Prefix all bash commands with `rtk` when RTK is enabled.
 - Use basic-memory MCP `search` tool (NOT CLI) for any prior context notes relevant to the area you're working in.
 <!-- OB-CMD-MEMORY-END -->
 
-- After editing, run `pnpm run typecheck` to catch type errors; fix any that are caused by your changes
+- After editing, run the project's typecheck/build check if one exists (look for a `typecheck`/`check`/`build` script in package.json, or the language's native check like `tsc --noEmit`, `go build`, `cargo check`); fix any errors caused by your changes. If the project has no such check, skip this.
 - Do NOT run lint or tests unless the user asks
 
 **Input**: Everything after `/ob-main` is the task. Execute it now. 

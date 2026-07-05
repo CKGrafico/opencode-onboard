@@ -6,10 +6,12 @@ license: MIT
 
 ## Git
 
-- NEVER commit or push to main
+- NEVER commit or push to the default branch (`main`/`master`/etc.)
 - NEVER force push
 - NEVER merge PRs (human-only)
-- Feature branches only: `feature/*` or `bugfix/*`
+- Work branches only: `feature/*`, `bugfix/*`, or `archive/*`
+
+**Single sanctioned exception:** `/ob-autopilot` in default mode performs one local merge into the default branch, because the user explicitly invoked that autonomous command. Even then: never *push* the default branch, and every other rule above still applies.
 
 ## Secrets
 
