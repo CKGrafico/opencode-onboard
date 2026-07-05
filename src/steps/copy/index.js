@@ -34,7 +34,7 @@ export async function copyContentStep(platform, ctx = {}) {
         ? (await fse.readFile(destGitignore, "utf-8")).split("\n").map(l => l.trim()).filter(Boolean)
         : []
       const merged = Array.from(new Set([...destLines, ...srcLines]))
-      await fse.writeFile(destGitignore, merged.join("\n") + "\n", "utf-8")
+      await fse.writeFile(destGitignore, `${merged.join("\n")}\n`, "utf-8")
     }
 
     const rootsFile = path.join(dest, ".opencode", "source-roots.json")
@@ -42,7 +42,9 @@ export async function copyContentStep(platform, ctx = {}) {
       rootsFile,
       {
         mode: ctx.sourceMode || "current",
-        roots: ctx.sourceRoots || [dest],
+        // An empty array is truthy, so `|| [dest]` never kicked in and reruns
+        // wrote `roots: []`, leaving agents with no source scope.
+        roots: ctx.sourceRoots?.length ? ctx.sourceRoots : [dest],
       },
       { spaces: 2 },
     )

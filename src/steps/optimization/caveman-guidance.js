@@ -6,6 +6,6 @@ export async function enableCavemanGuidance(cavemanResult) {
     return { enabled: false }
   }
 
-  info('Caveman guidance is configured only via @ob-global skill')
+  info('Caveman guidance is configured via the AGENTS.md Optimizations markers')
   return { enabled: true, patchedFiles: 0 }
 }

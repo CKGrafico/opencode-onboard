@@ -74,6 +74,18 @@ export default [
     },
     rules: {
       'no-console': 'off',
+      'no-empty': ['error', { allowEmptyCatch: true }],
+    },
+  },
+  {
+    // The docs site runs in the browser; without browser globals every
+    // document/window reference is a false-positive no-undef.
+    files: ['docs/**/*.js'],
+    languageOptions: {
+      sourceType: 'script',
+      globals: {
+        ...globals.browser,
+      },
     },
   }
 ]

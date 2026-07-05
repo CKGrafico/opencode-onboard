@@ -23,15 +23,24 @@ export async function installQuota(options = {}) {
 
   let shouldInstall = true
   if (!options.skipPrompt && process.stdin.isTTY) {
-    const timeoutMs = quotaPreset.prompt.timeoutMs
-    const choice = await Promise.race([
-      confirm({
-        message: quotaPreset.prompt.message,
-        default: quotaPreset.prompt.default,
-      }),
-      new Promise(resolve => { setTimeout(() => resolve(true), timeoutMs) }),
-    ])
-    shouldInstall = choice !== false
+    // Same abort-on-timeout pattern as tokenOptimizationStep: never race a
+    // live inquirer prompt, it leaks raw-mode stdin and unhandled rejections.
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), quotaPreset.prompt.timeoutMs)
+    try {
+      shouldInstall = await confirm(
+        {
+          message: quotaPreset.prompt.message,
+          default: quotaPreset.prompt.default,
+        },
+        { signal: controller.signal },
+      )
+    } catch (err) {
+      if (err.name !== 'AbortPromptError') throw err
+      shouldInstall = true
+    } finally {
+      clearTimeout(timer)
+    }
   }
 
   if (!shouldInstall) {

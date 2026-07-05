@@ -60,15 +60,25 @@ export async function tokenOptimizationStep(options = {}) {
 
   if (!options.skipPrompt && process.stdin.isTTY) {
     info(optimizationPreset.info)
-    const timeoutMs = optimizationPreset.timeoutMs
-    const choice = await Promise.race([
-      checkbox({
-        message: optimizationPreset.message,
-        choices: optimizationPreset.choices,
-      }),
-      new Promise(resolve => { setTimeout(() => resolve(defaultSelected), timeoutMs) }),
-    ])
-    selected = Array.isArray(choice) ? choice : defaultSelected
+    // Abort the prompt via signal instead of racing it: a raced prompt keeps
+    // stdin in raw mode after "losing" and rejects unhandled on a later Ctrl+C.
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), optimizationPreset.timeoutMs)
+    try {
+      selected = await checkbox(
+        {
+          message: optimizationPreset.message,
+          choices: optimizationPreset.choices,
+        },
+        { signal: controller.signal },
+      )
+    } catch (err) {
+      if (err.name !== 'AbortPromptError') throw err
+      selected = defaultSelected
+      info('No response — continuing with the recommended defaults.')
+    } finally {
+      clearTimeout(timer)
+    }
   }
 
   loading('applying token optimization selections...')

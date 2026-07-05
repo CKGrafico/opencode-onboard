@@ -3,7 +3,7 @@
    List unarchived changes (top-level only, excludes `archive/`):
 
    ```bash
-   find "$REPO_ROOT/openspec/changes" -mindepth 1 -maxdepth 1 -type d -name 'us-*' | sort
+   find "$REPO_ROOT/openspec/changes" -mindepth 1 -maxdepth 1 -type d -not -name 'archive' | sort
    ```
 
    If empty, report a blocker and stop.
@@ -27,7 +27,7 @@
 
    ```text
    Oldest unarchived merged change found:
-     ID: us-{id}-{slug}
+     ID: {change-id}
      Title: {title from resolved PR}
      PR ID: {pullRequestId}
      Merged: {mergedAt}
@@ -40,7 +40,7 @@
 4. **Archive the change**
 
    ```bash
-   git checkout -b archive/{id}-{slug}
+   git checkout -b archive/{change-id}
    ```
 
    Load `@openspec-archive-change` skill and follow it to archive the change.
@@ -53,15 +53,15 @@
 
    ```bash
    git add -A
-   git commit -m "archive: {title} ({id})"
-   git push origin archive/{id}-{slug}
+   git commit -m "archive: {title} ({change-id})"
+   git push origin archive/{change-id}
 
    gh pr create \
       --repo {owner}/{repo} \
-      --base main \
-      --head archive/{id}-{slug} \
-      --title "archive: {title} ({id})" \
-      --body "Archive SDD artifacts for {id} after merge."
+      --base "$DEFAULT_BRANCH" \
+      --head archive/{change-id} \
+      --title "archive: {title} ({change-id})" \
+      --body "Archive SDD artifacts for {change-id} after merge."
    ```
 
    If work was stashed in step 1, restore it after the PR is created unless the user opts out.
@@ -73,7 +73,7 @@
    ```text
    Archive complete
 
-     Change ID: us-{id}-{slug}
+     Change ID: {change-id}
      Title: {title}
      Original PR: {original-pr-link}
      Archive PR: {archive-pr-link}

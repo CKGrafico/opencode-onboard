@@ -13,6 +13,8 @@ export async function readOnboardConfig() {
 }
 
 export async function ensureGitLongpaths(cwd = process.cwd()) {
+  // core.longpaths only matters on Windows; don't touch repo config elsewhere.
+  if (process.platform !== 'win32') return false
   try {
     const repoCheck = await execa('git', ['rev-parse', '--is-inside-work-tree'], { cwd, reject: false })
     if (repoCheck.exitCode !== 0 || repoCheck.stdout.trim() !== 'true') return false

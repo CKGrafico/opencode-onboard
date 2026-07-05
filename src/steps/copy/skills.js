@@ -8,11 +8,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CONTENT_SKILLS_DIR = path.resolve(__dirname, '../../../content/.agents/skills')
 const CONTENT_SKILLS_LOCK = path.resolve(__dirname, '../../../content/skills-lock.json')
 
-const GITHUB_ONLY_SKILLS = new Set(['ob-userstory-gh', 'ob-pullrequest-gh'])
-const AZURE_ONLY_SKILLS  = new Set(['ob-userstory-az', 'ob-pullrequest-az'])
-const JIRA_ONLY_SKILLS   = new Set(['ob-userstory-jira'])
-const GITLAB_ONLY_SKILLS = new Set(['ob-pullrequest-gl'])
-const BROWSER_ONLY_SKILLS = new Set(['ob-userstory-browser'])
+// Userstory skills parse backlog work items → selected by backlogPlatform only.
+// Pullrequest skills ship to the repo host → selected by repoPlatform only.
+// Mixing the two axes here installs the wrong variant on mixed setups, because
+// all variants rename to the same generic dir and the first copy wins.
+const USERSTORY_SKILLS = {
+  'ob-userstory-gh': 'github',
+  'ob-userstory-az': 'azure',
+  'ob-userstory-jira': 'jira',
+  'ob-userstory-browser': 'browser',
+}
+const PULLREQUEST_SKILLS = {
+  'ob-pullrequest-gh': 'github',
+  'ob-pullrequest-az': 'azure',
+  'ob-pullrequest-gl': 'gitlab',
+}
 
 // Platform-specific skills are renamed to their generic form on install.
 // The -gh / -az / -jira / -gl / -browser suffix is only needed here to keep all variants in source.
@@ -28,11 +38,8 @@ const SKILL_RENAME = {
 }
 
 function shouldInstallSkill(skill, backlogPlatform, repoPlatform) {
-  if (GITHUB_ONLY_SKILLS.has(skill)) return backlogPlatform === 'github' || repoPlatform === 'github'
-  if (AZURE_ONLY_SKILLS.has(skill))  return backlogPlatform === 'azure' || repoPlatform === 'azure'
-  if (JIRA_ONLY_SKILLS.has(skill))   return backlogPlatform === 'jira'
-  if (GITLAB_ONLY_SKILLS.has(skill)) return repoPlatform === 'gitlab'
-  if (BROWSER_ONLY_SKILLS.has(skill)) return backlogPlatform === 'browser'
+  if (skill in USERSTORY_SKILLS) return USERSTORY_SKILLS[skill] === backlogPlatform
+  if (skill in PULLREQUEST_SKILLS) return PULLREQUEST_SKILLS[skill] === repoPlatform
   return true
 }
 

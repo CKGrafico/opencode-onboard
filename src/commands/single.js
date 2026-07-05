@@ -1,3 +1,6 @@
+import fse from 'fs-extra'
+import path from 'node:path'
+import { fileURLToPath } from 'url'
 import { cleanAiFiles } from '../steps/clean/index.js'
 import { copyContentStep } from '../steps/copy/index.js'
 import { chooseModels } from '../steps/models/index.js'
@@ -7,6 +10,16 @@ import { choosePlatform } from '../steps/platform/index.js'
 import { installBrowser } from '../steps/browser/index.js'
 import { writeOnboardConfig } from '../steps/metadata/index.js'
 import { readOnboardConfig } from './shared.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const platformsPreset = await fse.readJson(path.resolve(__dirname, '../presets/platforms.json'))
+// platforms.json is the single source of truth for valid platform values.
+// Hardcoding a subset here silently rewrote jira/gitlab/browser projects to github.
+const VALID_PLATFORMS = new Set(platformsPreset.map(p => p.value))
+
+export function resolvePlatform(value, fallback = 'github') {
+  return VALID_PLATFORMS.has(value) ? value : fallback
+}
 
 export async function runSingleCommand(command) {
   const saved = await readOnboardConfig()
@@ -21,8 +34,8 @@ export async function runSingleCommand(command) {
   }
   const backlogPlatform = savedWizard?.backlogPlatform ?? savedWizard?.platform
   const repoPlatform = savedWizard?.repoPlatform ?? savedWizard?.platform
-  const resolvedBacklog = backlogPlatform === 'azure' || backlogPlatform === 'github' || backlogPlatform === 'none' ? backlogPlatform : 'github'
-  const resolvedRepo = repoPlatform === 'azure' || repoPlatform === 'github' || repoPlatform === 'none' ? repoPlatform : 'github'
+  const resolvedBacklog = resolvePlatform(backlogPlatform)
+  const resolvedRepo = resolvePlatform(repoPlatform)
 
   const handlers = {
     clean: async () => {

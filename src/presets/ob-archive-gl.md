@@ -3,7 +3,7 @@
    List unarchived changes (top-level only, excludes `archive/`):
 
    ```bash
-   find "$REPO_ROOT/openspec/changes" -mindepth 1 -maxdepth 1 -type d -name 'us-*' | sort
+   find "$REPO_ROOT/openspec/changes" -mindepth 1 -maxdepth 1 -type d -not -name 'archive' | sort
    ```
 
    If empty, report a blocker and stop.
@@ -11,7 +11,7 @@
    List completed merge requests:
 
    ```bash
-   glab mr list --repo {owner}/{repo} --state merged --json title,source_branch,merged_at,number --jq 'sort_by(.merged_at) | .[] | {name: .title, sourceRefName: .source_branch, mergedAt: .merged_at, pullRequestId: .number}'
+   glab mr list --repo {owner}/{repo} --merged --output json --jq 'sort_by(.merged_at) | .[] | {name: .title, sourceRefName: .source_branch, mergedAt: .merged_at, mergeRequestId: .iid}'
    ```
 
    Match each change to a completed MR using its ID and slug as search hints:
@@ -27,9 +27,9 @@
 
    ```text
    Oldest unarchived merged change found:
-     ID: us-{id}-{slug}
+     ID: {change-id}
      Title: {title from resolved MR}
-     MR ID: {number}
+     MR ID: {iid}
      Merged: {merged_at}
 
    Proceed with archiving? [yes/no]
@@ -40,7 +40,7 @@
 4. **Archive the change**
 
    ```bash
-   git checkout -b archive/{id}-{slug}
+   git checkout -b archive/{change-id}
    ```
 
    Load `@openspec-archive-change` skill and follow it to archive the change.
@@ -53,15 +53,15 @@
 
    ```bash
    git add -A
-   git commit -m "archive: {title} ({id})"
-   git push origin archive/{id}-{slug}
+   git commit -m "archive: {title} ({change-id})"
+   git push origin archive/{change-id}
 
    glab mr create \
       --repo {owner}/{repo} \
-      --source-branch "archive/{id}-{slug}" \
-      --target-branch "main" \
-      --title "archive: {title} ({id})" \
-      --description "Archive SDD artifacts for {id} after merge."
+      --source-branch "archive/{change-id}" \
+      --target-branch "$DEFAULT_BRANCH" \
+      --title "archive: {title} ({change-id})" \
+      --description "Archive SDD artifacts for {change-id} after merge."
    ```
 
    If work was stashed in step 1, restore it after the MR is created unless the user opts out.
@@ -73,7 +73,7 @@
    ```text
    Archive complete
 
-     Change ID: us-{id}-{slug}
+     Change ID: {change-id}
      Title: {title}
      Original MR: {original-mr-link}
      Archive MR: {archive-mr-link}

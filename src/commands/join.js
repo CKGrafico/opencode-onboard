@@ -4,9 +4,8 @@ import fse from 'fs-extra'
 import path from 'node:path'
 import { installBrowser } from '../steps/browser/index.js'
 import { checkRtk } from '../steps/optimization/index.js'
-import { installMemory } from '../steps/optimization/memory.js'
-import { checkPlatform, choosePlatform } from '../steps/platform/index.js'
-import { commandExists, header, info, loading, success, warn, error } from '../utils/exec.js'
+import { checkPlatform } from '../steps/platform/index.js'
+import { commandExists, header, info, loading, success, warn } from '../utils/exec.js'
 import { readOnboardConfig } from './shared.js'
 
 export async function runJoin() {
@@ -204,14 +203,14 @@ export async function runJoin() {
     const existing = content.split('\n').map(l => l.trim()).filter(Boolean)
     const missing = requiredEntries.filter(e => !existing.includes(e))
     if (missing.length > 0) {
-      const merged = [...existing, ...missing].join('\n') + '\n'
+      const merged = `${[...existing, ...missing].join('\n')}\n`
       await fse.writeFile(gitignorePath, merged, 'utf-8')
       success(`Merged ${missing.length} missing .gitignore entries`)
     } else {
       success('.gitignore is up to date')
     }
   } else {
-    await fse.writeFile(gitignorePath, requiredEntries.join('\n') + '\n', 'utf-8')
+    await fse.writeFile(gitignorePath, `${requiredEntries.join('\n')}\n`, 'utf-8')
     success('Created .opencode/.gitignore')
   }
 

@@ -1,43 +1,48 @@
 import fse from 'fs-extra'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { info, success } from '../../utils/exec.js'
+import { info, success, warn } from '../../utils/exec.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const agentsContent = await fse.readJson(path.resolve(__dirname, '../../presets/agents-content.json'))
 
-const STEP1_HEADING = '### Step 1, Archive project history into OpenSpec'
-const STEP2_HEADING = '### Step 2, Generate DESIGN.md'
-const STEP3_HEADING = '### Step 3, Generate ARCHITECTURE.md'
+// Steps are matched by their title text, not by exact heading string:
+// heading level (###/####) and step numbers have drifted before and silently
+// broke removal. Matching `^#{3,4} Step N, <title>` survives both.
+const HISTORY_STEP_TITLE = 'Archive project history into OpenSpec'
+const DESIGN_STEP_TITLE = 'Generate DESIGN.md'
+const ARCHITECTURE_STEP_TITLE = 'Generate ARCHITECTURE.md'
 
-const STEP1_CONFIRM_LINE = '- Project history archived in openspec'
-const STEP2_CONFIRM_LINE = '- DESIGN.md generated'
-const STEP3_CONFIRM_LINE = '- ARCHITECTURE.md generated'
+const HISTORY_CONFIRM_LINE = '- Project history archived in openspec'
+const DESIGN_CONFIRM_LINE = '- DESIGN.md generated'
+const ARCHITECTURE_CONFIRM_LINE = '- ARCHITECTURE.md generated'
 
-function removeStepBlock(content, heading) {
+function stepHeadingPattern(title) {
+  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`^#{3,4} Step \\d+, ${escaped}$`)
+}
+
+// The step heading is kept and its body replaced with an explicit skip note.
+// Removing the block and renumbering the remaining steps (the old approach)
+// went stale against prose cross-references like "Skip steps 2, 3, and 4";
+// stable numbering plus a visible reason is unambiguous for the agent.
+export function skipStepBlock(content, title, note) {
   const lines = content.split('\n')
-  const start = lines.findIndex(l => l.trim() === heading.trim())
-  if (start === -1) return content
+  const pattern = stepHeadingPattern(title)
+  const start = lines.findIndex(l => pattern.test(l.trim()))
+  if (start === -1) return { content, matched: false }
 
-  let end = -1
+  let end = lines.length
   for (let i = start + 1; i < lines.length; i++) {
     if (lines[i].trim() === '---') { end = i; break }
   }
 
-  if (end === -1) return content
-
-  const removeFrom = start > 0 && lines[start - 1].trim() === '' ? start - 1 : start
-  lines.splice(removeFrom, end - removeFrom + 1)
-  return lines.join('\n')
+  lines.splice(start + 1, end - start - 1, '', `> ${note}`, '')
+  return { content: lines.join('\n'), matched: true }
 }
 
 function removeConfirmLine(content, line) {
   return content.split('\n').filter(l => l.trim() !== line.trim()).join('\n')
-}
-
-function renumberSteps(content) {
-  let counter = 0
-  return content.replace(/^### Step \d+,/gm, () => `### Step ${++counter},`)
 }
 
 const PLATFORM_WORKFLOW_START = '<!-- OB-PLATFORM-WORKFLOW-START -->'
@@ -108,26 +113,28 @@ export async function patchAgentsMd(ctx) {
   let content = await fse.readFile(agentsMdPath, 'utf-8')
   const patches = []
 
-  if (ctx.hasOpenspec) {
-    content = removeStepBlock(content, STEP1_HEADING)
-    content = removeConfirmLine(content, STEP1_CONFIRM_LINE)
-    patches.push('Step 1 (openspec history) removed, openspec/ already exists')
-  }
+  const skips = [
+    [ctx.hasOpenspec, HISTORY_STEP_TITLE, HISTORY_CONFIRM_LINE,
+      'Skipped during onboarding: this project already had an openspec/ history. Do not archive again; continue with the next step.'],
+    [ctx.hasDesign, DESIGN_STEP_TITLE, DESIGN_CONFIRM_LINE,
+      'Skipped during onboarding: DESIGN.md already exists in this project and is preserved. Do not regenerate it; continue with the next step.'],
+    [ctx.hasArchitecture, ARCHITECTURE_STEP_TITLE, ARCHITECTURE_CONFIRM_LINE,
+      'Skipped during onboarding: ARCHITECTURE.md already exists in this project and is preserved. Do not regenerate it; continue with the next step.'],
+  ]
 
-  if (ctx.hasDesign) {
-    content = removeStepBlock(content, STEP2_HEADING)
-    content = removeConfirmLine(content, STEP2_CONFIRM_LINE)
-    patches.push('Step 2 (DESIGN.md) removed, DESIGN.md already exists')
-  }
-
-  if (ctx.hasArchitecture) {
-    content = removeStepBlock(content, STEP3_HEADING)
-    content = removeConfirmLine(content, STEP3_CONFIRM_LINE)
-    patches.push('Step 3 (ARCHITECTURE.md) removed, ARCHITECTURE.md already exists')
+  for (const [enabled, title, confirmLine, note] of skips) {
+    if (!enabled) continue
+    const result = skipStepBlock(content, title, note)
+    if (!result.matched) {
+      warn(`AGENTS.md step "${title}" not found — template drift? Skipping this patch.`)
+      continue
+    }
+    content = result.content
+    content = removeConfirmLine(content, confirmLine)
+    patches.push(`Step "${title}" marked as skipped, file already exists`)
   }
 
   if (patches.length > 0) {
-    content = renumberSteps(content)
     await fse.writeFile(agentsMdPath, content, 'utf-8')
     for (const msg of patches) info(msg)
     success('AGENTS.md patched for existing project state')

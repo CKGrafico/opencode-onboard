@@ -3,7 +3,7 @@
    List unarchived changes (top-level only, excludes `archive/`):
 
    ```bash
-   find "$REPO_ROOT/openspec/changes" -mindepth 1 -maxdepth 1 -type d -name 'us-*' | sort
+   find "$REPO_ROOT/openspec/changes" -mindepth 1 -maxdepth 1 -type d -not -name 'archive' | sort
    ```
 
    If empty, report a blocker and stop.
@@ -27,7 +27,7 @@
 
    ```text
    Oldest unarchived merged change found:
-     ID: us-{id}-{slug}
+     ID: {change-id}
      Title: {title from resolved PR}
      PR ID: {pullRequestId}
      Merged: {closedDate}
@@ -40,7 +40,7 @@
 4. **Archive the change**
 
    ```bash
-   git checkout -b archive/{id}-{slug}
+   git checkout -b archive/{change-id}
    ```
 
    Load `@openspec-archive-change` skill and follow it to archive the change.
@@ -53,15 +53,15 @@
 
    ```bash
    git add -A
-   git commit -m "archive: {title} ({id})"
-   git push origin archive/{id}-{slug}
+   git commit -m "archive: {title} ({change-id})"
+   git push origin archive/{change-id}
 
    az repos pr create \
      --repository {repo} \
-     --source-branch refs/heads/archive/{id}-{slug} \
-     --target-branch refs/heads/main \
-     --title "archive: {title} ({id})" \
-     --description "Archive SDD artifacts for us-{id} after merge of {sourceRefName}." \
+     --source-branch refs/heads/archive/{change-id} \
+     --target-branch "refs/heads/$DEFAULT_BRANCH" \
+     --title "archive: {title} ({change-id})" \
+     --description "Archive SDD artifacts for {change-id} after merge of {sourceRefName}." \
      --auto-complete
    ```
 
@@ -74,7 +74,7 @@
    ```text
    Archive complete
 
-     Change ID: us-{id}-{slug}
+     Change ID: {change-id}
      Title: {title}
      Original PR: {original-pr-link}
      Archive PR: {archive-pr-link}
