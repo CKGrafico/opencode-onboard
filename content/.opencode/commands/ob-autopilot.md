@@ -73,6 +73,7 @@ Input: `$ARGUMENTS`
 - Do **not** run the platform PR archive flow and do **not** create an `archive/` branch. Archive in place on `$BRANCH`.
 - Load `@openspec-archive-change` and archive the change you just implemented, by its id.
 - Compare the archived change's specs against `ARCHITECTURE.md` and `DESIGN.md`; apply any needed doc updates directly (no approval prompt).
+- If you were implementing a bug or a new functionallity and had an important impact check if @project-guardrails exist and update it.
 <!-- OB-CMD-CODEGRAPH-START -->
 - Use codegraph `codegraph_impact` MCP tool to identify exactly which doc sections need updates.
 <!-- OB-CMD-CODEGRAPH-END -->
