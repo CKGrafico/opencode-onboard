@@ -85,7 +85,7 @@ export async function installSkills(backlogPlatform = 'github', repoPlatform) {
 
   info('Installing npx skills from skills-lock.json...')
   try {
-    await execa('npx', ['skills'], {
+    await execa('npx', ['skills', 'experimental_install', '--yes'], {
       cwd: process.cwd(),
       stdio: 'inherit',
       reject: false,
