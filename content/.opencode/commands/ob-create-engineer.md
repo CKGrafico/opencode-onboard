@@ -20,21 +20,19 @@ Example: `/ob-create-engineer frontend-engineer build "A frontend engineer speci
    - Description is the quoted string explaining the agent's specialty
    - If no input provided, use the AskUserQuestion tool to ask for name, tier, and description.
 
-2. **Search for relevant skills from skills.sh**
+2. **Discover relevant skills from skills.sh**
 
-   Based on the description and the project context (read ARCHITECTURE.md, DESIGN.md), search for relevant skills.
+   Load the `@find-skills` skill and follow its workflow to discover skills relevant to the engineer's description.
+
+   **Project context** — read `.opencode/source-roots.json` when present. Only analyze those roots. Read `ARCHITECTURE.md` and `DESIGN.md` to understand the project's tech stack and design system so skill choices match what the codebase actually uses.
 
 <!-- OB-CMD-CODEGRAPH-START -->
    Use codegraph MCP tools (NOT CLI commands). Do NOT run `codegraph` in bash. Use `codegraph_search` MCP tool to identify which code areas, modules, and frameworks the new engineer will work with.
 <!-- OB-CMD-CODEGRAPH-END -->
 
-   ```bash
-   npx skills search "<relevant keywords from description>"
-   ```
+   Use the `@find-skills` skill's guidance (check the skills.sh leaderboard first, then `npx skills find` with specific keywords) — do NOT manually browse skills.sh or invent skill names. Verify each candidate's install count and source reputation before selecting, as the skill instructs.
 
-   If the search doesn't work or returns nothing, browse https://www.skills.sh/ for relevant skills based on the agent's specialty.
-
-   Select 2-5 skills that are most relevant to the agent's role. Prefer official/popular skills.
+   Select 2-5 skills that are most relevant to the agent's role and are genuinely used by the project's tech stack. Prefer official/popular skills.
 
 3. **Install selected skills**
 
