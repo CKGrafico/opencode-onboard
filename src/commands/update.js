@@ -6,7 +6,6 @@ import { readOnboardConfig } from './shared.js'
 import { copyContentStep } from '../steps/copy/index.js'
 import { stampAgentModels } from '../steps/copy/agent-models.js'
 import { writeModelsToConfigs } from '../steps/models/write.js'
-import { initOpenspec } from '../steps/openspec/index.js'
 import { configureAgentsMd, patchCommandFiles } from '../steps/optimization/global.js'
 import { writeOnboardConfig } from '../steps/metadata/index.js'
 import { exit } from '../utils/process.js'
@@ -48,10 +47,6 @@ export async function runUpdate() {
   console.log()
 
   await copyContentStep({ backlogPlatform, repoPlatform }, ctx)
-
-  if (saved.preexisting?.openspec) {
-    await initOpenspec()
-  }
 
   if (saved.models) {
     await stampAgentModels({ models: saved.models })
