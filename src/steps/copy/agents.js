@@ -107,10 +107,10 @@ export async function patchConcurrency(ctx) {
 }
 
 export async function patchAgentsMd(ctx) {
-  const agentsMdPath = path.join(process.cwd(), 'AGENTS.md')
-  if (!await fse.pathExists(agentsMdPath)) return
+  const obInitPath = path.join(process.cwd(), '.opencode', 'commands', 'ob-init.md')
+  if (!await fse.pathExists(obInitPath)) return
 
-  let content = await fse.readFile(agentsMdPath, 'utf-8')
+  let content = await fse.readFile(obInitPath, 'utf-8')
   const patches = []
 
   const skips = [
@@ -126,7 +126,7 @@ export async function patchAgentsMd(ctx) {
     if (!enabled) continue
     const result = skipStepBlock(content, title, note)
     if (!result.matched) {
-      warn(`AGENTS.md step "${title}" not found — template drift? Skipping this patch.`)
+      warn(`ob-init.md step "${title}" not found — template drift? Skipping this patch.`)
       continue
     }
     content = result.content
@@ -135,9 +135,9 @@ export async function patchAgentsMd(ctx) {
   }
 
   if (patches.length > 0) {
-    await fse.writeFile(agentsMdPath, content, 'utf-8')
+    await fse.writeFile(obInitPath, content, 'utf-8')
     for (const msg of patches) info(msg)
-    success('AGENTS.md patched for existing project state')
+    success('ob-init.md patched for existing project state')
   }
 }
 
