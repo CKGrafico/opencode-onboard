@@ -4,7 +4,6 @@
     "AGENTS.md"
   ],
   "plugin": [
-    "opencode-plugin-openspec@latest",
     "@different-ai/opencode-browser@latest",
     "@mohak34/opencode-notifier@latest"
   ],
