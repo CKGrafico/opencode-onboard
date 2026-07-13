@@ -125,7 +125,7 @@ export const ObSubagentTiers = async ({ directory }) => {
               cfg.agent[`${name}.${tier}`] = base
                 ? { ...base, model: models[tier] }
                 : {
-                  mode: "all",
+                  mode: "subagent",
                   description: templateDescription(templateContent) ?? `${name} (${tier} tier)`,
                   model: models[tier],
                 }
