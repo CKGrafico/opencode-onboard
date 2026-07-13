@@ -25,7 +25,6 @@ describe('platform patching', () => {
 
     const content = await fse.readFile(dest, 'utf-8')
     expect(content).toContain('GitHub Issue URLs, Azure DevOps work item URLs, and PR URLs are NOT automatic triggers in this mode.')
-    expect(content).toContain('There is no PR shipping phase in')
     expect(content).not.toContain('A GitHub or Azure DevOps URL anywhere in the user\'s message is always a trigger')
   })
 })

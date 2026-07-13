@@ -55,7 +55,7 @@ describe('configureAgentsMd()', () => {
   it('injects RTK section when rtk is opted in', async () => {
     await configureAgentsMd({ rtk: { optedIn: true } })
     const content = fs.readFileSync(agentsMdPath, 'utf-8')
-    expect(content).toContain('RTK, MANDATORY')
+    expect(content).toContain('Prefix ALL CLI commands')
   })
 
   it('injects caveman section when caveman is opted in', async () => {

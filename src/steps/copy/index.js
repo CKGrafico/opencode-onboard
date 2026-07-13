@@ -4,7 +4,7 @@ import { fileURLToPath } from "url"
 import { copyContent } from "../../utils/copy.js"
 import { error, header, success } from "../../utils/exec.js"
 import { exit } from "../../utils/process.js"
-import { patchAgentGuidance, patchAgentsMd, patchConcurrency } from "./agents.js"
+import { patchAgentGuidance, patchAgentsMd } from "./agents.js"
 import { patchArchiveCommand } from "./commands.js"
 import { installSkills } from "./skills.js"
 
@@ -52,7 +52,6 @@ export async function copyContentStep(platform, ctx = {}) {
     await patchAgentGuidance(backlogPlatform, repoPlatform)
     await patchArchiveCommand({ backlogPlatform, repoPlatform })
     await patchAgentsMd(ctx)
-    await patchConcurrency(ctx)
 
     await installSkills(backlogPlatform, repoPlatform)
     success("Files copied to project root")

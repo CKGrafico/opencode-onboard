@@ -93,7 +93,7 @@ describe('patchAgentGuidance mixed platforms against the real template', () => {
     // Markers must survive so optimization re-runs can re-patch.
     for (const marker of [
       'OB-PLATFORM-WORKFLOW-START', 'OB-PLATFORM-WORKFLOW-END',
-      'OB-PLATFORM-PIPELINE-START', 'OB-PLATFORM-PIPELINE-END',
+      'OB-PLATFORM-SKILLS-GUIDE-START', 'OB-PLATFORM-SKILLS-GUIDE-END',
       'OB-RTK-START',
     ]) {
       expect(patched).toContain(marker)

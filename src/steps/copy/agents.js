@@ -47,8 +47,6 @@ function removeConfirmLine(content, line) {
 
 const PLATFORM_WORKFLOW_START = '<!-- OB-PLATFORM-WORKFLOW-START -->'
 const PLATFORM_WORKFLOW_END = '<!-- OB-PLATFORM-WORKFLOW-END -->'
-const PLATFORM_PIPELINE_START = '<!-- OB-PLATFORM-PIPELINE-START -->'
-const PLATFORM_PIPELINE_END = '<!-- OB-PLATFORM-PIPELINE-END -->'
 const PLATFORM_SKILLS_GUIDE_START = '<!-- OB-PLATFORM-SKILLS-GUIDE-START -->'
 const PLATFORM_SKILLS_GUIDE_END = '<!-- OB-PLATFORM-SKILLS-GUIDE-END -->'
 
@@ -72,38 +70,6 @@ function replaceBetween(content, start, end, replacement) {
   if (!content.includes(start) || !content.includes(end)) return content
   const pattern = new RegExp(`${start}[\\s\\S]*?${end}`)
   return content.replace(pattern, `${start}\n${replacement.trim()}\n${end}`)
-}
-
-const CONCURRENCY_PLACEHOLDER = '{{MAX_CONCURRENT_AGENTS}}'
-const DEFAULT_MAX_CONCURRENT_AGENTS = 3
-const MIN_CONCURRENT_AGENTS = 1
-const MAX_CONCURRENT_AGENTS = 5
-
-function clampConcurrency(n) {
-  const v = Number(n)
-  if (!Number.isFinite(v)) return DEFAULT_MAX_CONCURRENT_AGENTS
-  return Math.min(MAX_CONCURRENT_AGENTS, Math.max(MIN_CONCURRENT_AGENTS, Math.round(v)))
-}
-
-export async function patchConcurrency(ctx) {
-  const maxAgents = String(clampConcurrency(ctx.maxConcurrentAgents ?? DEFAULT_MAX_CONCURRENT_AGENTS))
-  const cwd = process.cwd()
-
-  const filesToPatch = ['AGENTS.md']
-
-  let patched = 0
-  for (const rel of filesToPatch) {
-    const abs = path.join(cwd, rel)
-    if (!await fse.pathExists(abs)) continue
-    const content = await fse.readFile(abs, 'utf-8')
-    if (!content.includes(CONCURRENCY_PLACEHOLDER)) continue
-    await fse.writeFile(abs, content.replaceAll(CONCURRENCY_PLACEHOLDER, maxAgents), 'utf-8')
-    patched++
-  }
-
-  if (patched > 0) {
-    success(`Concurrency limit set to ${maxAgents} agents in ${patched} file(s)`)
-  }
 }
 
 export async function patchAgentsMd(ctx) {
@@ -147,7 +113,6 @@ export async function patchAgentGuidance(backlogPlatform, repoPlatform, cwd = pr
     const repo = repoPlatform ?? backlogPlatform ?? 'github'
     let content = await fse.readFile(agentsMdPath, 'utf-8')
     content = replaceBetween(content, PLATFORM_WORKFLOW_START, PLATFORM_WORKFLOW_END, mixedPlatformContent(backlogPlatform, repo, 'workflow'))
-    content = replaceBetween(content, PLATFORM_PIPELINE_START, PLATFORM_PIPELINE_END, mixedPlatformContent(backlogPlatform, repo, 'pipeline'))
     content = replaceBetween(content, PLATFORM_SKILLS_GUIDE_START, PLATFORM_SKILLS_GUIDE_END, mixedPlatformContent(backlogPlatform, repo, 'skillsGuide'))
     await fse.writeFile(agentsMdPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
     const label = backlogPlatform === repo ? repo : `${backlogPlatform}→${repo}`
