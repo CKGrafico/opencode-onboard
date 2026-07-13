@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url'
 import { readOnboardConfig } from './shared.js'
 import { copyContentStep } from '../steps/copy/index.js'
 import { stampAgentModels } from '../steps/copy/agent-models.js'
+import { writeModelsToConfigs } from '../steps/models/write.js'
 import { initOpenspec } from '../steps/openspec/index.js'
 import { configureAgentsMd, patchCommandFiles } from '../steps/optimization/global.js'
 import { writeOnboardConfig } from '../steps/metadata/index.js'
@@ -43,6 +44,7 @@ export async function runUpdate() {
   console.log()
   console.log(chalk.bold('Updating project from saved config'))
   console.log(chalk.dim(`  backlog: ${backlogPlatform}  repo: ${repoPlatform}  agents: ${ctx.maxConcurrentAgents}`))
+  console.log(chalk.dim('  preserved: openspec/config.yaml, .opencode/opencode.json, user agents, user commands, skills'))
   console.log()
 
   await copyContentStep({ backlogPlatform, repoPlatform }, ctx)
@@ -53,6 +55,7 @@ export async function runUpdate() {
 
   if (saved.models) {
     await stampAgentModels({ models: saved.models })
+    await writeModelsToConfigs({ buildModel: saved.models.build })
   }
 
   const tools = saved.tools ?? {}

@@ -113,5 +113,29 @@ describe('copy utils', () => {
       await copyContent(src, dest, 'azure')
       expect(await fse.pathExists(path.join(dest, 'agent-az.md'))).toBe(true)
     })
+
+    it('never overwrites openspec/config.yaml even with forceOverwrite', async () => {
+      await fse.ensureDir(path.join(src, 'openspec'))
+      await fse.writeFile(path.join(src, 'openspec', 'config.yaml'), 'template')
+      await fse.ensureDir(path.join(dest, 'openspec'))
+      await fse.writeFile(path.join(dest, 'openspec', 'config.yaml'), 'user customized')
+
+      await copyContent(src, dest, 'github', { forceOverwrite: true })
+
+      const content = await fse.readFile(path.join(dest, 'openspec', 'config.yaml'), 'utf-8')
+      expect(content).toBe('user customized')
+    })
+
+    it('never overwrites .opencode/opencode.json even with forceOverwrite', async () => {
+      await fse.ensureDir(path.join(src, '.opencode'))
+      await fse.writeFile(path.join(src, '.opencode', 'opencode.json'), '{"template":true}')
+      await fse.ensureDir(path.join(dest, '.opencode'))
+      await fse.writeFile(path.join(dest, '.opencode', 'opencode.json'), '{"user":true}')
+
+      await copyContent(src, dest, 'github', { forceOverwrite: true })
+
+      const content = await fse.readFile(path.join(dest, '.opencode', 'opencode.json'), 'utf-8')
+      expect(JSON.parse(content).user).toBe(true)
+    })
   })
 })
