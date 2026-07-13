@@ -1,7 +1,6 @@
 {
   "dependencies": {
     "@opencode-ai/plugin": "^1.17.13",
-    "opencode-plugin-openspec": "^0.1.4",
     "@different-ai/opencode-browser": "^4.6.1",
     "@mohak34/opencode-notifier": "^0.2.8",
     "@opentui/core": "0.3.4",

@@ -37,6 +37,12 @@ export async function copyContentStep(platform, ctx = {}) {
       await fse.writeFile(destGitignore, `${merged.join("\n")}\n`, "utf-8")
     }
 
+    // Remove the _gitignore template from dest — it was only needed for the merge above.
+    const destGitignoreTemplate = path.join(dest, ".opencode", "_gitignore")
+    if (await fse.pathExists(destGitignoreTemplate)) {
+      await fse.remove(destGitignoreTemplate)
+    }
+
     const rootsFile = path.join(dest, ".opencode", "source-roots.json")
     await fse.writeJson(
       rootsFile,
