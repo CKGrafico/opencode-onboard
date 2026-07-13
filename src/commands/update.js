@@ -20,24 +20,22 @@ function resolvePlatform(value, fallback = 'github') {
 
 export async function runUpdate() {
   const saved = await readOnboardConfig()
-  if (!saved?.wizard) {
+  if (!saved?.platform) {
     console.log(chalk.red('No opencode-onboard config found. Run the wizard first.'))
     exit(1)
     return
   }
 
-  const w = saved.wizard
-  const backlogPlatform = resolvePlatform(w.backlogPlatform ?? w.platform)
-  const repoPlatform = resolvePlatform(w.repoPlatform ?? w.platform)
+  const backlogPlatform = resolvePlatform(saved.platform.backlog)
+  const repoPlatform = resolvePlatform(saved.platform.repo)
 
   const ctx = {
-    hasDesign: !!w.preserved?.design,
-    hasArchitecture: !!w.preserved?.architecture,
-    hasOpenspec: !!w.preserved?.openspec,
-    sourceMode: w.sourceMode ?? 'current',
-    sourceRoots: Array.isArray(w.sourceRoots) ? w.sourceRoots : [],
-    maxConcurrentAgents: w.maxConcurrentAgents ?? 3,
-    installScope: w.installScope ?? 'local',
+    hasDesign: !!saved.preexisting?.design,
+    hasArchitecture: !!saved.preexisting?.architecture,
+    hasOpenspec: !!saved.preexisting?.openspec,
+    sourceMode: saved.source?.mode ?? 'current',
+    sourceRoots: Array.isArray(saved.source?.roots) ? saved.source.roots : [],
+    maxConcurrentAgents: saved.agents?.maxConcurrent ?? 3,
     skipSkills: true,
     forceOverwrite: true,
   }
@@ -49,20 +47,20 @@ export async function runUpdate() {
 
   await copyContentStep({ backlogPlatform, repoPlatform }, ctx)
 
-  if (w.openspec?.initialized) {
+  if (saved.preexisting?.openspec) {
     await initOpenspec()
   }
 
-  if (w.models) {
-    await stampAgentModels({ models: w.models })
+  if (saved.models) {
+    await stampAgentModels({ models: saved.models })
   }
 
-  const optionalTools = w.optionalTools ?? {}
+  const tools = saved.tools ?? {}
   const tokenOpt = {
-    rtk: { optedIn: !!optionalTools.rtk?.optedIn },
-    caveman: { optedIn: !!optionalTools.caveman?.optedIn },
-    codegraph: { optedIn: !!optionalTools.codegraph?.optedIn },
-    memory: { optedIn: !!optionalTools.memory?.optedIn },
+    rtk: { optedIn: !!tools.rtk },
+    caveman: { optedIn: !!tools.caveman },
+    codegraph: { optedIn: !!tools.codegraph },
+    memory: { optedIn: !!tools.memory },
   }
   await configureAgentsMd(tokenOpt)
   await patchCommandFiles(tokenOpt)
@@ -72,13 +70,10 @@ export async function runUpdate() {
     backlogPlatform,
     repoPlatform,
     maxConcurrentAgents: ctx.maxConcurrentAgents,
-    installScope: ctx.installScope,
-    additionalSkillsProvider: w.additionalSkillsProvider ?? 'npx-skills',
-    planModel: w.models?.plan ?? null,
-    buildModel: w.models?.build ?? null,
-    fastModel: w.models?.fast ?? null,
-    optionalTools,
-    cavemanGuidance: w.cavemanGuidance ?? null,
+    planModel: saved.models?.plan ?? null,
+    buildModel: saved.models?.build ?? null,
+    fastModel: saved.models?.fast ?? null,
+    optionalTools: tools,
   })
 
   console.log()

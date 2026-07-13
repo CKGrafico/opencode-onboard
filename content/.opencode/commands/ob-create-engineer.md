@@ -2,7 +2,7 @@
 description: Create a custom engineer agent from a description, with skills from skills.sh
 ---
 
-Create a new custom engineer agent based on the `basic-engineer.md` template. The agent file is a **template** — it has NO `model:` field. The `ob-subagent-tiers` plugin reads it at startup and injects tier variants (`<name>.build`, `<name>.fast`, `<name>.plan`) into the live config with models from `wizard.models`.
+Create a new custom engineer agent based on the `basic-engineer.md` template. The agent file is a **template** — it has NO `model:` field. The `ob-subagent-tiers` plugin reads it at startup and injects tier variants (`<name>.build`, `<name>.fast`, `<name>.plan`) into the live config with models from `models`.
 
 **Usage**: `/ob-create-engineer <name> <tier> "<description>"`
 
@@ -76,7 +76,7 @@ Example: `/ob-create-engineer frontend-engineer build "A frontend engineer speci
 
    Distribute skills across ALL categories that apply. Only include categories that have at least one real skill assigned (besides Guardrails which is always present).
 
-5. **No model in the agent file.** The agent file is a template with no `model:` field. The `ob-subagent-tiers` plugin reads it at startup and creates tier variants (`<name>.build`, `<name>.fast`, `<name>.plan`) with models from `wizard.models`. If all tiers are unset, warn the user to run `/ob-set-model <tier> <model>` and restart.
+5. **No model in the agent file.** The agent file is a template with no `model:` field. The `ob-subagent-tiers` plugin reads it at startup and creates tier variants (`<name>.build`, `<name>.fast`, `<name>.plan`) with models from `models`. If all tiers are unset, warn the user to run `/ob-set-model <tier> <model>` and restart.
 
 6. **Update AGENTS.md**
 

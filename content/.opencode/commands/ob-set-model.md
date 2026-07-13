@@ -2,7 +2,7 @@
 description: Set the model for a tier (plan, build, or fast). Team-wide or user-local override.
 ---
 
-Set the concrete model for one tier. Writes to `wizard.models` in either the team config (shared, git-tracked) or a user-local override (gitignored).
+Set the concrete model for one tier. Writes to `models` in either the team config (shared, git-tracked) or a user-local override (gitignored).
 
 Usage:
 
@@ -22,7 +22,7 @@ Arguments: `$ARGUMENTS`
 1. **Parse `$ARGUMENTS`** by whitespace.
    - If first token is `user`: `isUser = true`, `<tier>` = second token, `<model>` = third token.
    - Otherwise: `isUser = false`, `<tier>` = first token, `<model>` = second token.
-   - If `$ARGUMENTS` is empty: read both `.opencode/opencode-onboard.json` and `.opencode/opencode-onboard.user.json` and show the current `wizard.models` from each (team first, user override second), then show the usage above. Change nothing.
+   - If `$ARGUMENTS` is empty: read both `.opencode/opencode-onboard.json` and `.opencode/opencode-onboard.user.json` and show the current `models` from each (team first, user override second), then show the usage above. Change nothing.
    - If `<tier>` is not exactly one of `plan` / `build` / `fast`, or `<model>` is missing: print the usage and stop. Change nothing.
 
 2. **Resolve `<model>`:**
@@ -33,7 +33,7 @@ Arguments: `$ARGUMENTS`
    - `isUser = false` → `.opencode/opencode-onboard.json` (team). If it does not exist, stop and tell the user onboarding has not generated it yet.
    - `isUser = true` → `.opencode/opencode-onboard.user.json` (user override). If it does not exist, create it with `{ "wizard": { "models": {} } }`.
 
-4. **Update the config.** Read the target file, set `wizard.models.<tier>` to the resolved model id (create `wizard.models` if absent). Do NOT touch any other field. Preserve the existing 2-space JSON formatting, then write the file back.
+4. **Update the config.** Read the target file, set `models.<tier>` to the resolved model id (create `models` if absent). Do NOT touch any other field. Preserve the existing 2-space JSON formatting, then write the file back.
 
 5. **Confirm:**
 

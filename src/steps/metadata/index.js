@@ -31,10 +31,9 @@ export async function writeOnboardConfig(data) {
   const cwd = data.cwd ?? process.cwd()
   const target = path.join(cwd, '.opencode', 'opencode-onboard.json')
 
-  // Read the existing file so load-bearing config (models, maxConcurrentAgents)
+  // Read the existing file so load-bearing config (models, maxConcurrent)
   // is preserved across metadata refreshes when not explicitly provided.
   const existing = await fse.readJson(target).catch(() => null)
-  const existingWizard = existing?.wizard ?? {}
 
   const selectedModels = Object.fromEntries(
     Object.entries({
@@ -43,36 +42,47 @@ export async function writeOnboardConfig(data) {
       fast: data.fastModel,
     }).filter(([, value]) => value)
   )
-  const models = Object.keys(selectedModels).length > 0 ? selectedModels : existingWizard.models ?? null
-  const maxConcurrentAgents = clampConcurrency(data.maxConcurrentAgents ?? existingWizard.maxConcurrentAgents ?? 3)
+  const models = Object.keys(selectedModels).length > 0 ? selectedModels : existing?.models ?? null
+  const maxConcurrent = clampConcurrency(data.maxConcurrentAgents ?? existing?.agents?.maxConcurrent ?? 3)
+
+  const optionalTools = data.optionalTools ?? existing?.tools ?? {}
+  const tools = {
+    rtk: !!(optionalTools.rtk?.optedIn ?? optionalTools.rtk),
+    quota: !!(optionalTools.quota?.optedIn ?? optionalTools.quota),
+    caveman: !!(optionalTools.caveman?.optedIn ?? optionalTools.caveman),
+    codegraph: !!(optionalTools.codegraph?.optedIn ?? optionalTools.codegraph),
+    memory: !!(optionalTools.memory?.optedIn ?? optionalTools.memory),
+  }
 
   const payload = {
-    schema: 1,
+    version: 2,
     generatedAt: new Date().toISOString(),
     onboardVersion,
     opencodeVersion,
-    wizard: {
-      platform: data.repoPlatform ?? data.platform ?? 'none',
-      backlogPlatform: data.backlogPlatform ?? data.platform ?? 'none',
-      repoPlatform: data.repoPlatform ?? data.platform ?? 'none',
-      sourceMode: data.sourceMode,
-      sourceRoots: data.sourceRoots,
-      maxConcurrentAgents,
-      preserved: {
-        design: !!data.hasDesign,
-        architecture: !!data.hasArchitecture,
-        openspec: !!data.hasOpenspec,
-      },
-      openspec: data.openspec,
-      additionalSkillsProvider: data.additionalSkillsProvider,
-      ...(models ? { models } : {}),
-      optionalTools: data.optionalTools ?? null,
-      cavemanGuidance: data.cavemanGuidance ?? null,
+
+    platform: {
+      backlog: data.backlogPlatform ?? 'none',
+      repo: data.repoPlatform ?? 'none',
     },
-    note:
-      'Snapshot of onboarding choices. Runtime config — wizard.models and wizard.maxConcurrentAgents — ' +
-      'is read by /ob-apply and the agent generator and is preserved across `opencode-onboard metadata` refreshes. ' +
-      'Other fields are informational.',
+
+    ...(models ? { models } : {}),
+
+    agents: {
+      maxConcurrent,
+    },
+
+    source: {
+      mode: data.sourceMode ?? 'current',
+      roots: data.sourceRoots ?? [],
+    },
+
+    tools,
+
+    preexisting: {
+      design: !!data.hasDesign,
+      architecture: !!data.hasArchitecture,
+      openspec: !!data.hasOpenspec,
+    },
   }
 
   try {

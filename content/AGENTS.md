@@ -31,7 +31,7 @@ Trigger patterns, I recognize ALL of these, exact wording does not matter:
 
 Inspect `.opencode/agents/*.md` before spawning. Prefer the most specialized custom engineer. Use `basic-engineer` only as fallback. Never spawn engineers not present in that directory.
 
-**Full wave protocol, pipeline phases, and concurrency limits:** see `/ob-apply` (authoritative). Max concurrent agents is `wizard.maxConcurrentAgents` in `.opencode/opencode-onboard.json`.
+**Full wave protocol, pipeline phases, and concurrency limits:** see `/ob-apply` (authoritative). Max concurrent agents is `agents.maxConcurrent` in `.opencode/opencode-onboard.json`.
 
 ## Skills
 

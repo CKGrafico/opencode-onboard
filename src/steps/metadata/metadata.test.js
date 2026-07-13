@@ -44,7 +44,7 @@ describe('writeOnboardConfig()', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true })
   })
 
-  it('writes JSON file with all wizard selections', async () => {
+  it('writes JSON file with all selections', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1.2.3', stderr: '' })
 
     await writeOnboardConfig({
@@ -56,25 +56,26 @@ describe('writeOnboardConfig()', () => {
       hasArchitecture: false,
       hasOpenspec: true,
       maxConcurrentAgents: 4,
-      additionalSkillsProvider: 'npx-skills',
       planModel: 'plan-model',
       buildModel: 'build-model',
       fastModel: 'fast-model',
-      optionalTools: ['rtk'],
-      cavemanGuidance: true,
+      optionalTools: { rtk: { optedIn: true }, caveman: { optedIn: true } },
       cwd: tmpDir,
     })
 
     expect(fse.ensureDir).toHaveBeenCalled()
     expect(fse.writeJson).toHaveBeenCalled()
     const payload = lastPayload()
-    expect(payload.schema).toBe(1)
-    expect(payload.wizard.platform).toBe('github')
-    expect(payload.wizard.backlogPlatform).toBe('github')
-    expect(payload.wizard.repoPlatform).toBe('github')
-    expect(payload.wizard.models.build).toBe('build-model')
-    expect(payload.wizard.maxConcurrentAgents).toBe(4)
-    expect(payload.wizard.optionalTools).toEqual(['rtk'])
+    expect(payload.version).toBe(2)
+    expect(payload.platform.backlog).toBe('github')
+    expect(payload.platform.repo).toBe('github')
+    expect(payload.models.build).toBe('build-model')
+    expect(payload.agents.maxConcurrent).toBe(4)
+    expect(payload.tools.rtk).toBe(true)
+    expect(payload.tools.caveman).toBe(true)
+    expect(payload.preexisting.design).toBe(true)
+    expect(payload.preexisting.architecture).toBe(false)
+    expect(payload.preexisting.openspec).toBe(true)
   })
 
   it('writes mixed platforms (azure backlog + github repo)', async () => {
@@ -89,9 +90,8 @@ describe('writeOnboardConfig()', () => {
     })
 
     const payload = lastPayload()
-    expect(payload.wizard.backlogPlatform).toBe('azure')
-    expect(payload.wizard.repoPlatform).toBe('github')
-    expect(payload.wizard.platform).toBe('github')
+    expect(payload.platform.backlog).toBe('azure')
+    expect(payload.platform.repo).toBe('github')
   })
 
   it('detects opencode version from CLI', async () => {
@@ -106,60 +106,63 @@ describe('writeOnboardConfig()', () => {
     expect(lastPayload().opencodeVersion).toBe(null)
   })
 
-  it('note marks runtime config as load-bearing', async () => {
+  it('does not include wizard wrapper or note', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
     await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
-    expect(lastPayload().note).toContain('wizard.maxConcurrentAgents')
+    const payload = lastPayload()
+    expect(payload.wizard).toBeUndefined()
+    expect(payload.note).toBeUndefined()
   })
 
   it('persists none as an explicit platform mode', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
     await writeOnboardConfig({ backlogPlatform: 'none', repoPlatform: 'none', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
-    expect(lastPayload().wizard.platform).toBe('none')
-    expect(lastPayload().wizard.backlogPlatform).toBe('none')
-    expect(lastPayload().wizard.repoPlatform).toBe('none')
+    expect(lastPayload().platform.backlog).toBe('none')
+    expect(lastPayload().platform.repo).toBe('none')
   })
 
-  it('omits model metadata when no model is selected and none exists', async () => {
+  it('omits models when no model is selected and none exists', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
     await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
-    expect(lastPayload().wizard.models).toBeUndefined()
+    expect(lastPayload().models).toBeUndefined()
   })
 
-  it('defaults maxConcurrentAgents to 3 when unset', async () => {
+  it('defaults maxConcurrent to 3 when unset', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
     await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
-    expect(lastPayload().wizard.maxConcurrentAgents).toBe(3)
+    expect(lastPayload().agents.maxConcurrent).toBe(3)
   })
 
-  it('clamps maxConcurrentAgents to the 1..5 range', async () => {
+  it('clamps maxConcurrent to the 1..5 range', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
 
     await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], maxConcurrentAgents: 9, cwd: tmpDir })
-    expect(lastPayload().wizard.maxConcurrentAgents).toBe(5)
+    expect(lastPayload().agents.maxConcurrent).toBe(5)
 
     fse.writeJson.mockClear()
     await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], maxConcurrentAgents: 0, cwd: tmpDir })
-    expect(lastPayload().wizard.maxConcurrentAgents).toBe(1)
+    expect(lastPayload().agents.maxConcurrent).toBe(1)
   })
 
-  it('preserves existing models and maxConcurrentAgents when not provided (merge)', async () => {
+  it('preserves existing models and maxConcurrent when not provided (merge)', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
     fse.readJson.mockResolvedValueOnce({
-      wizard: { models: { plan: 'p', build: 'b', fast: 'f' }, maxConcurrentAgents: 5 },
+      models: { plan: 'p', build: 'b', fast: 'f' },
+      agents: { maxConcurrent: 5 },
     })
 
     await writeOnboardConfig({ backlogPlatform: 'github', repoPlatform: 'github', sourceMode: 'current', sourceRoots: [], cwd: tmpDir })
 
     const payload = lastPayload()
-    expect(payload.wizard.models).toEqual({ plan: 'p', build: 'b', fast: 'f' })
-    expect(payload.wizard.maxConcurrentAgents).toBe(5)
+    expect(payload.models).toEqual({ plan: 'p', build: 'b', fast: 'f' })
+    expect(payload.agents.maxConcurrent).toBe(5)
   })
 
   it('new selections override preserved config', async () => {
     execa.mockResolvedValue({ exitCode: 0, stdout: '1', stderr: '' })
     fse.readJson.mockResolvedValueOnce({
-      wizard: { models: { build: 'old' }, maxConcurrentAgents: 2 },
+      models: { build: 'old' },
+      agents: { maxConcurrent: 2 },
     })
 
     await writeOnboardConfig({
@@ -173,7 +176,7 @@ describe('writeOnboardConfig()', () => {
     })
 
     const payload = lastPayload()
-    expect(payload.wizard.models.build).toBe('new')
-    expect(payload.wizard.maxConcurrentAgents).toBe(4)
+    expect(payload.models.build).toBe('new')
+    expect(payload.agents.maxConcurrent).toBe(4)
   })
 })

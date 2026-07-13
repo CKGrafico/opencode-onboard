@@ -36,15 +36,15 @@ describe('readOnboardConfig()', () => {
     fs.mkdirSync(configDir)
     fs.writeFileSync(
       path.join(configDir, 'opencode-onboard.json'),
-      JSON.stringify({ schema: 1, wizard: { platform: 'github' } }),
+      JSON.stringify({ version: 2, platform: { repo: 'github' } }),
       'utf-8'
     )
 
     const result = await readOnboardConfig()
 
     expect(result).not.toBeNull()
-    expect(result.schema).toBe(1)
-    expect(result.wizard.platform).toBe('github')
+    expect(result.version).toBe(2)
+    expect(result.platform.repo).toBe('github')
   })
 
   it('returns null when file contains invalid JSON', async () => {

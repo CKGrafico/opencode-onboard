@@ -30,7 +30,7 @@ Wait for the user to respond:
 
 **Step 0.b - Load proposal skill**
 
-**If a work item URL or issue key is provided** (GitHub Issue, Azure DevOps work item, Jira issue, or browser-based backlog): load `@ob-userstory` skill and fetch the work item before continuing. Backlog platform is set in `.opencode/opencode-onboard.json` → `wizard.backlogPlatform` (falls back to `wizard.platform` for older configs). If backlog platform is `none`, skip this step and work from direct user input.
+**If a work item URL or issue key is provided** (GitHub Issue, Azure DevOps work item, Jira issue, or browser-based backlog): load `@ob-userstory` skill and fetch the work item before continuing. Backlog platform is set in `.opencode/opencode-onboard.json` → `platform.backlog`. If backlog platform is `none`, skip this step and work from direct user input.
 
 Load `@openspec-propose` skill and follow its instructions.
 
@@ -57,7 +57,7 @@ Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash
    - `build` — complex code: data models, APIs, auth logic, core business logic, UI components
    - `fast` — light work: i18n keys, config changes, env variables, navigation links, simple markup, verification runs
    - `plan` — reserved for orchestration, do not use for implementation tasks
-   The tier suffix is appended to the agent name with a dot (e.g. `backend-engineer.build`). This is the agent name you write in the annotation — the `ob-subagent-tiers` plugin resolves the model at startup from `wizard.models[<tier>]`.
+   The tier suffix is appended to the agent name with a dot (e.g. `backend-engineer.build`). This is the agent name you write in the annotation — the `ob-subagent-tiers` plugin resolves the model at startup from `models[<tier>]`.
 4. Derive **`depends_on`** for each task — the OpenSpec task IDs (`N.M`) it logically needs completed first (a task that consumes another's output: UI needs its RPC, tests need the code, a seed needs its migration). Root tasks get `[]`. Reference the IDs OpenSpec already generated; never invent new ones.
 5. Derive **`touches`** for each task — the file path(s)/glob(s) it will create or modify (the task text usually names them, e.g. "Modify src/board/components/CreateForm.tsx"). This lets `/ob-apply` serialize same-file tasks that have no logical dependency. Include net-new files.
 6. Annotate each task line in-place with all three fields:

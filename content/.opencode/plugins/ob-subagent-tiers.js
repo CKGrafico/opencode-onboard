@@ -2,12 +2,12 @@
 //
 // On startup, reads *-engineer.md agent files (templates with no model) and
 // creates tier variant files (*-engineer.build.md, *-engineer.fast.md,
-// *-engineer.plan.md) on disk, each with the model resolved from wizard.models.
+// *-engineer.plan.md) on disk, each with the model resolved from models.
 // Then also injects them into cfg.agent in-memory for immediate availability.
 //
 // Model resolution priority:
-//   1. `.opencode/opencode-onboard.user.json` → wizard.models  (user override, gitignored)
-//   2. `.opencode/opencode-onboard.json`      → wizard.models  (team shared)
+//   1. `.opencode/opencode-onboard.user.json` → models  (user override, gitignored)
+//   2. `.opencode/opencode-onboard.json`      → models  (team shared)
 //   3. unset → variant not created (the template inherits the lead's model)
 //
 // The variant files are gitignored (*-engineer.*.md in .opencode/.gitignore)
@@ -39,8 +39,8 @@ export const ObSubagentTiers = async ({ directory }) => {
     const user = await readJson(userPath)
     const team = await readJson(teamPath)
 
-    const userModels = user?.wizard?.models ?? {}
-    const teamModels = team?.wizard?.models ?? {}
+    const userModels = user?.models ?? {}
+    const teamModels = team?.models ?? {}
 
     const models = {}
     for (const tier of TIERS) {

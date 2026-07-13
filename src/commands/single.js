@@ -23,17 +23,16 @@ export function resolvePlatform(value, fallback = 'github') {
 
 export async function runSingleCommand(command) {
   const saved = await readOnboardConfig()
-  const savedWizard = saved?.wizard ?? {}
   const ctx = {
-    hasDesign: !!savedWizard?.preserved?.design,
-    hasArchitecture: !!savedWizard?.preserved?.architecture,
-    hasOpenspec: !!savedWizard?.preserved?.openspec,
-    sourceMode: savedWizard?.sourceMode ?? 'current',
-    sourceRoots: Array.isArray(savedWizard?.sourceRoots) ? savedWizard.sourceRoots : [],
-    maxConcurrentAgents: savedWizard?.maxConcurrentAgents ?? 3,
+    hasDesign: !!saved?.preexisting?.design,
+    hasArchitecture: !!saved?.preexisting?.architecture,
+    hasOpenspec: !!saved?.preexisting?.openspec,
+    sourceMode: saved?.source?.mode ?? 'current',
+    sourceRoots: Array.isArray(saved?.source?.roots) ? saved.source.roots : [],
+    maxConcurrentAgents: saved?.agents?.maxConcurrent ?? 3,
   }
-  const backlogPlatform = savedWizard?.backlogPlatform ?? savedWizard?.platform
-  const repoPlatform = savedWizard?.repoPlatform ?? savedWizard?.platform
+  const backlogPlatform = saved?.platform?.backlog
+  const repoPlatform = saved?.platform?.repo
   const resolvedBacklog = resolvePlatform(backlogPlatform)
   const resolvedRepo = resolvePlatform(repoPlatform)
 
@@ -64,13 +63,11 @@ export async function runSingleCommand(command) {
         ...ctx,
         backlogPlatform: resolvedBacklog,
         repoPlatform: resolvedRepo,
-        maxConcurrentAgents: savedWizard?.maxConcurrentAgents ?? 3,
-        additionalSkillsProvider: 'npx-skills',
-        planModel: savedWizard?.models?.plan ?? null,
-        buildModel: savedWizard?.models?.build ?? null,
-        fastModel: savedWizard?.models?.fast ?? null,
-        optionalTools: savedWizard?.optionalTools ?? null,
-        cavemanGuidance: savedWizard?.cavemanGuidance ?? null,
+        maxConcurrentAgents: saved?.agents?.maxConcurrent ?? 3,
+        planModel: saved?.models?.plan ?? null,
+        buildModel: saved?.models?.build ?? null,
+        fastModel: saved?.models?.fast ?? null,
+        optionalTools: saved?.tools ?? null,
       })
     },
   }

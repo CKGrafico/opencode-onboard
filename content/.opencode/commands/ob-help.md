@@ -42,7 +42,7 @@ Display the following reference to the user exactly as written. Do not summarize
 
 **`/ob-create-project-guardrails`** — Generate a `project-guardrails` skill from `ARCHITECTURE.md` and project config files. Extracts concrete rules (architecture boundaries, naming, code style, testing, git workflow) that all agents must follow. Updates every `*-engineer.md` to load the skill.
 
-**`/ob-set-model <tier> <model>`** — Set the model for a tier (`plan`, `build`, or `fast`). Writes to `.opencode/opencode-onboard.json` (`wizard.models`). Use `user` prefix for a personal override: `/ob-set-model user fast opencode/big-pickle`. Use a model id or `current` for the active session model. Restart opencode for the `ob-subagent-tiers` plugin to rebuild tier agents.
+**`/ob-set-model <tier> <model>`** — Set the model for a tier (`plan`, `build`, or `fast`). Writes to `.opencode/opencode-onboard.json` (`models`). Use `user` prefix for a personal override: `/ob-set-model user fast opencode/big-pickle`. Use a model id or `current` for the active session model. Restart opencode for the `ob-subagent-tiers` plugin to rebuild tier agents.
 
 ---
 

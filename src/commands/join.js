@@ -24,11 +24,10 @@ export async function runJoin() {
     return
   }
 
-  const savedWizard = saved?.wizard ?? {}
-  const backlogPlatform = savedWizard?.backlogPlatform ?? savedWizard?.platform
-  const repoPlatform = savedWizard?.repoPlatform ?? savedWizard?.platform
-  const installScope = savedWizard?.installScope ?? 'local'
-  const teamModels = savedWizard?.models ?? {}
+  const backlogPlatform = saved?.platform?.backlog
+  const repoPlatform = saved?.platform?.repo
+  const installScope = 'local'
+  const teamModels = saved?.models ?? {}
 
   const opencodeDir = path.join(process.cwd(), '.opencode')
   const opencodeJsonPath = path.join(opencodeDir, 'opencode.json')

@@ -38,7 +38,7 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
   }
 
   // Resolve the model for a tier-suffixed agent name (e.g. "backend-engineer.build").
-  // Reads wizard.models from opencode-onboard.user.json (user override) first,
+  // Reads models from opencode-onboard.user.json (user override) first,
   // then opencode-onboard.json (team). Returns null if not found.
   async function modelForAgent(agent) {
     if (!agent) return null
@@ -53,7 +53,7 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
         try {
           const raw = await fs.readFile(path.join(root, ".opencode", file), "utf-8")
           const data = JSON.parse(raw)
-          const model = data?.wizard?.models?.[tier]
+          const model = data?.models?.[tier]
           if (model) return model
         } catch {
           continue
