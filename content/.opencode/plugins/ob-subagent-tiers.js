@@ -63,9 +63,13 @@ export const ObSubagentTiers = async ({ directory }) => {
   function buildVariantContent(templateContent, model) {
     const fmMatch = templateContent.match(/^---\r?\n([\s\S]*?)\r?\n---/)
     const modelLine = `model: ${model}`
-    if (!fmMatch) return `---\n${modelLine}\n---\n\n${templateContent}`
+    if (!fmMatch) return `---\nmode: subagent\n${modelLine}\n---\n\n${templateContent}`
 
-    const fm = fmMatch[1]
+    let fm = fmMatch[1]
+    // Force mode: subagent on tier variants — they are spawned by /ob-apply, never primary.
+    fm = /^mode:/m.test(fm)
+      ? fm.replace(/^mode:.*$/m, 'mode: subagent')
+      : `mode: subagent\n${fm}`
     const newFm = /^model:/m.test(fm)
       ? fm.replace(/^model:.*$/m, modelLine)
       : `${modelLine}\n${fm}`
@@ -123,7 +127,7 @@ export const ObSubagentTiers = async ({ directory }) => {
             if (cfg?.agent) {
               const base = cfg.agent[name]
               cfg.agent[`${name}.${tier}`] = base
-                ? { ...base, model: models[tier] }
+                ? { ...base, mode: 'subagent', model: models[tier] }
                 : {
                   mode: "subagent",
                   description: templateDescription(templateContent) ?? `${name} (${tier} tier)`,
