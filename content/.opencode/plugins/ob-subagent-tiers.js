@@ -158,7 +158,10 @@ export const ObSubagentTiers = async ({ directory }) => {
         const total = variantsToWrite.length
         if (total > 0) {
           console.error(`[ob-subagent-tiers] Created ${total} variant files (${templates.length} engineers x ${available.length} tiers)`)
-        } else {
+        } else if (templates.length > 0) {
+          // Only log the "no variants" warning when there ARE engineer templates
+          // but no models resolved — that's a real config problem. Skip when
+          // there are no templates at all (e.g. global config dir has no agents).
           console.error(`[ob-subagent-tiers] No variants created. Models: ${JSON.stringify(models)}`)
         }
       } catch (err) {
