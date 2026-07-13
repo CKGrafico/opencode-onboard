@@ -37,32 +37,37 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
     // no previous state — fresh start
   }
 
-  // Resolve the model for a tier-suffixed agent name (e.g. "backend-engineer.build").
-  // Reads models from opencode-onboard.user.json (user override) first,
-  // then opencode-onboard.json (team). Returns null if not found.
+  // Cached model resolution — reads config files once, then serves from memory.
+  let _modelsCache = null
+  async function loadModels() {
+    if (_modelsCache) return _modelsCache
+    const result = { build: null, fast: null, plan: null }
+    for (const file of ["opencode-onboard.user.json", "opencode-onboard.json"]) {
+      try {
+        const raw = await fs.readFile(path.join(root, ".opencode", file), "utf-8")
+        const data = JSON.parse(raw)
+        const models = data?.models ?? {}
+        for (const tier of ["build", "fast", "plan"]) {
+          if (!result[tier] && models[tier]) result[tier] = models[tier]
+        }
+      } catch {
+        continue
+      }
+    }
+    _modelsCache = result
+    return result
+  }
+
   async function modelForAgent(agent) {
     if (!agent) return null
 
-    // Check for tier suffix: <name>.<tier>
     const dotIdx = agent.lastIndexOf(".")
     const tier = dotIdx !== -1 ? agent.slice(dotIdx + 1) : null
     if (tier && ["build", "fast", "plan"].includes(tier)) {
-      // try/catch must live INSIDE the loop: the user-override file is
-      // optional, and its ENOENT must not skip reading the team config.
-      for (const file of ["opencode-onboard.user.json", "opencode-onboard.json"]) {
-        try {
-          const raw = await fs.readFile(path.join(root, ".opencode", file), "utf-8")
-          const data = JSON.parse(raw)
-          const model = data?.models?.[tier]
-          if (model) return model
-        } catch {
-          continue
-        }
-      }
-      return null
+      const models = await loadModels()
+      return models[tier] ?? null
     }
 
-    // Base template agents have no model — return null (inherits lead's model)
     return null
   }
 
@@ -99,6 +104,17 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
     }
   }
 
+  function pruneStale(parentID) {
+    // Clear stale entries that belong to the same parent session —
+    // a new wave from the same lead means old crashed workers are irrelevant.
+    if (!parentID) return
+    for (const [id, entry] of Object.entries(state.agents)) {
+      if (entry?.stale) {
+        delete state.agents[id]
+      }
+    }
+  }
+
   return {
     event: async ({ event }) => {
       try {
@@ -107,6 +123,9 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
         if (!info.id) return
 
         if (event.type === "session.created" && info.parentID) {
+          // Prune stale entries when a new subagent spawns
+          pruneStale(info.parentID)
+
           state.agents[info.id] = {
             agent: info.agent ?? null,
             model: await modelForAgent(info.agent),

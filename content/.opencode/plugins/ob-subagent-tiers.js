@@ -1,9 +1,9 @@
 // ob-subagent-tiers
 //
-// On startup, reads *-engineer.md agent files (templates with no model) and
-// creates tier variant files (*-engineer.build.md, *-engineer.fast.md,
-// *-engineer.plan.md) on disk, each with the model resolved from models.
-// Then also injects them into cfg.agent in-memory for immediate availability.
+// On startup, reads *-engineer.md agent files (templates) and creates tier
+// variant files (*-engineer.build.md, *-engineer.fast.md, *-engineer.plan.md)
+// on disk with the model resolved from the config, then injects them in-memory.
+// Tier variants are always mode: subagent — spawned by /ob-apply, never primary.
 //
 // Model resolution priority:
 //   1. `.opencode/opencode-onboard.user.json` → models  (user override, gitignored)
@@ -36,8 +36,10 @@ export const ObSubagentTiers = async ({ directory }) => {
     const userPath = path.join(root, ".opencode", "opencode-onboard.user.json")
     const teamPath = path.join(root, ".opencode", "opencode-onboard.json")
 
-    const user = await readJson(userPath)
-    const team = await readJson(teamPath)
+    const [user, team] = await Promise.all([
+      readJson(userPath),
+      readJson(teamPath),
+    ])
 
     const userModels = user?.models ?? {}
     const teamModels = team?.models ?? {}
@@ -49,14 +51,18 @@ export const ObSubagentTiers = async ({ directory }) => {
     return models
   }
 
-  async function listEngineerTemplates() {
+  async function listEngineerTemplatesAndVariants() {
     try {
       const entries = await fs.readdir(agentsDir)
-      return entries
+      const templates = entries
         .filter((f) => /^[\w-]+-engineer\.md$/.test(f))
         .map((f) => f.replace(/\.md$/, ""))
+      const variantFiles = entries.filter((f) =>
+        /^[\w-]+-engineer\.(build|fast|plan)\.md$/.test(f)
+      )
+      return { templates, variantFiles }
     } catch {
-      return []
+      return { templates: [], variantFiles: [] }
     }
   }
 
@@ -85,16 +91,11 @@ export const ObSubagentTiers = async ({ directory }) => {
     return m ? m[1].trim() : null
   }
 
-  async function cleanStaleVariants(keepSet) {
-    try {
-      const entries = await fs.readdir(agentsDir)
-      for (const f of entries) {
-        const m = f.match(/^(.+)-engineer\.(build|fast|plan)\.md$/)
-        if (m && !keepSet.has(f)) {
-          await fs.unlink(path.join(agentsDir, f))
-        }
-      }
-    } catch { }
+  async function cleanStaleVariants(variantFiles, keepSet) {
+    const toRemove = variantFiles.filter((f) => !keepSet.has(f))
+    await Promise.all(
+      toRemove.map((f) => fs.unlink(path.join(agentsDir, f)).catch(() => {}))
+    )
   }
 
   return {
@@ -103,45 +104,58 @@ export const ObSubagentTiers = async ({ directory }) => {
         const models = await resolveModels()
         const available = TIERS.filter((t) => models[t])
 
-        const templates = await listEngineerTemplates()
+        const { templates, variantFiles } = await listEngineerTemplatesAndVariants()
 
-        // Write physical files AND inject in-memory
+        // Read all templates in parallel
+        const templateContents = await Promise.all(
+          templates.map(async (name) => ({
+            name,
+            content: await fs.readFile(path.join(agentsDir, `${name}.md`), "utf-8"),
+          }))
+        )
+
         const keepSet = new Set()
 
-        for (const name of templates) {
-          const templatePath = path.join(agentsDir, `${name}.md`)
-          const templateContent = await fs.readFile(templatePath, "utf-8")
-
+        // Build all variant contents in memory
+        const variantsToWrite = []
+        for (const { name, content } of templateContents) {
           for (const tier of available) {
             const variantFile = `${name}.${tier}.md`
-            const variantPath = path.join(agentsDir, variantFile)
-            const variantContent = buildVariantContent(templateContent, models[tier])
-
-            await fs.writeFile(variantPath, variantContent, "utf-8")
+            const variantContent = buildVariantContent(content, models[tier])
+            variantsToWrite.push({ variantFile, variantContent, name, tier, templateContent: content })
             keepSet.add(variantFile)
-
-            // Also inject in-memory for immediate availability. If the base
-            // agent isn't merged into cfg.agent yet (hook ordering), build a
-            // minimal safe definition from the template — never inject a
-            // bare `{ model }` that could surface as a primary agent.
-            if (cfg?.agent) {
-              const base = cfg.agent[name]
-              cfg.agent[`${name}.${tier}`] = base
-                ? { ...base, mode: 'subagent', model: models[tier] }
-                : {
-                  mode: "subagent",
-                  description: templateDescription(templateContent) ?? `${name} (${tier} tier)`,
-                  model: models[tier],
-                }
-            }
           }
         }
 
-        // Clean stale variants
-        await cleanStaleVariants(keepSet)
+        // Write all variant files atomically (tmp+rename) in parallel
+        await Promise.all(
+          variantsToWrite.map(async ({ variantFile, variantContent }) => {
+            const variantPath = path.join(agentsDir, variantFile)
+            const tmpPath = `${variantPath}.tmp`
+            await fs.writeFile(tmpPath, variantContent, "utf-8")
+            await fs.rename(tmpPath, variantPath)
+          })
+        )
+
+        // Inject in-memory for immediate availability
+        if (cfg?.agent) {
+          for (const { name, tier, templateContent } of variantsToWrite) {
+            const base = cfg.agent[name]
+            cfg.agent[`${name}.${tier}`] = base
+              ? { ...base, mode: 'subagent', model: models[tier] }
+              : {
+                mode: "subagent",
+                description: templateDescription(templateContent) ?? `${name} (${tier} tier)`,
+                model: models[tier],
+              }
+          }
+        }
+
+        // Clean stale variants (uses entries from the single readdir above)
+        await cleanStaleVariants(variantFiles, keepSet)
 
         // Log
-        const total = templates.length * available.length
+        const total = variantsToWrite.length
         if (total > 0) {
           console.error(`[ob-subagent-tiers] Created ${total} variant files (${templates.length} engineers x ${available.length} tiers)`)
         } else {
