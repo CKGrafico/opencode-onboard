@@ -53,7 +53,9 @@ export async function copyContentStep(platform, ctx = {}) {
     await patchArchiveCommand({ backlogPlatform, repoPlatform })
     await patchAgentsMd(ctx)
 
-    await installSkills(backlogPlatform, repoPlatform)
+    if (!ctx.skipSkills) {
+      await installSkills(backlogPlatform, repoPlatform)
+    }
     success("Files copied to project root")
   } catch (err) {
     error(`Failed to copy content: ${err.message}`)

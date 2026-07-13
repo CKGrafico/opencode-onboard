@@ -18,7 +18,7 @@ const ALWAYS_EXCLUDE = ['.bootstrap', 'skills', 'node_modules']
  */
 export async function copyContent(contentDir, destDir, platform, ctx = {}) {
   await fse.copy(contentDir, destDir, {
-    overwrite: false,
+    overwrite: ctx.forceOverwrite ?? false,
     filter: (src) => {
       const rel = path.relative(contentDir, src)
       const parts = rel.split(path.sep)
