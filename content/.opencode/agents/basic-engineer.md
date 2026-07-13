@@ -1,6 +1,6 @@
 ---
 description: Fallback implementation worker for tasks with no matching specialist. Ability-driven generalist that implements assigned OpenSpec tasks; prefer a custom *-engineer when its domain matches.
-mode: subagent
+mode: all
 color: success
 permission:
   edit: allow

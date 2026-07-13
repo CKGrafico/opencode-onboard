@@ -50,7 +50,7 @@ Example: `/ob-create-engineer frontend-engineer build "A frontend engineer speci
    ```markdown
    ---
    description: <description>
-   mode: subagent
+   mode: all
    color: <pick a theme color: primary|secondary|accent|success|warning|error|info>
    permission:
      edit: allow

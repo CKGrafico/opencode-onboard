@@ -12,14 +12,14 @@ import { setFrontmatterModel, stampAgentModels } from './agent-models.js'
 
 describe('setFrontmatterModel()', () => {
   it('inserts model into existing frontmatter without one', () => {
-    const out = setFrontmatterModel('---\ndescription: x\nmode: subagent\n---\n\nbody', 'opencode/big-pickle')
+    const out = setFrontmatterModel('---\ndescription: x\nmode: all\n---\n\nbody', 'opencode/big-pickle')
     expect(out).toMatch(/^---\n[\s\S]*model: opencode\/big-pickle[\s\S]*\n---/)
     expect(out).toContain('description: x')
     expect(out).toContain('body')
   })
 
   it('replaces an existing model field', () => {
-    const out = setFrontmatterModel('---\nmodel: old/model\nmode: subagent\n---\nbody', 'new/model')
+    const out = setFrontmatterModel('---\nmodel: old/model\nmode: all\n---\nbody', 'new/model')
     expect(out).toContain('model: new/model')
     expect(out).not.toContain('old/model')
   })
@@ -49,8 +49,8 @@ describe('stampAgentModels()', () => {
   })
 
   it('stamps basic-engineer with the fast model and a specialist with the build model', async () => {
-    writeAgent('basic-engineer.md', '---\ndescription: Basic.\nmode: subagent\n---\n\n## Abilities')
-    writeAgent('frontend-engineer.md', '---\ndescription: Frontend.\nmode: subagent\n---\n\n## Abilities')
+    writeAgent('basic-engineer.md', '---\ndescription: Basic.\nmode: all\n---\n\n## Abilities')
+    writeAgent('frontend-engineer.md', '---\ndescription: Frontend.\nmode: all\n---\n\n## Abilities')
 
     const res = await stampAgentModels({ models: { build: 'prov/build-m', fast: 'prov/fast-m' }, cwd: tmpDir })
     expect(res.stamped).toBe(2)
@@ -60,21 +60,21 @@ describe('stampAgentModels()', () => {
   })
 
   it('does not produce any -build / -fast variant files', async () => {
-    writeAgent('basic-engineer.md', '---\ndescription: Basic.\nmode: subagent\n---')
+    writeAgent('basic-engineer.md', '---\ndescription: Basic.\nmode: all\n---')
     await stampAgentModels({ models: { build: 'b', fast: 'f' }, cwd: tmpDir })
     const files = fs.readdirSync(agentsDir)
     expect(files).toEqual(['basic-engineer.md'])
   })
 
   it('respects an engineer that already declares a model (no override)', async () => {
-    writeAgent('architect-engineer.md', '---\ndescription: Arch.\nmodel: custom/plan-m\nmode: subagent\n---')
+    writeAgent('architect-engineer.md', '---\ndescription: Arch.\nmodel: custom/plan-m\nmode: all\n---')
     const res = await stampAgentModels({ models: { build: 'prov/build-m', fast: 'prov/fast-m' }, cwd: tmpDir })
     expect(res.stamped).toBe(0)
     expect(fs.readFileSync(path.join(agentsDir, 'architect-engineer.md'), 'utf-8')).toContain('model: custom/plan-m')
   })
 
   it('skips when the needed tier model is unset', async () => {
-    writeAgent('basic-engineer.md', '---\ndescription: Basic.\nmode: subagent\n---')
+    writeAgent('basic-engineer.md', '---\ndescription: Basic.\nmode: all\n---')
     const res = await stampAgentModels({ models: { build: 'b' }, cwd: tmpDir })
     expect(res.stamped).toBe(0)
   })

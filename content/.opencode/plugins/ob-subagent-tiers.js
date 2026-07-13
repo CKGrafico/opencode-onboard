@@ -90,7 +90,7 @@ export const ObSubagentTiers = async ({ directory }) => {
           await fs.unlink(path.join(agentsDir, f))
         }
       }
-    } catch {}
+    } catch { }
   }
 
   return {
@@ -125,10 +125,10 @@ export const ObSubagentTiers = async ({ directory }) => {
               cfg.agent[`${name}.${tier}`] = base
                 ? { ...base, model: models[tier] }
                 : {
-                    mode: "subagent",
-                    description: templateDescription(templateContent) ?? `${name} (${tier} tier)`,
-                    model: models[tier],
-                  }
+                  mode: "all",
+                  description: templateDescription(templateContent) ?? `${name} (${tier} tier)`,
+                  model: models[tier],
+                }
             }
           }
         }
