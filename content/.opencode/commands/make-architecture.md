@@ -4,15 +4,6 @@ description: Generate or update ARCHITECTURE.md by analyzing the codebase struct
 
 Analyze the architecture of this codebase and generate or update `ARCHITECTURE.md` in the project root.
 
-Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
-<!-- OB-CMD-RTK-START -->
-Prefix all bash commands with `rtk` when RTK is enabled.
-<!-- OB-CMD-RTK-END -->
-
-Reference material:
-  Website : https://architecture.md/
-  Repo    : https://github.com/timajwilliams/architecture
-
 **Steps**
 
 1. **Check current state**
@@ -28,17 +19,6 @@ Reference material:
 
    Use file tools to discover the architecture: `glob` for folder structure, `grep` for route/model/schema definitions, `read` config files, CI/CD workflows, Dockerfiles, README, changelogs, ADRs.
 
-<!-- OB-CMD-CODEGRAPH-START -->
-   Use codegraph MCP tools (NOT CLI commands). Do NOT run `codegraph` in bash — use the MCP tools directly.
-   - `codegraph_search` to find components, entry points, and module boundaries.
-   - `codegraph_impact` to trace dependency chains between modules.
-<!-- OB-CMD-CODEGRAPH-END -->
-
-<!-- OB-CMD-MEMORY-START -->
-   Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash — use the MCP tools directly.
-   - `search` for any prior architecture notes, ADRs, or decisions stored by previous runs or agents.
-<!-- OB-CMD-MEMORY-END -->
-
    Do not rely on prior knowledge — read the actual files and query the actual code graph.
 
 2b. **Update mode — incremental analysis**
@@ -47,12 +27,6 @@ Reference material:
    - Run `git log --oneline --since="<date>" -- <source roots}` to find what changed since the last analysis.
    - If nothing changed: report "Architecture unchanged since last update" and stop.
    - For each changed area, understand what's affected.
-<!-- OB-CMD-CODEGRAPH-START -->
-   - Use `codegraph_search` / `codegraph_impact` MCP tools to understand what's affected.
-<!-- OB-CMD-CODEGRAPH-END -->
-<!-- OB-CMD-MEMORY-START -->
-   - Use `basic-memory` `search` MCP tool for the `architecture-summary` note from the previous run.
-<!-- OB-CMD-MEMORY-END -->
    - Update only the affected sections. Preserve manually-added content in unchanged sections.
    - If the changes are too pervasive (more than ~40% of sections affected), fall back to **Generate mode**.
 
@@ -98,22 +72,14 @@ Reference material:
 
 4. **Store summary in basic-memory**
 
-<!-- OB-CMD-MEMORY-START -->
    `write_note` MCP tool with title `architecture-summary` containing:
    - The ISO timestamp of this run
    - A bullet list of top-level components found
    - Any key architectural decisions or risks identified
-<!-- OB-CMD-MEMORY-END -->
 
 5. **Report**
 
    Tell the user:
    - Whether ARCHITECTURE.md was generated or updated (and which sections changed)
-<!-- OB-CMD-CODEGRAPH-START -->
-   - Whether codegraph / basic-memory were used or degraded to file tools
-<!-- OB-CMD-CODEGRAPH-END -->
-<!-- OB-CMD-MEMORY-START -->
-   - Whether basic-memory was used or degraded to file tools
-<!-- OB-CMD-MEMORY-END -->
    - Top-level components found
    - Tip: "Rerun `/make-architecture` any time the architecture changes significantly."

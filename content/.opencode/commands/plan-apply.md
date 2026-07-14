@@ -2,15 +2,10 @@
 description: Implement tasks from a plan — works with OpenSpec proposals and in-conversation plans.
 ---
 
-Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
-<!-- OB-CMD-RTK-START -->
-Prefix all bash commands with `rtk` when RTK is enabled.
-<!-- OB-CMD-RTK-END -->
-
 This command detects the plan source and implements accordingly:
 
-- **OpenSpec plan** (from `/propose-plan`): tasks have `<!-- agent, depends_on, touches -->` annotations in `tasks.md` → runs as parallel subagent waves
-- **In-conversation plan** (from `/simple-plan`): plain `- [ ] task text` in the current conversation context → runs sequentially in this session
+- **OpenSpec plan** (from `/plan-propose`): tasks have `<!-- agent, depends_on, touches -->` annotations in `tasks.md` → runs as parallel subagent waves
+- **In-conversation plan** (from `/plan-simple`): plain `- [ ] task text` in the current conversation context → runs sequentially in this session
 
 ---
 
@@ -34,7 +29,7 @@ You are the **lead**. You orchestrate from this session only; you spawn workers 
 
 **1. Branch.** Create `feature/{change-slug}` if not already on one.
 
-**2. Load the plan.** Parse `tasks.md`. Each task carries `<!-- agent, depends_on, touches -->` (from `/propose-plan`). The agent name includes a tier suffix (e.g. `backend-engineer.build`, `fullstack-engineer.fast`) — the `ob-subagent-tiers` plugin resolved the model at startup from `models[<tier>]` and injected these tier-suffixed agents into the config. You do not worry about models. Read `.opencode/opencode-onboard.json` → `agents.maxConcurrent` (the wave cap, 1–5).
+**2. Load the plan.** Parse `tasks.md`. Each task carries `<!-- agent, depends_on, touches -->` (from `/plan-propose`). The agent name includes a tier suffix (e.g. `backend-engineer.build`, `fullstack-engineer.fast`) — the `ob-subagent-tiers` plugin resolved the model at startup from `models[<tier>]` and injected these tier-suffixed agents into the config. You do not worry about models. Read `.opencode/opencode-onboard.json` → `agents.maxConcurrent` (the wave cap, 1–5).
 
 **3. Hydrate the Todo board.** `todowrite` one item per task: `pending`. **The Todo pane is the visible subagent board** (opencode plugins cannot draw a custom pane, so the native Todo widget is the live UI). While a task is in flight, its label must carry the worker — `<agent> · <model>` — so the pane shows which agent on which model is doing what. The Todo list is a **projection only**: never read it for recovery; rebuild it from `tasks.md` + git + `.opencode/.ob-run.json`.
 
@@ -76,15 +71,15 @@ wave     = pick groups whose file-sets are pairwise DISJOINT, capped at maxConcu
 
 **11. Close.** Mark all `tasks.md` checkboxes, run `openspec status --change "<name>" --json`, report progress (N/M tasks). The wave state in `.opencode/.ob-run.json` and basic-memory MCP persists for resume.
 
-> **Resume:** re-running `/apply-plan` after any crash recomputes DONE / FAILED / eligible from `tasks.md` + git + basic-memory MCP + `.ob-run.json` and continues. State is on disk, not in this conversation.
+> **Resume:** re-running `/plan-apply` after any crash recomputes DONE / FAILED / eligible from `tasks.md` + git + basic-memory MCP + `.ob-run.json` and continues. State is on disk, not in this conversation.
 
 ---
 
 ## Simple mode — sequential in-session
 
-When the plan lives in the current conversation (from `/simple-plan`) and no OpenSpec change exists:
+When the plan lives in the current conversation (from `/plan-simple`) and no OpenSpec change exists:
 
-1. Read the task list from the conversation context (the `- [ ]` items shown by `/simple-plan`).
+1. Read the task list from the conversation context (the `- [ ]` items shown by `/plan-simple`).
 2. **Create a feature branch** if not already on one: `git switch -c feature/{slug}`.
 3. Work through tasks **one at a time, in order**, directly in this session:
    - Read the task text.

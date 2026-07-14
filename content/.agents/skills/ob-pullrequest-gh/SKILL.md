@@ -15,7 +15,7 @@ Always pass `--repo {owner}/{repo}` explicitly, never rely on git context to res
 
 ## Mode A: Create PR (ship mode)
 
-Triggered when the lead runs `/pull-request`.
+Triggered when the lead runs `/plan-pr`.
 
 ### Step 1: Verify feature branch
 
@@ -25,7 +25,7 @@ DEFAULT_BRANCH="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null 
 [ -z "$DEFAULT_BRANCH" ] && DEFAULT_BRANCH="main"
 ```
 
-`$BRANCH` must be a work branch (`feature/*` or `bugfix/*` — `/apply-plan` creates `feature/{change-slug}`). NEVER push the default branch.
+`$BRANCH` must be a work branch (`feature/*` or `bugfix/*` — `/plan-apply` creates `feature/{change-slug}`). NEVER push the default branch.
 
 ### Step 2: Capture screenshots (if UI changes exist)
 
@@ -39,7 +39,7 @@ Save to: `openspec/changes/{change-name}/images/{feature}.png`
 
 ### Step 3: Commit and push
 
-`/apply-plan` already committed each task group — usually only screenshots or small residuals remain. Stage **specific paths only** (never `git add .`, it sweeps unrelated files into the ship commit):
+`/plan-apply` already committed each task group — usually only screenshots or small residuals remain. Stage **specific paths only** (never `git add .`, it sweeps unrelated files into the ship commit):
 
 ```bash
 git add openspec/changes/{change-name}/images/  # plus any other paths you actually changed

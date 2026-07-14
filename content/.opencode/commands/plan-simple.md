@@ -2,18 +2,9 @@
 description: Quick plan — analyze the codebase and show a task checklist in the conversation. No files, no OpenSpec.
 ---
 
-Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
-<!-- OB-CMD-RTK-START -->
-Prefix all bash commands with `rtk` when RTK is enabled.
-<!-- OB-CMD-RTK-END -->
-
-```
-/simple-plan <feature description or task>
-```
-
 Lightweight planning for focused changes. Reads the codebase, shows a task checklist **in this conversation**, and stops. **No files are created.** This is a thinking tool, not a file writer.
 
-**When to use this instead of `/explore-plan` → `/propose-plan`:**
+**When to use this instead of `/plan-explore` → `/plan-propose`:**
 - The task is clear and well-scoped (not a half-formed idea)
 - You don't need to think through alternatives or investigate deeply
 - You want a task list in under a minute, not a full proposal
@@ -23,17 +14,6 @@ Lightweight planning for focused changes. Reads the codebase, shows a task check
 **Step 1 — Understand the task**
 
 Read the user's description. Use `glob` and `grep` to locate the relevant files, components, and patterns in the codebase. Read the key files to understand what exists and what needs to change.
-
-<!-- OB-CMD-CODEGRAPH-START -->
-Use codegraph MCP tools (NOT CLI commands). Do NOT run `codegraph` in bash — use the MCP tools directly:
-- `codegraph_search` to find relevant symbols, components, and file structure.
-- `codegraph_impact` to understand dependencies between files.
-<!-- OB-CMD-CODEGRAPH-END -->
-
-<!-- OB-CMD-MEMORY-START -->
-Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash — use the MCP tools directly:
-- `search` for any prior notes or decisions related to this area.
-<!-- OB-CMD-MEMORY-END -->
 
 **Step 2 — Show the plan**
 
@@ -62,9 +42,9 @@ Ask the user:
 
 ```text
 What next? Options:
-  /apply-plan  — implement these tasks now (creates a feature branch and works through them)
-  /propose-plan — turn this into a full OpenSpec proposal with agent assignments
+  /plan-apply  — implement these tasks now (creates a feature branch and works through them)
+  /plan-propose — turn this into a full OpenSpec proposal with agent assignments
   (or just tell me to start on specific tasks)
 ```
 
-Do NOT create any files. Do NOT run `/apply-plan` or `/propose-plan` automatically.
+Do NOT create any files. Do NOT run `/plan-apply` or `/plan-propose` automatically.

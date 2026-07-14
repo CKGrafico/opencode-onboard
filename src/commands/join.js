@@ -178,18 +178,18 @@ export async function runJoin() {
 
     if (hasUserOverride) {
       info('You have a local model override (opencode-onboard.user.json).')
-      info('To change: /set-model user <tier> <model>')
+      info('To change: /make-user-model user <tier> <model>')
     } else {
       info('No local override — using team defaults.')
-      info('To override a tier for your machine: /set-model user <tier> <model>')
-      info('  e.g. /set-model user build current')
+      info('To override a tier for your machine: /make-user-model user <tier> <model>')
+      info('  e.g. /make-user-model user build current')
     }
     console.log()
     info('The ob-subagent-tiers plugin will generate *-engineer.<tier>.md variants')
     info('on opencode startup from these model configs.')
   } else {
     warn('No model tiers configured in opencode-onboard.json.')
-    warn('Run /set-model <tier> <model> for plan, build, and fast.')
+    warn('Run /make-user-model <tier> <model> for plan, build, and fast.')
   }
 
   // Step 10: Ensure .opencode/.gitignore exists
@@ -220,7 +220,7 @@ export async function runJoin() {
   console.log()
   console.log('  Your local environment is ready.')
   if (teamModels && Object.keys(teamModels).length > 0 && !hasUserOverride) {
-    console.log(chalk.dim('  Tip: Run /set-model user <tier> current to override team models locally.'))
+    console.log(chalk.dim('  Tip: Run /make-user-model user <tier> current to override team models locally.'))
   }
   console.log(chalk.dim('  Restart opencode to pick up tier agent variants.'))
   console.log()

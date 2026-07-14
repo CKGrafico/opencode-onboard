@@ -28,43 +28,5 @@
       "value": "memory",
       "checked": true
     }
-  ],
-  "guidance": {
-    "rtk": {
-      "enabled": "## RTK\n\nPrefix ALL CLI commands with `rtk` (e.g. `rtk git diff`, `rtk pnpm test`). Read-only commands like `cat`, `ls`, `Get-Content` are exempt. If `rtk` is not available, report blocker and stop CLI execution.",
-      "disabled": "RTK was not selected during onboarding. Do not assume `rtk` exists."
-    },
-    "caveman": {
-      "enabled": "## Caveman\n\nCaveman mode active every response. Load `@caveman` skill for full guidance. No revert unless user says \"stop caveman\" or \"normal mode\".",
-      "disabled": "Caveman was not selected during onboarding. Use normal concise style."
-    },
-    "codegraph": {
-      "enabled": "## CodeGraph\n\nCodeGraph is an MCP server, NOT a CLI tool. Do NOT run `codegraph` in bash. Use `codegraph_search` for symbol lookups and `codegraph_impact` for blast-radius checks in the main session. NEVER call `codegraph_explore` directly — it returns large payloads. ALWAYS spawn an Explore sub-agent for exploration questions, and include the codegraph MCP instructions in its spawn prompt.",
-      "disabled": "Codegraph was not selected during onboarding. Use standard grep/glob/read for code exploration."
-    },
-    "memory": {
-      "enabled": "## Basic Memory\n\nBasic Memory is an MCP server, NOT a CLI tool. Do NOT run `basic-memory` in bash. Use `search` to find prior decisions or context before implementing unfamiliar areas. Use `write_note` to store architecture decisions, resolved ambiguities, and cross-agent context (title: `task-<id>-result` or `exploration-<topic>`). When spawning sub-agents, include the basic-memory MCP instructions in their prompt so they know it exists.",
-      "disabled": ""
-    }
-  },
-  "commandMarkers": {
-    "rtk": {
-      "start": "<!-- OB-CMD-RTK-START -->",
-      "end": "<!-- OB-CMD-RTK-END -->",
-      "enabled": "Prefix all bash commands with `rtk` when RTK is enabled.",
-      "disabled": ""
-    },
-    "codegraph": {
-      "start": "<!-- OB-CMD-CODEGRAPH-START -->",
-      "end": "<!-- OB-CMD-CODEGRAPH-END -->",
-      "enabled": "Use codegraph MCP tools (NOT CLI commands). Do NOT run `codegraph` in bash — use the MCP tools directly: `codegraph_search`, `codegraph_impact`, `codegraph_callers`, `codegraph_callees`, `codegraph_node`.",
-      "disabled": ""
-    },
-    "memory": {
-      "start": "<!-- OB-CMD-MEMORY-START -->",
-      "end": "<!-- OB-CMD-MEMORY-END -->",
-      "enabled": "Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash — use the MCP tools directly: `write_note`, `edit_note`, `search`, `build_context`, `recent_activity`.",
-      "disabled": ""
-    }
-  }
+  ]
 }

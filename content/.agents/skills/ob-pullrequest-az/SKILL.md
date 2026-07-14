@@ -15,7 +15,7 @@ Browser tools are ONLY permitted for screenshots of the LOCAL running app on `lo
 
 ## Mode A: Create PR (ship mode)
 
-Triggered when the lead runs `/pull-request`.
+Triggered when the lead runs `/plan-pr`.
 
 ### Step 1: Verify feature branch
 

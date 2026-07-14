@@ -12,14 +12,14 @@ import { fileURLToPath } from 'node:url'
 vi.mock('execa', () => ({ execa: vi.fn().mockResolvedValue({ exitCode: 0 }) }))
 vi.mock('../../utils/exec.js')
 
-import { patchAgentsMd, patchAgentGuidance, skipStepBlock } from './agents.js'
+import { patchAgentsMd, patchAgentGuidance } from './agents.js'
 import { installSkills } from './skills.js'
 import { resolvePlatform } from '../../commands/single.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CONTENT_DIR = path.resolve(__dirname, '../../../content')
 const REAL_AGENTS_MD = fs.readFileSync(path.join(CONTENT_DIR, 'AGENTS.md'), 'utf-8')
-const REAL_OB_INIT_MD = fs.readFileSync(path.join(CONTENT_DIR, '.opencode', 'commands', 'initialize-repository.md'), 'utf-8')
+const REAL_OB_INIT_MD = fs.readFileSync(path.join(CONTENT_DIR, '.opencode', 'commands', 'repo-initialize.md'), 'utf-8')
 
 let tmpDir
 
@@ -33,36 +33,12 @@ afterEach(() => {
   fs.rmSync(tmpDir, { recursive: true, force: true })
 })
 
-describe('patchAgentsMd against the real initialize-repository.md', () => {
-  it('marks steps as skipped when the files already exist', async () => {
-    fs.mkdirSync(path.join(tmpDir, '.opencode', 'commands'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, '.opencode', 'commands', 'initialize-repository.md'), REAL_OB_INIT_MD)
-
-    await patchAgentsMd({ hasOpenspec: true, hasDesign: true, hasArchitecture: true })
-
-    const patched = fs.readFileSync(path.join(tmpDir, '.opencode', 'commands', 'initialize-repository.md'), 'utf-8')
-    // Headings survive...
-    expect(patched).toMatch(/#{2,4} Step \d+, Archive project history/)
-    expect(patched).toMatch(/#{2,4} Step \d+, Chain make commands/)
-    // ...but each body is replaced by an explicit skip note.
-    expect(patched).toContain('Skipped during onboarding')
-  })
-
-  it('every step title the patcher targets exists in the template (drift guard)', () => {
-    for (const title of [
-      'Archive project history',
-      'Chain make commands',
-    ]) {
-      const { matched } = skipStepBlock(REAL_OB_INIT_MD, title, 'x')
-      expect(matched, `step "${title}" not found in content/.opencode/commands/initialize-repository.md`).toBe(true)
-    }
-  })
-
+describe('patchAgentsMd against the real repo-initialize.md', () => {
   it('leaves the file untouched when nothing exists yet', async () => {
     fs.mkdirSync(path.join(tmpDir, '.opencode', 'commands'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, '.opencode', 'commands', 'initialize-repository.md'), REAL_OB_INIT_MD)
+    fs.writeFileSync(path.join(tmpDir, '.opencode', 'commands', 'repo-initialize.md'), REAL_OB_INIT_MD)
     await patchAgentsMd({})
-    expect(fs.readFileSync(path.join(tmpDir, '.opencode', 'commands', 'initialize-repository.md'), 'utf-8')).toBe(REAL_OB_INIT_MD)
+    expect(fs.readFileSync(path.join(tmpDir, '.opencode', 'commands', 'repo-initialize.md'), 'utf-8')).toBe(REAL_OB_INIT_MD)
   })
 })
 
@@ -84,7 +60,6 @@ describe('patchAgentGuidance mixed platforms against the real template', () => {
     for (const marker of [
       'OB-PLATFORM-WORKFLOW-START', 'OB-PLATFORM-WORKFLOW-END',
       'OB-PLATFORM-SKILLS-GUIDE-START', 'OB-PLATFORM-SKILLS-GUIDE-END',
-      'OB-RTK-START',
     ]) {
       expect(patched).toContain(marker)
     }

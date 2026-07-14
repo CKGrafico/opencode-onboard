@@ -4,11 +4,6 @@ description: Generate or update a project-guardrails skill from ARCHITECTURE.md 
 
 Analyze `ARCHITECTURE.md` and other project files to generate or update a `project-guardrails` skill — a set of rules and constraints extracted from the project's own documentation that agents must follow.
 
-Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
-<!-- OB-CMD-RTK-START -->
-Prefix all bash commands with `rtk` when RTK is enabled.
-<!-- OB-CMD-RTK-END -->
-
 **Steps**
 
 1. **Check current state**
@@ -33,17 +28,6 @@ Prefix all bash commands with `rtk` when RTK is enabled.
 
    Use file tools to discover constraints: `read` the documents above, `grep` for lint/formatter config rules.
 
-<!-- OB-CMD-CODEGRAPH-START -->
-   Use codegraph MCP tools (NOT CLI commands). Do NOT run `codegraph` in bash — use the MCP tools directly.
-   - `codegraph_search` to find module boundaries, forbidden cross-imports, and dependency violations.
-   - `codegraph_impact` to understand which modules are coupled.
-<!-- OB-CMD-CODEGRAPH-END -->
-
-<!-- OB-CMD-MEMORY-START -->
-   Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash — use the MCP tools directly.
-   - `search` for any prior `guardrails-summary` note from a previous run.
-<!-- OB-CMD-MEMORY-END -->
-
    Do not rely on prior knowledge — read the actual files and query the actual code graph.
 
 2b. **Update mode — incremental analysis**
@@ -52,12 +36,6 @@ Prefix all bash commands with `rtk` when RTK is enabled.
    - Read `ARCHITECTURE.md` and check its `<!-- Last updated:` timestamp. If ARCHITECTURE.md hasn't changed since the guardrails were last generated, report "Guardrails up to date" and stop.
    - Run `git log --oneline --since="<date>" -- <config files, lint configs, CI workflows}` to find what convention/config files changed.
    - If nothing changed: report "Guardrails up to date" and stop.
-<!-- OB-CMD-CODEGRAPH-START -->
-   - Use `codegraph_search` MCP tool to check if module boundaries or import patterns changed.
-<!-- OB-CMD-CODEGRAPH-END -->
-<!-- OB-CMD-MEMORY-START -->
-   - Use `basic-memory` `search` MCP tool for the `guardrails-summary` note from the previous run.
-<!-- OB-CMD-MEMORY-END -->
    - Update only the affected rule categories. Preserve manually-added rules in unchanged categories.
    - If changes are pervasive (new architecture, new framework, new platform), fall back to **Generate mode**.
 
@@ -141,17 +119,14 @@ Prefix all bash commands with `rtk` when RTK is enabled.
 
 6. **Store summary in basic-memory**
 
-<!-- OB-CMD-MEMORY-START -->
    `write_note` MCP tool with title `guardrails-summary` containing:
    - The ISO timestamp of this run
    - Number of rules per category
-<!-- OB-CMD-MEMORY-END -->
 
 7. **Report**
 
    Tell the user:
    - Whether the skill was generated or updated (and which categories changed)
-   - Whether codegraph / basic-memory were used or degraded to file tools
    - Number of rules extracted per category
    - Number of agent files updated
    - Tip: "Rerun `/make-guardrails` any time the architecture or conventions change significantly."

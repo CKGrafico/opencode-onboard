@@ -4,11 +4,6 @@ description: Generate or update DESIGN.md by analyzing the codebase design syste
 
 Analyze the design system of this codebase and generate or update `DESIGN.md` in the project root.
 
-Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
-<!-- OB-CMD-RTK-START -->
-Prefix all bash commands with `rtk` when RTK is enabled.
-<!-- OB-CMD-RTK-END -->
-
 Reference material:
   Overview : https://stitch.withgoogle.com/docs/design-md/overview/
   Format   : https://stitch.withgoogle.com/docs/design-md/format/
@@ -33,16 +28,6 @@ Examples from the spec repo:
 
    Use file tools to discover the design system: `glob` for CSS files, Tailwind config, PostCSS config, component files, design token definitions (JS/TS/JSON/YAML), theme files, UI framework config (shadcn, MUI, Chakra, etc.).
 
-<!-- OB-CMD-CODEGRAPH-START -->
-   Use codegraph MCP tools (NOT CLI commands). Do NOT run `codegraph` in bash — use the MCP tools directly.
-   - `codegraph_search` to find component definitions, style utilities, and theme/token modules.
-<!-- OB-CMD-CODEGRAPH-END -->
-
-<!-- OB-CMD-MEMORY-START -->
-   Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash — use the MCP tools directly.
-   - `search` for any prior design notes or token summaries stored by previous runs.
-<!-- OB-CMD-MEMORY-END -->
-
    If access to a running local server or screenshots is available, use them to validate visual identity.
 
 2b. **Update mode — incremental analysis**
@@ -51,12 +36,6 @@ Examples from the spec repo:
    - Run `git log --oneline --since="<date>" -- <source roots}` to find what changed since the last analysis.
    - If nothing changed: report "Design system unchanged since last update" and stop.
    - For changed CSS/token/component files, understand what uses them.
-<!-- OB-CMD-CODEGRAPH-START -->
-   - Use `codegraph_search` MCP tool to understand what uses changed design tokens.
-<!-- OB-CMD-CODEGRAPH-END -->
-<!-- OB-CMD-MEMORY-START -->
-   - Use `basic-memory` `search` MCP tool for the `design-summary` note from the previous run.
-<!-- OB-CMD-MEMORY-END -->
    - Update only the affected tokens and sections. Preserve manually-added content in unchanged sections.
    - If the changes are too pervasive (entire token system replaced), fall back to **Generate mode**.
 
@@ -75,21 +54,13 @@ Examples from the spec repo:
 
 4. **Store summary in basic-memory**
 
-<!-- OB-CMD-MEMORY-START -->
    `write_note` MCP tool with title `design-summary` containing:
    - The ISO timestamp of this run
    - Key design tokens found (color palette, fonts, spacing scale)
-<!-- OB-CMD-MEMORY-END -->
 
 5. **Report**
 
    Tell the user:
    - Whether DESIGN.md was generated or updated (and which tokens/sections changed)
-<!-- OB-CMD-CODEGRAPH-START -->
-   - Whether codegraph / basic-memory were used or degraded to file tools
-<!-- OB-CMD-CODEGRAPH-END -->
-<!-- OB-CMD-MEMORY-START -->
-   - Whether basic-memory was used or degraded to file tools
-<!-- OB-CMD-MEMORY-END -->
    - Key design tokens found (color palette, fonts, spacing scale)
    - Tip: "Rerun `/make-design` any time your design system changes."

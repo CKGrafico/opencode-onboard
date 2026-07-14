@@ -114,7 +114,7 @@ https://github.com/{owner}/{repo}/blob/{sha}/{path}
 **Change Created:** gh-{number}-{slug}
 ```
 
-After outputting the above, the lead MUST run `/propose-plan` to generate the proposal, specs, and tasks. After `/propose-plan` completes, STOP and ask the user: **"Ready to implement? (yes/no)"**, do NOT proceed to `/apply-plan` until confirmed.
+After outputting the above, the lead MUST run `/plan-propose` to generate the proposal, specs, and tasks. After `/plan-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"**, do NOT proceed to `/plan-apply` until confirmed.
 
 ---
 
@@ -122,8 +122,8 @@ After outputting the above, the lead MUST run `/propose-plan` to generate the pr
 
 - ✅ Parse GitHub Issue URL and create OpenSpec change
 - ✅ Use `gh` CLI for all GitHub operations
-- ✅ Always run `/propose-plan` after parsing, never skip to implementation
-- ✅ Always stop and confirm with user after propose, before running `/apply-plan`
+- ✅ Always run `/plan-propose` after parsing, never skip to implementation
+- ✅ Always stop and confirm with user after propose, before running `/plan-apply`
 - ❌ `webfetch` or HTTP requests to GitHub URLs, FORBIDDEN, use `gh` CLI only
 - ❌ Browser MCP tools for GitHub operations, FORBIDDEN
 - ❌ Jump to implementation without user confirmation, FORBIDDEN

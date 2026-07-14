@@ -82,7 +82,7 @@ This skill is used when the backlog platform is set to "Others (Browser)" — wh
    - ID: {id} (if found)
    - OpenSpec change created: {change-name}
 
-After reporting, the lead MUST run `/propose-plan` to generate the proposal, specs, and tasks. After `/propose-plan` completes, STOP and ask the user: **"Ready to implement? (yes/no)"** — do NOT proceed to `/apply-plan` until confirmed.
+After reporting, the lead MUST run `/plan-propose` to generate the proposal, specs, and tasks. After `/plan-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"** — do NOT proceed to `/plan-apply` until confirmed.
 
 ---
 

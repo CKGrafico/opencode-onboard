@@ -8,7 +8,6 @@ import { installCaveman } from './caveman.js'
 import { installCodegraph } from './codegraph.js'
 import { installMemory } from './memory.js'
 import { enableCavemanGuidance } from './caveman-guidance.js'
-import { configureAgentsMd, patchCommandFiles } from './global.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const OPTIMIZATION_PRESET_PATH = path.resolve(__dirname, '../../presets/optimization.json')
@@ -115,13 +114,8 @@ export async function tokenOptimizationStep(options = {}) {
     ? await installMemory({ skipHeader: true })
     : { optedIn: false, installed: false }
 
-  const tokenOpt = { rtk, quota, caveman, cavemanGuidance, codegraph, memory }
-
-  const agentsMd = await configureAgentsMd(tokenOpt)
-  const commandFiles = await patchCommandFiles(tokenOpt)
-
   if (selected.length === 0) warn('No token optimization tools selected')
   else success('Token optimization step completed')
 
-  return { rtk, quota, caveman, cavemanGuidance, codegraph, memory, agentsMd, commandFiles }
+  return { rtk, quota, caveman, cavemanGuidance, codegraph, memory }
 }

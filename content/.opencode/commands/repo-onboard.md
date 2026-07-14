@@ -66,10 +66,10 @@ Inspect `.agents/skills/` and `.claude/skills/` (if present). List installed ski
 
 Explain the OpenSpec change lifecycle:
 
-1. **Explore** (`/explore-plan`) — investigate and discuss, no files created
-2. **Propose** (`/propose-plan`) — structured plan, saved to `openspec/changes/`
-3. **Apply** (`/apply-plan`) — implement tasks via parallel subagent waves
-4. **Archive** (`/archive-plan`) — finalize and clean up
+1. **Explore** (`/plan-explore`) — investigate and discuss, no files created
+2. **Propose** (`/plan-propose`) — structured plan, saved to `openspec/changes/`
+3. **Apply** (`/plan-apply`) — implement tasks via parallel subagent waves
+4. **Archive** (`/plan-archive`) — finalize and clean up
 
 Explain `openspec/config.yaml` — what it contains and why it matters.
 
@@ -79,7 +79,7 @@ Explain `openspec/config.yaml` — what it contains and why it matters.
 
 Explain `opencode-onboard.json`:
 - What each field controls (platform, models, agents, tools, source)
-- How to change the model for a tier (`/set-model`)
+- How to change the model for a tier (`/make-user-model`)
 - What `agents.maxConcurrent` does
 
 ---
@@ -88,10 +88,10 @@ Explain `opencode-onboard.json`:
 
 End with 3–5 practical tips:
 
-- How to start working: "Run `/goal` with a description of what you want to build"
+- How to start working: "Run `/plan-goal` with a description of what you want to build"
 - How to add a specialist: "Run `/make-engineer`"
 - How to regenerate docs: "Run `/make-architecture` or `/make-design`"
-- How to see all commands: "Run `/help`"
+- How to see all commands: "Run `/repo-help`"
 - How to refresh config after changes: "Re-run `npx opencode-onboard` in the terminal"
 
 ---

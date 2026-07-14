@@ -2,11 +2,6 @@
 description: Think through an idea, investigate a problem, or clarify requirements before creating a change.
 ---
 
-Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
-<!-- OB-CMD-RTK-START -->
-Prefix all bash commands with `rtk` when RTK is enabled.
-<!-- OB-CMD-RTK-END -->
-
 This command is **read-only by default**. It investigates, analyzes, and discusses — but never writes files unless you explicitly ask it to.
 
 ---
@@ -31,19 +26,7 @@ Wait for the user to respond:
 - If the user answers `stop`, end the command without generating a proposal.
 - If the user answers `continue`, proceed to the next step.
 
-**Step 0.b - Load exploration context**
-
-<!-- OB-CMD-CODEGRAPH-START -->
-Use codegraph MCP tools (NOT CLI commands). Do NOT run `codegraph` in bash — use the MCP tools directly: `codegraph_search`, `codegraph_impact`, `codegraph_callers`, `codegraph_callees`, `codegraph_node`.
-- `codegraph_search` to understand the codebase structure relevant to the user's idea.
-<!-- OB-CMD-CODEGRAPH-END -->
-
-<!-- OB-CMD-MEMORY-START -->
-Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash — use the MCP tools directly: `search`, `build_context`, `recent_activity`.
-- `search` for any prior exploration notes, decisions, or context related to the user's topic.
-<!-- OB-CMD-MEMORY-END -->
-
-**Step 0.c - Load exploration skill**
+**Step 0.b - Load exploration skill**
 
 Load `@openspec-explore` skill and follow its instructions.
 
@@ -60,6 +43,20 @@ Save this exploration to basic-memory for future reference? [yes/no]
 ```
 
 - `yes` → `write_note` with title `exploration-{topic}` summarizing the key findings, constraints, and recommended next steps.
-- `no` → end the command. Nothing was written.
+- `no` → proceed to Step 3.
 
 Do NOT write any files without this explicit ask.
+
+**Step 3 — Ask what's next**
+
+Ask the user:
+
+```text
+What next? Options:
+  /plan-propose — turn this into a full OpenSpec proposal with design, specs, and tasks
+  /plan-simple  — lightweight change proposal (skip design/specs)
+  /plan-apply   — dive straight into implementation (if the path is clear)
+  (or just tell me to keep exploring)
+```
+
+Do NOT create any files. Do NOT run any of these commands automatically.

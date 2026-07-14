@@ -27,175 +27,42 @@ The chosen persona determines everything: what to detect, what questions to ask,
 
 Read `.opencode/source-roots.json` for the roots to scan. Only analyze those directories.
 
-Scan for **persona-relevant** signals only:
+Scan for **persona-relevant** signals only. Look in manifest files (`package.json`, `tsconfig.json`, `*.csproj`, `pyproject.toml`, `requirements.txt`, `go.mod`, `Cargo.toml`, etc.) and project structure:
 
-### Frontend signals
-- `package.json` deps: `react`, `vue`, `@angular/core`, `svelte`, `next`, `react-native`, `expo`
-- Config: `tsconfig.json`, `vite.config.*`, `next.config.*`, `angular.json`
-- Dirs: `src/features/`, `src/widgets/`, `src/pages/`, `src/shared/`, `app/`
-- Testing: `vitest.config.*`, `jest.config.*`, `cypress/`, `playwright.config.*`
-- State: `zustand`, `redux`, `jotai`, `mobx`, `pinia`, `vuex` in deps
-- i18n: `next-intl`, `react-intl`, `i18next` in deps
-- Styling: `tailwindcss`, `@emotion/react`, `styled-components`, `css-modules` in deps or config
+- **Framework** — web, backend, or mobile framework
+- **Data layer** — ORM, database client, cache client
+- **Testing** — test framework, test config files, test directories
+- **Styling** — CSS framework, CSS-in-JS, design tokens
+- **Architecture** — FSD, monolith, microservices, feature dirs
+- **i18n** — internationalization libs
+- **CI/CD** — workflow definition files
+- **Cloud / IaC** — cloud provider config, infrastructure-as-code files
+- **Monitoring** — observability/monitoring config or deps
 
-### Layout Designer signals
-- `storybook` in deps or `.storybook/` dir
-- `tailwindcss`, `@emotion/react`, `styled-components` in deps
-- Design tokens: `src/tokens/`, `src/styles/tokens.*`, `design-tokens.*`
-- Component lib structure: `src/components/`, `src/ui/`, `src/lib/`
-
-### Backend signals
-- `*.csproj` → .NET (check `PackageReference` for `Microsoft.EntityFrameworkCore`, `xunit`, `nunit`)
-- `package.json` deps: `express`, `fastify`, `nestjs`, `@prisma/client`, `mongoose`, `pg`, `redis`
-- `pyproject.toml` / `requirements.txt`: `django`, `flask`, `fastapi`, `sqlalchemy`, `pytest`
-- `go.mod`: `gin`, `echo`, `gorm`
-- Auth: `jsonwebtoken`, `passport`, `@azure/msal-node`, `Auth0` in deps
-
-### DevOps signals
-- `Dockerfile`, `docker-compose.yml`, `docker-compose.yaml`
-- `k8s/` dir, `*.yaml` with `apiVersion:` (Kubernetes)
-- `terraform/` dir, `*.tf` files
-- `*.bicep` files
-- `.github/workflows/`, `azure-pipelines.yml`, `.gitlab-ci.yml`
-- `prometheus`, `grafana`, `datadog` in config
-
-Report what was detected to the user before proceeding:
+Report what was detected:
 
 ```
 Detected:
-  ✓ React 18 (package.json)
-  ✓ Feature-Sliced Design (src/features/, src/widgets/)
-  ✓ Vitest (vitest.config.ts)
-  ✓ Tailwind CSS (tailwind.config.ts)
-  ✓ next-intl (i18n)
+  ✓ <signal> (<source>)
+  ✓ <signal> (<source>)
+  ...
 ```
 
 ---
 
 ## Step 3 — Ask persona-specific questions (dynamic, 2-4 questions)
 
-Ask ONLY questions relevant to the persona and detected signals. Each question is a simple choice or yes-no. Use the `question` tool for each.
+Based on the detected signals, ask 2-4 relevant questions using the `question` tool. Each question is a simple closed choice or yes-no.
 
-### Frontend branch
-
-Q: **"Which framework?"**
-- React (detected)
-- Vue
-- Angular
-- Svelte
-- None
-
-If React selected and hooks-only (no class components detected):
-
-Q: **"Use React concurrent features (transitions, deferred values)?"**
-- Yes
-- No
-
-Q: **"Testing framework?"** (skip if none detected)
-- Vitest (detected)
-- Jest
-- Cypress
-- Playwright
-- None
-
-Q: **"State management approach?"** (skip if none detected)
-- Zustand (detected)
-- Redux
-- Jotai
-- None
-
-### Layout Designer branch
-
-Q: **"CSS approach?"**
-- Tailwind (detected)
-- CSS Modules
-- Emotion
-- Styled Components
-- Plain CSS
-
-Q: **"Use Storybook?"** (skip if not detected)
-- Yes
-- No
-
-Q: **"Accessibility level?"**
-- WCAG AA (recommended)
-- WCAG AAA
-- Basic only
-
-### Backend branch
-
-Q: **"Primary language?"**
-- C# / .NET (detected)
-- TypeScript / Node.js (detected)
-- Python (detected)
-- Go (detected)
-- Other
-
-If C# detected:
-
-Q: **"ORM?"**
-- Entity Framework Core (detected)
-- Dapper
-- None
-
-Q: **"API style?"**
-- REST
-- GraphQL
-- gRPC
-- Minimal APIs
-- Controllers
-
-Q: **"Testing framework?"** (skip if none detected)
-- xUnit (detected)
-- NUnit
-- MSTest
-- None
-
-### DevOps branch
-
-Q: **"Cloud provider?"**
-- Azure (detected)
-- AWS
-- GCP
-- Self-hosted
-
-Q: **"Infrastructure as Code tool?"** (skip if none detected)
-- Terraform (detected)
-- Bicep (detected)
-- Pulumi
-- None
-
-Q: **"CI platform?"**
-- GitHub Actions (detected)
-- Azure DevOps (detected)
-- GitLab CI (detected)
-- None
-
-Q: **"Monitoring?"** (skip if none detected)
-- Application Insights (detected)
-- Prometheus + Grafana (detected)
-- Datadog (detected)
-- None
+- Only ask about things where multiple options were detected or where the user's choice matters
+- Skip anything where only one option was detected — just use it
+- Don't ask more than 4 questions
 
 ---
 
 ## Step 4 — Install selected skills
 
-Based on the persona + answers + detected signals, install relevant skills using `npx skills add <owner/repo>`:
-
-### Skill mapping
-
-| Signal / Answer | Skill to install |
-|---|---|
-| React (any) | `@react19-concurrent-patterns` |
-| React + testing framework | `@react19-test-patterns` |
-| C# / .NET | `@dotnet-best-practices` |
-| .NET + EF Core | `@ef-core` |
-| .NET + xUnit | `@csharp-xunit` |
-| (always) | `@ob-generic-guardrails` (already installed) |
-| (always) | `@ob-default` (already installed) |
-
-Use the `@find-skills` skill workflow to discover skills for signals not in the table above. Check `skills-lock.json` to see what's already installed before installing duplicates.
+Use the `@find-skills` skill workflow to discover and install relevant skills for the detected stack. Check `skills-lock.json` to see what's already installed before installing duplicates.
 
 Install each skill:
 ```bash
@@ -268,7 +135,7 @@ Report:
 - Engineer file created at `.opencode/agents/{persona}-engineer.md`
 - Skills installed (list each with source)
 - `fullstack-engineer.md` updated with all skills
-- How to use: "This agent will be spawned by the lead during `/apply-plan` for tasks matching its specialty."
+- How to use: "This agent will be spawned by the lead during `/plan-apply` for tasks matching its specialty."
 - "Restart opencode for the `ob-subagent-tiers` plugin to pick up the new engineer."
 
 **Guidelines**

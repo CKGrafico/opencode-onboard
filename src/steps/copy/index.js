@@ -8,6 +8,7 @@ import { patchAgentGuidance, patchAgentsMd } from "./agents.js"
 import { patchArchiveCommand } from "./commands.js"
 import { installSkills } from "./skills.js"
 import { generateFullstackEngineer } from "./fullstack-engineer.js"
+import { patchOpencodeJson } from "./opencode-json.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CONTENT_DIR = path.resolve(__dirname, "../../../content")
@@ -58,6 +59,7 @@ export async function copyContentStep(platform, ctx = {}) {
 
     await patchAgentGuidance(backlogPlatform, repoPlatform)
     await patchArchiveCommand({ backlogPlatform, repoPlatform })
+    await patchOpencodeJson()
     await patchAgentsMd(ctx)
 
     if (!ctx.skipSkills) {

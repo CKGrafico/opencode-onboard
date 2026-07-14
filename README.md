@@ -88,7 +88,7 @@ The CLI runs a 10-step onboarding wizard. It keeps the current step visible, plu
 When it finishes, open OpenCode in your project and type:
 
 ```
-/initialize-repository
+/repo-initialize
 ```
 
 OpenCode asks if this is a greenfield or brownfield project. For brownfield projects it generates `ARCHITECTURE.md` and `DESIGN.md` from your actual codebase, archives project history, then activates the full agent team. For greenfield projects it skips doc generation and leaves placeholder files you can populate later with `/make-architecture` and `/make-design`.
@@ -101,21 +101,21 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 
 | Command | Description |
 | ------- | ----------- |
-| `/help` | Show all commands and when to use each one. Start here if you're unsure. |
-| `/onboard-repository` | Guided tour of the project and its agentic infrastructure. Explains agents, commands, skills, OpenSpec workflow, and configuration. Read-only. |
-| `/initialize-repository` | Initialize the project. Asks greenfield vs brownfield, then activates the agent team. |
-| `/explore-plan` | Think through an idea or investigate a problem before committing to a plan. |
-| `/propose-plan <url or idea>` | Parse a GitHub Issue / Azure DevOps / Jira / browser URL or a direct idea into a structured plan (proposal, specs, tasks). Enriches each task with agent and model assignments. |
-| `/simple-plan <task>` | Quick plan for focused changes. Reads the codebase, creates a task checklist, and stops. No OpenSpec, no proposals, no specs. |
-| `/apply-plan` | Implement tasks from the current plan. Detects format automatically: OpenSpec-annotated tasks run as parallel subagent waves; plain checkboxes run sequentially in-session. |
-| `/pull-request` | Create a PR for the current branch, or read and classify PR review comments. |
-| `/archive-plan` | Archive a completed OpenSpec change. |
-| `/goal <feature or URL>` | Autonomous, no-confirmation pipeline: branch off `main`, then propose → apply → archive (one commit per phase). Default: merge to `main` + delete branch. Add `push` keyword to push branch only. Add `pr` keyword to push + create a PR. For loop-engineering. |
+| `/repo-help` | Show all commands and when to use each one. Start here if you're unsure. |
+| `/repo-onboard` | Guided tour of the project and its agentic infrastructure. Explains agents, commands, skills, OpenSpec workflow, and configuration. Read-only. |
+| `/repo-initialize` | Initialize the project. Asks greenfield vs brownfield, then activates the agent team. |
+| `/plan-explore` | Think through an idea or investigate a problem before committing to a plan. |
+| `/plan-propose <url or idea>` | Parse a GitHub Issue / Azure DevOps / Jira / browser URL or a direct idea into a structured plan (proposal, specs, tasks). Enriches each task with agent and model assignments. |
+| `/plan-simple <task>` | Quick plan for focused changes. Reads the codebase, creates a task checklist, and stops. No OpenSpec, no proposals, no specs. |
+| `/plan-apply` | Implement tasks from the current plan. Detects format automatically: OpenSpec-annotated tasks run as parallel subagent waves; plain checkboxes run sequentially in-session. |
+| `/plan-pr` | Create a PR for the current branch, or read and classify PR review comments. |
+| `/plan-archive` | Archive a completed OpenSpec change. |
+| `/plan-goal <feature or URL>` | Autonomous, no-confirmation pipeline: branch off `main`, then propose → apply → archive (one commit per phase). Default: merge to `main` + delete branch. Add `push` keyword to push branch only. Add `pr` keyword to push + create a PR. For loop-engineering. |
 | `/make-engineer` | Interactive persona-driven flow to add a custom specialist engineer. Pick a persona, answer questions about your stack, and skills are installed automatically. |
 | `/make-architecture` | Generate or regenerate `ARCHITECTURE.md` from the codebase. |
 | `/make-design` | Generate or regenerate `DESIGN.md` from the design system. |
 | `/make-guardrails` | Generate a `project-guardrails` skill from `ARCHITECTURE.md` + project config files. Extracts architecture boundaries, naming, code style, testing, and git workflow rules. Updates all `*-engineer.md` to load the skill. |
-| `/set-model [user] <tier> <model>` | Set the model for a tier (`plan`, `build`, `fast`). Writes to `opencode-onboard.json` (team) or `opencode-onboard.user.json` (user override, gitignored) when `user` prefix is used. Restart to pick up — the `ob-subagent-tiers` plugin rebuilds tier agents at startup. Pass a model id or `current` for the active session model. |
+| `/make-user-model [user] <tier> <model>` | Set the model for a tier (`plan`, `build`, `fast`). Writes to `opencode-onboard.json` (team) or `opencode-onboard.user.json` (user override, gitignored) when `user` prefix is used. Restart to pick up — the `ob-subagent-tiers` plugin rebuilds tier agents at startup. Pass a model id or `current` for the active session model. |
 
 ---
 
@@ -135,7 +135,7 @@ fullstack-engineer     implementation worker, ability-driven
 ```
 
 `fullstack-engineer` behavior is composed by abilities, not hardcoded role silos.
-Project-specific specialization comes from user-created custom engineers via `/make-engineer`. During `/apply-plan`, the lead should inspect the engineers that actually exist in `.opencode/agents/`, prefer matching custom engineers, and fall back to `fullstack-engineer` only when no specialist is a clear fit.
+Project-specific specialization comes from user-created custom engineers via `/make-engineer`. During `/plan-apply`, the lead should inspect the engineers that actually exist in `.opencode/agents/`, prefer matching custom engineers, and fall back to `fullstack-engineer` only when no specialist is a clear fit.
 
 ### Skills, platform knowledge
 
@@ -216,9 +216,9 @@ lead
 ```
 
 1. Load the platform userstory skill (installed as `ob-userstory`, from the variant matching your backlog platform)
-2. Run `/propose-plan` to produce `proposal.md`, specs, and `tasks.md`
+2. Run `/plan-propose` to produce `proposal.md`, specs, and `tasks.md`
 3. Confirm with user before implementation
-4. Run `/apply-plan` to orchestrate implementation in waves
+4. Run `/plan-apply` to orchestrate implementation in waves
 5. Each wave spawns engineers in parallel (`fullstack-engineer` and/or custom engineers, each carrying its own tier model), capped at `agents.maxConcurrent`
 6. Each subagent receives its task IDs in its prompt, loads relevant abilities, implements, and returns; the lead commits each group
 7. Verify with tests/build/lint according to task scope
@@ -232,7 +232,7 @@ Agents run as native OpenCode subagents in parallel waves — no external plugin
 
 ```
 your-project/
-├── AGENTS.md                        ← bootstrap mode, replaced after first "/initialize-repository"
+├── AGENTS.md                        ← bootstrap mode, replaced after first "/repo-initialize"
 ├── ARCHITECTURE.md                  ← prompt for agents to fill in from your codebase
 ├── DESIGN.md                        ← prompt for agents to fill in from your codebase
 ├── .opencode/
@@ -299,9 +299,9 @@ Long unattended agent sessions can consume significant tokens. Set these control
 
 3. **Install the quota plugin** — the [`@slkiser/opencode-quota`](https://www.npmjs.com/package/@slkiser/opencode-quota) plugin adds `/quota` and `/quota_status` commands that surface real-time token usage inside OpenCode sessions.
 
-4. **Use `/quota` checkpoints** — run `/quota` before starting any `/apply-plan` session and after each agent wave. Pause at 75% consumed; stop at 90%.
+4. **Use `/quota` checkpoints** — run `/quota` before starting any `/plan-apply` session and after each agent wave. Pause at 75% consumed; stop at 90%.
 
-5. **Confirm before large runs** — the onboarded `/apply-plan` workflow will ask for your confirmation before spawning agents for Medium (4–7 tasks) or High (8+ tasks) scope sessions.
+5. **Confirm before large runs** — the onboarded `/plan-apply` workflow will ask for your confirmation before spawning agents for Medium (4–7 tasks) or High (8+ tasks) scope sessions.
 
 ---
 

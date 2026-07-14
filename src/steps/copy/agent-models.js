@@ -31,7 +31,7 @@ function hasFrontmatterModel(content) {
  *
  * Files that already declare a `model:` are left untouched, so custom engineers
  * created with a specific tier (via /create-engineer) keep their choice on
- * re-runs. /set-model re-stamps when a tier's model changes.
+ * re-runs. /make-user-model re-stamps when a tier's model changes.
  */
 export async function stampAgentModels({ models = {}, cwd = process.cwd() } = {}) {
   const agentsDir = path.join(cwd, '.opencode', 'agents')

@@ -17,7 +17,7 @@ const PLATFORM_ARCHIVE_END = '<!-- OB-PLATFORM-ARCHIVE-END -->'
 export async function patchArchiveCommand(platform, cwd = process.cwd()) {
   // platform can be a single string or { backlogPlatform, repoPlatform }
   const repoPlatform = typeof platform === 'object' ? (platform.repoPlatform ?? platform.backlogPlatform ?? 'github') : platform
-  const targetPath = path.join(cwd, '.opencode', 'commands', 'archive-plan.md')
+  const targetPath = path.join(cwd, '.opencode', 'commands', 'plan-archive.md')
   if (!await fse.pathExists(targetPath)) return
 
   let content = await fse.readFile(targetPath, 'utf-8')
@@ -29,6 +29,6 @@ export async function patchArchiveCommand(platform, cwd = process.cwd()) {
   const pattern = new RegExp(`${PLATFORM_ARCHIVE_START}[\\s\\S]*?${PLATFORM_ARCHIVE_END}`)
   content = content.replace(pattern, `${PLATFORM_ARCHIVE_START}\n${replacement.trim()}\n${PLATFORM_ARCHIVE_END}`)
   await fse.writeFile(targetPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
-  success(`archive-plan.md archive flow injected for platform: ${repoPlatform}`)
+  success(`plan-archive.md archive flow injected for platform: ${repoPlatform}`)
 }
 

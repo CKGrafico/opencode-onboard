@@ -70,7 +70,7 @@ function replaceBetween(content, start, end, replacement) {
 }
 
 export async function patchAgentsMd(ctx) {
-  const obInitPath = path.join(process.cwd(), '.opencode', 'commands', 'initialize-repository.md')
+  const obInitPath = path.join(process.cwd(), '.opencode', 'commands', 'repo-initialize.md')
   if (!await fse.pathExists(obInitPath)) return
 
   let content = await fse.readFile(obInitPath, 'utf-8')
@@ -87,7 +87,7 @@ export async function patchAgentsMd(ctx) {
     if (!enabled) continue
     const result = skipStepBlock(content, title, note)
     if (!result.matched) {
-      warn(`initialize-repository.md step "${title}" not found — template drift? Skipping this patch.`)
+      warn(`repo-initialize.md step "${title}" not found — template drift? Skipping this patch.`)
       continue
     }
     content = result.content
@@ -98,7 +98,7 @@ export async function patchAgentsMd(ctx) {
   if (patches.length > 0) {
     await fse.writeFile(obInitPath, content, 'utf-8')
     for (const msg of patches) info(msg)
-    success('initialize-repository.md patched for existing project state')
+    success('repo-initialize.md patched for existing project state')
   }
 }
 
