@@ -2,7 +2,18 @@
 description: Quick plan: analyze the codebase and create a task checklist using the Todo pane. No files, no OpenSpec.
 ---
 
-Lightweight planning for focused changes. Reads the codebase, creates a task checklist **in the Todo pane** using `todowrite`, and stops. **No files are created.** This is a thinking tool, not a file writer.
+> **HARD RULE: do NOT write, create, or modify any files.**
+>
+> This command is **strictly read-only**. You may read files, search code, and use `todowrite` to create Todo pane items. You must NOT:
+> - Create or edit any source files, config files, or documentation.
+> - Create or modify any OpenSpec artifacts (`openspec/changes/`, specs, tasks.md).
+> - Write basic-memory notes.
+> - Run `git commit`, `git add`, or any file-writing shell command.
+> - Run `/plan-apply` or any other command that writes files.
+>
+> The ONLY output of this command is the Todo pane checklist and a question to the user. Nothing else.
+
+Lightweight planning for focused changes. Reads the codebase, creates a task checklist **in the Todo pane** using `todowrite`, and stops. This is a thinking tool, not a file writer.
 
 **When to use this instead of `/plan-explore` → `/plan-propose`:**
 - The task is clear and well-scoped (not a half-formed idea)
@@ -46,4 +57,4 @@ What next? Options:
   (or just tell me to start on specific tasks)
 ```
 
-Do NOT create any files. Do NOT run `/plan-apply` or `/plan-propose` automatically.
+Do NOT create any files. Do NOT run `/plan-apply` or `/plan-propose` automatically. Do NOT write basic-memory notes. The ONLY output is the Todo pane checklist.

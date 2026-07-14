@@ -2,7 +2,15 @@
 description: Parse a work item or idea and propose a change plan with enriched task assignments.
 ---
 
-> **Hard rule: never write files before user confirmation.** This command generates the full proposal (proposal.md, specs, tasks.md) in memory, shows it to the user, and only writes to `openspec/changes/` after the user explicitly approves. The one exception is basic-memory notes for context sharing: those are minor and non-destructive.
+> **HARD RULE: do NOT write any files before the user explicitly confirms.**
+>
+> This command generates the full proposal (proposal.md, specs, tasks.md) in memory and shows it to the user. You must NOT:
+> - Create or edit any source files, config files, or documentation.
+> - Create or modify OpenSpec artifacts on disk until Step 4 (after user says `yes`).
+> - Run `git commit`, `git add`, or any file-writing shell command.
+> - Run `/plan-apply` or any other command that writes files.
+>
+> The ONLY exception is basic-memory `write_note` for context-sharing notes (`proposal-{slug}`, `change-{slug}-context`) in Step 4, and ONLY after the user has confirmed the proposal. These are non-destructive metadata notes, not source code or project files.
 
 **Step 0.a - Check for unarchived changes**
 

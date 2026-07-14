@@ -2,7 +2,17 @@
 description: Think through an idea, investigate a problem, or clarify requirements before creating a change.
 ---
 
-This command is **read-only by default**. It investigates, analyzes, and discusses: but never writes files unless you explicitly ask it to.
+> **HARD RULE: this command is read-only. Do NOT write, create, or modify any files.**
+>
+> You may read files, search code, and discuss. You must NOT:
+> - Create or edit any source files, config files, or documentation.
+> - Create or modify any OpenSpec artifacts (`openspec/changes/`, specs, tasks.md, proposal.md).
+> - Run `git commit`, `git add`, or any file-writing shell command.
+> - Run `/plan-apply`, `/plan-propose`, or any other command that writes files.
+>
+> The ONLY exception is basic-memory `write_note` in Step 2, and ONLY if the user explicitly says `yes` when asked. Everything else is in-memory discussion only.
+
+This command is **read-only**. It investigates, analyzes, and discusses: but never writes files unless you explicitly ask it to.
 
 ---
 
@@ -59,4 +69,4 @@ What next? Options:
   (or just tell me to keep exploring)
 ```
 
-Do NOT create any files. Do NOT run any of these commands automatically.
+Do NOT create any files. Do NOT run any of these commands automatically. The ONLY output of this command is the discussion and the optional basic-memory note (with explicit user consent).

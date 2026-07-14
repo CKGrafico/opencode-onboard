@@ -54,35 +54,26 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
 - Everything below happens on `$BRANCH`. `$DEFAULT_BRANCH` is never modified until the final merge.
 
 **Phase 2: Explore (read-only, autonomous).**
-- Load `@openspec-explore` skill for its mindset and tooling: but **skip all user-interaction checkpoints**. There is no user. You are exploring solo.
-- Conduct a **self-directed Socratic exploration**:
-  1. **Formulate 3-5 questions** about the problem space based on the input and a quick codebase scan. Think like an engineer scoping the work:
-     - "Where does the relevant logic currently live?"
-     - "What patterns does this codebase already use for X?"
-     - "What are the constraints or risks here?"
-     - "What needs to change vs. what can be reused?"
-     - "Are there hidden dependencies or side effects?"
-  2. **Investigate** each question by reading code, checking configs, tracing call paths. Use CodeGraph if available, otherwise grep/read.
-  3. **Answer your own questions**: reason through what you found. If an answer opens a new question, follow it (one level of follow-up per question, max).
-  4. **Synthesize** the answers into a brief exploration summary covering: problem space, existing patterns, files that will change, constraints, and recommended approach. This is in-memory only (no files written), and feeds directly into Phase 3.
-- Commit: nothing to commit yet (exploration is read-only).
+- Run `/plan-explore` with the resolved input. **Skip every user-interaction checkpoint** in that command (Step 0.a unarchived-changes check → treat as `continue`; Step 2 save-to-memory → only save if findings are significant; Step 3 ask-what's-next → do not ask, proceed to Phase 3). There is no user. You are exploring solo.
+- The exploration must be a **Socratic internal debate**: formulate 3-5 probing questions about the problem space, investigate each one by reading code and tracing call paths (use CodeGraph MCP tools if available, otherwise grep/read), then **answer your own questions** with evidence from the codebase. Where an answer opens a new question, follow it (one level of follow-up per question, max). This is an engineer thinking aloud, not a checklist — weigh alternatives, consider risks, and reason through tradeoffs before settling on an approach.
+- The exploration feeds directly into Phase 3. No commit yet (exploration is read-only).
 
 **Phase 3: Propose (no confirmation).**
-- Run `/plan-propose` Steps 1 and 2 (generate proposal in memory + enrich with agent/tier assignments), incorporating the exploration findings from Phase 2. **Skip** Step 0 (unarchived-changes check: treat as `continue`), **skip** Step 3 (show and ask for confirmation: this is autonomous), proceed directly to Step 4 (write files).
-- Write the proposal files to `openspec/changes/{change-slug}/` and the memory notes.
+- Run `/plan-propose` with the resolved input. **Skip every user-interaction checkpoint** in that command (Step 0.a unarchived-changes check → treat as `continue`; Step 3 show-and-ask-for-confirmation → do not ask, write files immediately). Incorporate the exploration findings from Phase 2 into the proposal.
+- `/plan-propose` writes the proposal files to `openspec/changes/{change-slug}/` and the basic-memory notes.
 - If the canonical change slug differs from `{slug}`, rename the branch to match: `git branch -m feature/{change-slug}` and refresh `BRANCH="$(git branch --show-current)"`.
 - Commit: `git add -A && git commit -m "propose: {title} ({change-id})"`.
 
 **Phase 4: Apply (no confirmation).**
-- Run the `/plan-apply` Step 6 wave protocol to completion. You are already on `$BRANCH`, so **skip its branch-creation step (1)**; start from "Load the plan". The wave protocol handles codegraph and basic-memory integration via `@ob-guardrails-generic`: no extra wiring needed here.
-- Spawn subagent waves by `depends_on` / `touches`, committing each group `"{ids}: {summary}"` as that protocol dictates. Honour `agents.maxConcurrent`.
+- Run `/plan-apply`. You are already on `$BRANCH`, so **skip its branch-creation step**; start from "Load the plan". The wave protocol inside `/plan-apply` handles codegraph and basic-memory integration via `@ob-guardrails-generic`: no extra wiring needed here.
+- `/plan-apply` spawns subagent waves by `depends_on` / `touches`, committing each group `"{ids}: {summary}"` as its protocol dictates. Honour `agents.maxConcurrent`.
 - Do **not** return control to the user between waves: keep looping until every task is DONE, or the progress guard / one-retry limit trips (→ **Failure policy**).
-- Run the verify step (tests / lint / build) from this lead session. Reopen and re-wave failing tasks as the protocol allows.
+- `/plan-apply` runs the verify step (tests / lint / build) from this lead session. Reopen and re-wave failing tasks as the protocol allows.
 - Ensure `tasks.md` is fully checked and any residual changes are committed.
 
 **Phase 5: Archive (forced, same branch, no PR).**
 - Do **not** run the platform PR archive flow and do **not** create an `archive/` branch. Archive in place on `$BRANCH`.
-- Load `@openspec-archive-change` and archive the change you just implemented, by its id.
+- Run `/plan-archive` but **skip every user-interaction checkpoint**: skip the "find oldest merged PR" step (you already know which change you just implemented), skip the "confirm the candidate" prompt, skip the "create archive PR" step. Instead, archive the change you just implemented, by its id, directly on `$BRANCH`.
 - Compare the archived change's specs against `ARCHITECTURE.md` and `DESIGN.md`; apply any needed doc updates directly (no approval prompt).
 - If you were implementing a bug or new functionality and had an important impact, check if `@ob-guardrails-project` exists and update it.
 - Commit: `git add -A && git commit -m "archive: {title} ({change-id})"`.
