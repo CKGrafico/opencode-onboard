@@ -8,9 +8,9 @@ metadata:
   version: "1.0"
 ---
 
-This skill is used when the backlog platform is set to "Others (Browser)" — when there is no CLI integration for the backlog system, or the user doesn't have API tokens. Work items are read directly from the web page using the opencode-browser plugin.
+This skill is used when the backlog platform is set to "Others (Browser)": when there is no CLI integration for the backlog system, or the user doesn't have API tokens. Work items are read directly from the web page using the opencode-browser plugin.
 
-**This skill OVERRIDES the `browser-automation` skill's "external navigation forbidden" rule — but ONLY for URLs the user explicitly provides as work items.** Do not navigate to arbitrary URLs.
+**This skill OVERRIDES the `browser-automation` skill's "external navigation forbidden" rule: but ONLY for URLs the user explicitly provides as work items.** Do not navigate to arbitrary URLs.
 
 ---
 
@@ -51,13 +51,13 @@ This skill is used when the backlog platform is set to "Others (Browser)" — wh
 5. **Parse work item fields**
 
    From the page text and/or snapshot, extract:
-   - **Title/Summary** — usually the main heading or the `<h1>` / page title
-   - **Description** — the body text, acceptance criteria, or "Definition of Done" section
-   - **ID/Key** — the work item ID from the URL or page (e.g. `123`, `ENG-123`)
-   - **Status** — if visible (e.g. "To Do", "In Progress", "Active")
-   - **Assignee** — if visible
-   - **Priority** — if visible
-   - **Labels/Tags** — if visible
+   - **Title/Summary**: usually the main heading or the `<h1>` / page title
+   - **Description**: the body text, acceptance criteria, or "Definition of Done" section
+   - **ID/Key**: the work item ID from the URL or page (e.g. `123`, `ENG-123`)
+   - **Status**: if visible (e.g. "To Do", "In Progress", "Active")
+   - **Assignee**: if visible
+   - **Priority**: if visible
+   - **Labels/Tags**: if visible
 
    If the page is a SPA (Single Page Application) that loads content dynamically:
    - Wait longer (`browser_wait ms=5000`)
@@ -82,7 +82,7 @@ This skill is used when the backlog platform is set to "Others (Browser)" — wh
    - ID: {id} (if found)
    - OpenSpec change created: {change-name}
 
-After reporting, the lead MUST run `/plan-propose` to generate the proposal, specs, and tasks. After `/plan-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"** — do NOT proceed to `/plan-apply` until confirmed.
+After reporting, the lead MUST run `/plan-propose` to generate the proposal, specs, and tasks. After `/plan-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"**: do NOT proceed to `/plan-apply` until confirmed.
 
 ---
 
@@ -122,10 +122,10 @@ After reporting, the lead MUST run `/plan-propose` to generate the proposal, spe
 
 ## Rules
 
-- ONLY navigate to URLs the user explicitly provides — never guess or browse randomly
+- ONLY navigate to URLs the user explicitly provides: never guess or browse randomly
 - The user must already be authenticated in their browser to the backlog system
 - If the page requires login and the user isn't authenticated, tell them to log in via their browser and retry
-- Do NOT use this skill for GitHub/Azure/Jira URLs when the CLI is configured for those platforms — use the CLI-based skill instead (faster, more reliable, no browser needed)
-- Do NOT modify anything on the page — this skill is read-only (no clicking buttons, no changing status)
+- Do NOT use this skill for GitHub/Azure/Jira URLs when the CLI is configured for those platforms: use the CLI-based skill instead (faster, more reliable, no browser needed)
+- Do NOT modify anything on the page: this skill is read-only (no clicking buttons, no changing status)
 - Do NOT store or output any credentials or sensitive page content
-- Browser is a backlog-only platform — it has no PR or repo integration. PR creation uses the repo platform configured separately
+- Browser is a backlog-only platform: it has no PR or repo integration. PR creation uses the repo platform configured separately

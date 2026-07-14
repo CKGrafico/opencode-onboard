@@ -18,7 +18,7 @@
     "plan": {
       "prompt": "Plan model:",
       "info": [
-        "PLAN — main session: reads issues, writes proposals, coordinates the agent team.",
+        "PLAN: main session: reads issues, writes proposals, coordinates the agent team.",
         "Needs to be strong. A weak model here will silently skip steps and break the workflow."
       ],
       "suggestions": {
@@ -34,7 +34,7 @@
     "build": {
       "prompt": "Build model:",
       "info": [
-        "BUILD — engineers: implements code, runs tests, commits.",
+        "BUILD: engineers: implements code, runs tests, commits.",
         "Code quality matters here. DeepSeek V4 is outstanding value. Claude Sonnet is the gold standard."
       ],
       "suggestions": {
@@ -51,7 +51,7 @@
     "fast": {
       "prompt": "Fast model:",
       "info": [
-        "FAST — light commands: /ob-pullrequest, /ob-explore, /ob-archive, status checks.",
+        "FAST: light commands: /ob-pullrequest, /ob-explore, /ob-archive, status checks.",
         "No heavy reasoning needed. Cheap and fast is the right call here."
       ],
       "suggestions": {

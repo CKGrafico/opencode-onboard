@@ -24,7 +24,7 @@ Inspect `.opencode/agents/` and list every agent file. For each agent, read its 
 
 - **Agent name and role** (primary, subagent, or specialist)
 - **Model tier** it uses (plan, build, or fast)
-- **Key abilities** — what it can do
+- **Key abilities**: what it can do
 
 Present as a table:
 
@@ -48,11 +48,11 @@ Read every `.md` file in `.opencode/commands/`. List each command with its name 
 | ... | ... |
 
 Group them by workflow phase if possible:
-- **Planning**: explore, propose, simple-plan, goal
-- **Implementation**: apply-plan, archive-plan
+- **Planning**: plan-explore, plan-propose, plan-todos, plan-goal
+- **Implementation**: plan-apply, plan-archive
 - **Maintenance**: make-architecture, make-design, make-engineer, make-guardrails
-- **Shipping**: pull-request
-- **Setup**: initialize-repository, set-model, help
+- **Shipping**: ops-ship, ops-review, ops-backlog
+- **Setup**: repo-initialize, make-user-model, repo-help
 
 ---
 
@@ -66,12 +66,12 @@ Inspect `.agents/skills/` and `.claude/skills/` (if present). List installed ski
 
 Explain the OpenSpec change lifecycle:
 
-1. **Explore** (`/plan-explore`) — investigate and discuss, no files created
-2. **Propose** (`/plan-propose`) — structured plan, saved to `openspec/changes/`
-3. **Apply** (`/plan-apply`) — implement tasks via parallel subagent waves
-4. **Archive** (`/plan-archive`) — finalize and clean up
+1. **Explore** (`/plan-explore`): investigate and discuss, no files created
+2. **Propose** (`/plan-propose`): structured plan, saved to `openspec/changes/`
+3. **Apply** (`/plan-apply`): implement tasks via parallel subagent waves
+4. **Archive** (`/plan-archive`): finalize and clean up
 
-Explain `openspec/config.yaml` — what it contains and why it matters.
+Explain `openspec/config.yaml`: what it contains and why it matters.
 
 ---
 

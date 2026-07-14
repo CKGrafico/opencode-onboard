@@ -22,7 +22,7 @@ Examples from the spec repo:
    - **Exists with content** and has a `<!-- Last updated:` footer → **Update mode**: incrementally update (see step 2b).
    - **Exists with content** but no timestamp → warn the user, then proceed in **Generate mode** (full regeneration).
 
-2a. **Generate mode — analyze the codebase**
+2a. **Generate mode: analyze the codebase**
 
    Read `.opencode/source-roots.json` when present. Only analyze those roots.
 
@@ -30,7 +30,7 @@ Examples from the spec repo:
 
    If access to a running local server or screenshots is available, use them to validate visual identity.
 
-2b. **Update mode — incremental analysis**
+2b. **Update mode: incremental analysis**
 
    Extract the `<!-- Last updated: <ISO date> -->` timestamp from the existing file. Then:
    - Run `git log --oneline --since="<date>" -- <source roots}` to find what changed since the last analysis.
@@ -44,7 +44,7 @@ Examples from the spec repo:
    Write (or update) `DESIGN.md`. The output must:
    - Begin with YAML frontmatter containing all structured design tokens (colors, typography, spacing, elevation, motion, radii, shadows, etc.)
    - Follow with free-form Markdown describing the look & feel and capturing design intent that token values alone cannot convey
-   - Be entirely self-contained — do not reference any files, variables, or paths from the codebase
+   - Be entirely self-contained: do not reference any files, variables, or paths from the codebase
    - Use valid YAML design token format for all token values
 
    Append at the very end of the file:

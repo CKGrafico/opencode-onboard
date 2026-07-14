@@ -17,29 +17,29 @@ Use the **question** tool to present a multi-question form:
 - Header: `"Type"`
 - Question: `"What type of project is this?"`
 - Options:
-  - `brownfield` — Existing codebase. Generate docs from your code.
-  - `greenfield` — Starting from scratch, little or no existing code.
+  - `brownfield`: Existing codebase. Generate docs from your code.
+  - `greenfield`: Starting from scratch, little or no existing code.
 
 **Question 2** (single-select):
 - Header: `"History"`
 - Question: `"Archive project history into OpenSpec?"`
 - Options:
-  - `Yes` — Scan codebase for existing docs, changelogs, decisions and archive them.
-  - `No` — Skip history archival.
+  - `Yes`: Scan codebase for existing docs, changelogs, decisions and archive them.
+  - `No`: Skip history archival.
 
 **Question 3** (single-select):
 - Header: `"Architecture"`
 - Question: `"Generate ARCHITECTURE.md from the codebase?"`
 - Options:
-  - `Yes` — Analyze project structure and generate architecture documentation.
-  - `No` — Skip, leave as placeholder.
+  - `Yes`: Analyze project structure and generate architecture documentation.
+  - `No`: Skip, leave as placeholder.
 
 **Question 4** (single-select):
 - Header: `"Design"`
 - Question: `"Generate DESIGN.md from the design system?"`
 - Options:
-  - `Yes` — Analyze Tailwind, CSS vars, tokens and generate design documentation.
-  - `No` — Skip, leave as placeholder.
+  - `Yes`: Analyze Tailwind, CSS vars, tokens and generate design documentation.
+  - `No`: Skip, leave as placeholder.
 
 Wait for ALL answers before proceeding.
 

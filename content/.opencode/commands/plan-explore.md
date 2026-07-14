@@ -2,7 +2,7 @@
 description: Think through an idea, investigate a problem, or clarify requirements before creating a change.
 ---
 
-This command is **read-only by default**. It investigates, analyzes, and discusses — but never writes files unless you explicitly ask it to.
+This command is **read-only by default**. It investigates, analyzes, and discusses: but never writes files unless you explicitly ask it to.
 
 ---
 
@@ -32,7 +32,7 @@ Load `@openspec-explore` skill and follow its instructions.
 
 **Step 1 - Discuss and analyze**
 
-Work through the exploration with the user. Discuss findings, tradeoffs, constraints, and recommended next steps. This is a thinking conversation — no files are created.
+Work through the exploration with the user. Discuss findings, tradeoffs, constraints, and recommended next steps. This is a thinking conversation: no files are created.
 
 **Step 2 - Offer to save (only if useful)**
 
@@ -47,15 +47,15 @@ Save this exploration to basic-memory for future reference? [yes/no]
 
 Do NOT write any files without this explicit ask.
 
-**Step 3 — Ask what's next**
+**Step 3: Ask what's next**
 
 Ask the user:
 
 ```text
 What next? Options:
-  /plan-propose — turn this into a full OpenSpec proposal with design, specs, and tasks
-  /plan-simple  — lightweight change proposal (skip design/specs)
-  /plan-apply   — dive straight into implementation (if the path is clear)
+  /plan-propose: turn this into a full OpenSpec proposal with design, specs, and tasks
+  /plan-todos  : lightweight task checklist (skip design/specs)
+  /plan-apply  : dive straight into implementation (if the path is clear)
   (or just tell me to keep exploring)
 ```
 

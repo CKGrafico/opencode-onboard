@@ -88,7 +88,7 @@
 - All OpenSpec paths resolve from `git rev-parse --show-toplevel`. Never use `/openspec/...`.
 - Only process top-level directories in `$REPO_ROOT/openspec/changes/`; exclude `archive/`.
 - Use change ID and slug only as search hints; do not assume the source branch name.
-- The oldest eligible merged change is the only candidate — never ask the user which change to archive (but do ask which PR if multiple match one change).
+- The oldest eligible merged change is the only candidate: never ask the user which change to archive (but do ask which PR if multiple match one change).
 - Never proceed if the selected PR is not completed.
 - Never use browser tools or direct web requests for GitHub. Use `gh` CLI only.
 - Never invent or guess PR, branch, or merge metadata.

@@ -3,7 +3,7 @@ import path from 'path'
 import { success } from '../../utils/exec.js'
 
 const FULLSTACK_FILE = 'fullstack-engineer.md'
-const FULLSTACK_DESCRIPTION = 'Default engineer that accumulates skills from all created persona engineers. Use as fallback when no specialist matches — but prefer spawning a specific engineer for deterministic results.'
+const FULLSTACK_DESCRIPTION = 'Default engineer that accumulates skills from all created persona engineers. Use as fallback when no specialist matches: but prefer spawning a specific engineer for deterministic results.'
 
 export async function generateFullstackEngineer({ cwd = process.cwd() } = {}) {
   const agentsDir = path.join(cwd, '.opencode', 'agents')

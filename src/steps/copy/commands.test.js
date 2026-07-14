@@ -65,7 +65,7 @@ describe('platform patching', () => {
     await patchArchiveCommand('gitlab', tmpDir)
 
     const content = await fse.readFile(dest, 'utf-8')
-    // glab has no `--state merged` / `--json <fields>` — the preset uses the
+    // glab has no `--state merged` / `--json <fields>`: the preset uses the
     // real syntax (`--merged --output json`); keep this assertion in sync.
     expect(content).toContain('glab mr list --repo {owner}/{repo} --merged --output json')
     expect(content).toContain('glab mr create')

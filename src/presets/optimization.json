@@ -27,6 +27,11 @@
       "name": "basic-memory knowledge graph (requires uv)",
       "value": "memory",
       "checked": true
+    },
+    {
+      "name": "humanizer skill (removes AI writing patterns)",
+      "value": "humanizer",
+      "checked": true
     }
   ]
 }

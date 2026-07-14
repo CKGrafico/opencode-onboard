@@ -59,11 +59,11 @@ export async function runWizard(version) {
     message: 'Max concurrent agents:',
     default: 3,
     choices: [
-      { name: '1', value: 1, description: 'Serial — one agent at a time' },
-      { name: '2', value: 2, description: 'Conservative — lower resource usage' },
-      { name: '3 (default)', value: 3, description: 'Recommended — balances speed vs MCP load' },
+      { name: '1', value: 1, description: 'Serial: one agent at a time' },
+      { name: '2', value: 2, description: 'Conservative: lower resource usage' },
+      { name: '3 (default)', value: 3, description: 'Recommended: balances speed vs MCP load' },
       { name: '4', value: 4, description: 'Higher parallelism' },
-      { name: '5', value: 5, description: 'Maximum — needs more resources' },
+      { name: '5', value: 5, description: 'Maximum: needs more resources' },
     ],
   })
 
@@ -122,7 +122,7 @@ export async function runWizard(version) {
   console.log()
   console.log(chalk.dim('  Note: the first time you open OpenCode in this project,'))
   console.log(chalk.dim('  it will install plugin dependencies. You may see a black'))
-  console.log(chalk.dim('  screen for a moment — this is normal. Wait for it to load.'))
+  console.log(chalk.dim('  screen for a moment: this is normal. Wait for it to load.'))
   console.log()
   if (toGenerate.length > 0) {
     console.log(`  OpenCode will generate ${toGenerate.join(' and ')}`)

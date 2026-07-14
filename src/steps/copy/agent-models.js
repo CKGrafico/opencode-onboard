@@ -26,7 +26,7 @@ function hasFrontmatterModel(content) {
 /**
  * Stamp a per-tier model onto each engineer agent file, since OpenCode resolves
  * a subagent's model from its agent definition (there is no per-spawn override).
- * One file per engineer — no variants. `fullstack-engineer` runs on the cheap `fast`
+ * One file per engineer: no variants. `fullstack-engineer` runs on the cheap `fast`
  * model; any other engineer present defaults to the capable `build` model.
  *
  * Files that already declare a `model:` are left untouched, so custom engineers

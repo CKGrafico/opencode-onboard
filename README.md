@@ -21,7 +21,7 @@ GitHub, Azure DevOps, Jira, GitLab, browser-based backlog, or combinations (e.g.
 
 Most codebases have no `AGENTS.md`, no architecture docs agents can read, and no defined workflow for picking up tasks. Agents end up improvising, producing inconsistent results.
 
-**opencode-onboard** fixes that in a single interactive wizard. It configures OpenCode with OpenSpec for structured change management, native subagent waves for parallel agent execution, codegraph for code intelligence, and basic-memory for shared context across agent sessions. It also installs an agent team, platform skills, and slash commands — everything agents need to plan, implement, and ship.
+**opencode-onboard** fixes that in a single interactive wizard. It configures OpenCode with OpenSpec for structured change management, native subagent waves for parallel agent execution, codegraph for code intelligence, and basic-memory for shared context across agent sessions. It also installs an agent team, platform skills, and slash commands: everything agents need to plan, implement, and ship.
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/CKGrafico/opencode-onboard/refs/heads/main/demo.gif" alt="opencode-onboard demo" width="700" />
@@ -106,16 +106,18 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 | `/repo-initialize` | Initialize the project. Asks greenfield vs brownfield, then activates the agent team. |
 | `/plan-explore` | Think through an idea or investigate a problem before committing to a plan. |
 | `/plan-propose <url or idea>` | Parse a GitHub Issue / Azure DevOps / Jira / browser URL or a direct idea into a structured plan (proposal, specs, tasks). Enriches each task with agent and model assignments. |
-| `/plan-simple <task>` | Quick plan for focused changes. Reads the codebase, creates a task checklist, and stops. No OpenSpec, no proposals, no specs. |
+| `/plan-todos <task>` | Quick plan for focused changes. Reads the codebase, creates a task checklist in the Todo pane, and stops. No OpenSpec, no proposals, no specs. |
 | `/plan-apply` | Implement tasks from the current plan. Detects format automatically: OpenSpec-annotated tasks run as parallel subagent waves; plain checkboxes run sequentially in-session. |
-| `/plan-pr` | Create a PR for the current branch, or read and classify PR review comments. |
+| `/ops-ship` | Create a PR for the current branch with screenshots if UI changed. |
+| `/ops-review` | Read and triage PR review feedback. Reports what needs fixing. |
+| `/ops-backlog` | Create an issue in the backlog platform (GitHub, Azure DevOps, Jira) from a description. |
 | `/plan-archive` | Archive a completed OpenSpec change. |
 | `/plan-goal <feature or URL>` | Autonomous, no-confirmation pipeline: branch off `main`, then propose → apply → archive (one commit per phase). Default: merge to `main` + delete branch. Add `push` keyword to push branch only. Add `pr` keyword to push + create a PR. For loop-engineering. |
 | `/make-engineer` | Interactive persona-driven flow to add a custom specialist engineer. Pick a persona, answer questions about your stack, and skills are installed automatically. |
 | `/make-architecture` | Generate or regenerate `ARCHITECTURE.md` from the codebase. |
 | `/make-design` | Generate or regenerate `DESIGN.md` from the design system. |
 | `/make-guardrails` | Generate a `project-guardrails` skill from `ARCHITECTURE.md` + project config files. Extracts architecture boundaries, naming, code style, testing, and git workflow rules. Updates all `*-engineer.md` to load the skill. |
-| `/make-user-model [user] <tier> <model>` | Set the model for a tier (`plan`, `build`, `fast`). Writes to `opencode-onboard.json` (team) or `opencode-onboard.user.json` (user override, gitignored) when `user` prefix is used. Restart to pick up — the `ob-subagent-tiers` plugin rebuilds tier agents at startup. Pass a model id or `current` for the active session model. |
+| `/make-user-model [user] <tier> <model>` | Set the model for a tier (`plan`, `build`, `fast`). Writes to `opencode-onboard.json` (team) or `opencode-onboard.user.json` (user override, gitignored) when `user` prefix is used. Restart to pick up: the `ob-subagent-tiers` plugin rebuilds tier agents at startup. Pass a model id or `current` for the active session model. |
 
 ---
 
@@ -171,9 +173,15 @@ Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 | `ob-userstory-az`       | Parse an Azure DevOps work item URL                                                                              |
 | `ob-userstory-jira`     | Parse a Jira issue URL via `acli` CLI                                                                            |
 | `ob-userstory-browser`  | Parse work item from any URL via browser automation (Linear, Trello, etc.)                                       |
-| `ob-pullrequest-gh`     | Create GitHub PRs with screenshots, triage review feedback                                                      |
-| `ob-pullrequest-az`     | Create Azure DevOps PRs, triage review feedback                                                                 |
-| `ob-pullrequest-gl`     | Create GitLab merge requests, triage review feedback                                                             |
+| `ob-ship-gh`            | Create GitHub PRs with screenshots                                                                               |
+| `ob-ship-az`            | Create Azure DevOps PRs with screenshots                                                                         |
+| `ob-ship-gl`            | Create GitLab merge requests with screenshots                                                                    |
+| `ob-review-gh`          | Read and triage GitHub PR review feedback                                                                        |
+| `ob-review-az`          | Read and triage Azure DevOps PR review feedback                                                                  |
+| `ob-review-gl`          | Read and triage GitLab MR review feedback                                                                        |
+| `ob-backlog-gh`         | Create a GitHub issue from a description                                                                         |
+| `ob-backlog-az`         | Create an Azure DevOps work item from a description                                                              |
+| `ob-backlog-jira`       | Create a Jira issue from a description                                                                           |
 | `browser-automation`    | Browser control via `@different-ai/opencode-browser` (localhost + browser backlog exception)                    |
 
 Skills live in `.agents/skills/`. Any `SKILL.md` file in a subdirectory is automatically discoverable, write your own and agents will pick them up.
@@ -224,7 +232,7 @@ lead
 7. Verify with tests/build/lint according to task scope
 8. Ship/update PR via lead flow
 
-Agents run as native OpenCode subagents in parallel waves — no external plugin, no git worktrees. The lead's Todo pane is the live board, and the `ob-subagent-monitor` plugin mirrors state to `.opencode/.ob-run.json`. Navigate into any running subagent with `ctrl+x ↓` then `←`/`→`.
+Agents run as native OpenCode subagents in parallel waves: no external plugin, no git worktrees. The lead's Todo pane is the live board, and the `ob-subagent-monitor` plugin mirrors state to `.opencode/.ob-run.json`. Navigate into any running subagent with `ctrl+x ↓` then `←`/`→`.
 
 ---
 
@@ -249,11 +257,13 @@ your-project/
         ├── ob-default/             ← fallback skill
         ├── ob-generic-guardrails/  ← foundation for user guardrails
         ├── ob-userstory/           ← the variant matching your backlog platform, renamed on install
-        ├── ob-pullrequest/         ← the variant matching your repo platform, renamed on install
+        ├── ob-ship/                ← the variant matching your repo platform, renamed on install
+        ├── ob-review/              ← the variant matching your repo platform, renamed on install
+        ├── ob-backlog/             ← the variant matching your backlog platform, renamed on install
         └── browser-automation/
 ```
 
-Platform skills ship as suffixed variants (`ob-userstory-gh/-az/-jira/-browser`, `ob-pullrequest-gh/-az/-gl`) and the installer copies only the matching one, renamed to its generic name. Source-roots metadata lands in `.opencode/source-roots.json`; token-optimization guidance is injected into AGENTS.md marker blocks during onboarding.
+Platform skills ship as suffixed variants (`ob-userstory-gh/-az/-jira/-browser`, `ob-ship-gh/-az/-gl`, `ob-review-gh/-az/-gl`, `ob-backlog-gh/-az/-jira`) and the installer copies only the matching one, renamed to its generic name. Source-roots metadata lands in `.opencode/source-roots.json`; token-optimization guidance is injected into AGENTS.md marker blocks during onboarding.
 
 ---
 
@@ -290,18 +300,18 @@ Both commands are safe to rerun at any time as the project evolves.
 
 Long unattended agent sessions can consume significant tokens. Set these controls up **before** first use:
 
-1. **Set provider-side limits first** — monthly soft-limit + hard usage cap in your provider dashboard:
+1. **Set provider-side limits first**: monthly soft-limit + hard usage cap in your provider dashboard:
    - OpenAI: [platform.openai.com/account/limits](https://platform.openai.com/account/limits)
    - Anthropic: [console.anthropic.com](https://console.anthropic.com)
    - Google AI Studio: [aistudio.google.com/app/usage](https://aistudio.google.com/app/usage)
 
-2. **Route models by task type** — use a fast/cheap model (e.g. `haiku`, `gpt-4o-mini`) for orchestration and status loops; reserve expensive models (e.g. `sonnet`, `opus`, `gpt-4o`) for implementation tasks only.
+2. **Route models by task type**: use a fast/cheap model (e.g. `haiku`, `gpt-4o-mini`) for orchestration and status loops; reserve expensive models (e.g. `sonnet`, `opus`, `gpt-4o`) for implementation tasks only.
 
-3. **Install the quota plugin** — the [`@slkiser/opencode-quota`](https://www.npmjs.com/package/@slkiser/opencode-quota) plugin adds `/quota` and `/quota_status` commands that surface real-time token usage inside OpenCode sessions.
+3. **Install the quota plugin**: the [`@slkiser/opencode-quota`](https://www.npmjs.com/package/@slkiser/opencode-quota) plugin adds `/quota` and `/quota_status` commands that surface real-time token usage inside OpenCode sessions.
 
-4. **Use `/quota` checkpoints** — run `/quota` before starting any `/plan-apply` session and after each agent wave. Pause at 75% consumed; stop at 90%.
+4. **Use `/quota` checkpoints**: run `/quota` before starting any `/plan-apply` session and after each agent wave. Pause at 75% consumed; stop at 90%.
 
-5. **Confirm before large runs** — the onboarded `/plan-apply` workflow will ask for your confirmation before spawning agents for Medium (4–7 tasks) or High (8+ tasks) scope sessions.
+5. **Confirm before large runs**: the onboarded `/plan-apply` workflow will ask for your confirmation before spawning agents for Medium (4–7 tasks) or High (8+ tasks) scope sessions.
 
 ---
 

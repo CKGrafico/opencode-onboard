@@ -17,7 +17,7 @@ async function pickRoleModel(role, allModels) {
 
     const suggestion = rolePreset.suggestions?.[provider]
     if (suggestion) info(`  Suggested: ${suggestion}`)
-    if (filtered.length === 0 && provider) warn(`  No ${provider} models found — showing all`)
+    if (filtered.length === 0 && provider) warn(`  No ${provider} models found: showing all`)
 
     const model = await pickModel(rolePreset.prompt, available)
     if (model !== '__back__') return model
@@ -45,7 +45,7 @@ export async function chooseModels() {
   const models = buildDisplayModels(rawModels);
   success(`${models.length} models available`);
   console.log();
-  info('Three models — main session, engineers, and light commands.');
+  info('Three models: main session, engineers, and light commands.');
   info('Cost indicators: [$] cheap  [$$] mid  [$$$] expensive');
   info('Pick provider first, then search by name. Change later in .opencode/opencode.json');
   console.log();

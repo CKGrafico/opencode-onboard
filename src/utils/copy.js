@@ -4,7 +4,7 @@ import path from 'path'
 // Folders never copied (skills handled separately by installSkills, .bootstrap is internal tooling)
 const ALWAYS_EXCLUDE = ['.bootstrap', 'skills', 'node_modules']
 
-// Files never overwritten even with forceOverwrite — user owns these.
+// Files never overwritten even with forceOverwrite: user owns these.
 // The CLI ships templates, but init / the wizard / the user populate them
 // with project-specific content. Overwriting on update would destroy user work.
 const NEVER_OVERWRITE = [

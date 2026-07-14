@@ -12,7 +12,7 @@ export async function runJoin() {
   const logo = chalk.hex('#fe3d57')
   console.log()
   console.log(logo('  🤝 opencode-onboard join'))
-  console.log(chalk.dim('  New team member setup — checks & local installs only.'))
+  console.log(chalk.dim('  New team member setup: checks & local installs only.'))
   console.log(chalk.dim('  Does not modify committed project files.'))
   console.log()
 
@@ -53,10 +53,10 @@ export async function runJoin() {
       await execa('npm', ['install'], { cwd: opencodeDir, reject: false, stdio: 'pipe' })
       success('OpenCode plugins installed')
     } catch {
-      warn('npm install failed in .opencode/ — plugins may not load correctly')
+      warn('npm install failed in .opencode/: plugins may not load correctly')
     }
   } else {
-    warn('No .opencode/package.json found — skipping plugin install')
+    warn('No .opencode/package.json found: skipping plugin install')
   }
 
   // Step 3: Install/update skills
@@ -65,7 +65,7 @@ export async function runJoin() {
     await execa('npx', ['skills'], { cwd: process.cwd(), reject: false, stdio: 'pipe' })
     success('Skills installed/updated')
   } catch {
-    warn('npx skills failed — skills may be missing')
+    warn('npx skills failed: skills may be missing')
   }
 
   // Step 4: OpenSpec CLI check
@@ -74,7 +74,7 @@ export async function runJoin() {
   if (openspecAvailable) {
     success('OpenSpec CLI is available')
   } else {
-    info('OpenSpec not found on PATH — installing...')
+    info('OpenSpec not found on PATH: installing...')
     try {
       const result = await execa('npm', ['install', '@fission-ai/openspec', '--global'], {
         cwd: process.cwd(),
@@ -84,10 +84,10 @@ export async function runJoin() {
       if (result.exitCode === 0) {
         success('OpenSpec installed')
       } else {
-        warn('OpenSpec install failed — run `npm install -g @fission-ai/openspec` manually')
+        warn('OpenSpec install failed: run `npm install -g @fission-ai/openspec` manually')
       }
     } catch {
-      warn('OpenSpec install failed — run `npm install -g @fission-ai/openspec` manually')
+      warn('OpenSpec install failed: run `npm install -g @fission-ai/openspec` manually')
     }
   }
 
@@ -120,23 +120,23 @@ export async function runJoin() {
           if (stderr.includes('already installed')) {
             success('basic-memory already installed')
           } else {
-            warn('basic-memory install exited with non-zero code — MCP may not work')
+            warn('basic-memory install exited with non-zero code: MCP may not work')
           }
         }
       } catch (err) {
         warn(`basic-memory install failed: ${err.message}`)
       }
     } else {
-      warn('uv not found — basic-memory MCP will not work. Install uv from https://docs.astral.sh/uv/')
+      warn('uv not found: basic-memory MCP will not work. Install uv from https://docs.astral.sh/uv/')
     }
   } else {
-    info('basic-memory not configured for this project — skipping')
+    info('basic-memory not configured for this project: skipping')
   }
 
   // Step 6: Codegraph (if project uses it)
   header('Step 6, Checking codegraph')
   if (cfg?.mcp?.['codegraph']) {
-    info('Project uses codegraph MCP — building index...')
+    info('Project uses codegraph MCP: building index...')
     try {
       const result = await execa('npx', ['--yes', '@colbymchenry/codegraph', 'init', '-i'], {
         cwd: process.cwd(),
@@ -147,13 +147,13 @@ export async function runJoin() {
       if (result.exitCode === 0) {
         success('codegraph index initialized')
       } else {
-        warn('codegraph init failed — codegraph_search may be slow or unavailable')
+        warn('codegraph init failed: codegraph_search may be slow or unavailable')
       }
     } catch {
-      warn('codegraph init failed — codegraph_search may be slow or unavailable')
+      warn('codegraph init failed: codegraph_search may be slow or unavailable')
     }
   } else {
-    info('codegraph not configured for this project — skipping')
+    info('codegraph not configured for this project: skipping')
   }
 
   // Step 7: RTK check
@@ -180,7 +180,7 @@ export async function runJoin() {
       info('You have a local model override (opencode-onboard.user.json).')
       info('To change: /make-user-model user <tier> <model>')
     } else {
-      info('No local override — using team defaults.')
+      info('No local override: using team defaults.')
       info('To override a tier for your machine: /make-user-model user <tier> <model>')
       info('  e.g. /make-user-model user build current')
     }

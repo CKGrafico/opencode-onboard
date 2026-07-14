@@ -21,7 +21,7 @@ export async function writeModelsToConfigs({ buildModel, cwd = process.cwd() }) 
   const errors = []
   parse(text, errors)
   if (errors.length > 0) {
-    warn('.opencode/opencode.json could not be parsed — leaving it untouched. Set "model" manually.')
+    warn('.opencode/opencode.json could not be parsed: leaving it untouched. Set "model" manually.')
     return
   }
 

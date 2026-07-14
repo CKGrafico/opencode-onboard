@@ -88,7 +88,7 @@ export async function installCodegraph(options = {}) {
     const configFixed = await fixCodegraphConfig()
 
     if (!configFixed) {
-      warn('codegraph config could not be merged — skipping init')
+      warn('codegraph config could not be merged: skipping init')
       return { optedIn: true, installed: false }
     }
 

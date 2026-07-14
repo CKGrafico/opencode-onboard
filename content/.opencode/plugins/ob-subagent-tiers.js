@@ -3,7 +3,7 @@
 // On startup, reads *-engineer.md agent files (templates) and creates tier
 // variant files (*-engineer.build.md, *-engineer.fast.md, *-engineer.plan.md)
 // on disk with the model resolved from the config, then injects them in-memory.
-// Tier variants are always mode: subagent — spawned by /ob-apply, never primary.
+// Tier variants are always mode: subagent: spawned by /ob-apply, never primary.
 //
 // Model resolution priority:
 //   1. `.opencode/opencode-onboard.user.json` → models  (user override, gitignored)
@@ -11,7 +11,7 @@
 //   3. unset → variant not created (the template inherits the lead's model)
 //
 // The variant files are gitignored (*-engineer.*.md in .opencode/.gitignore)
-// and regenerated on every startup — so /ob-set-model + restart picks up
+// and regenerated on every startup: so /ob-set-model + restart picks up
 // new models without touching the template files.
 
 import fs from "node:fs/promises"
@@ -72,7 +72,7 @@ export const ObSubagentTiers = async ({ directory }) => {
     if (!fmMatch) return `---\nmode: subagent\n${modelLine}\n---\n\n${templateContent}`
 
     let fm = fmMatch[1]
-    // Force mode: subagent on tier variants — they are spawned by /ob-apply, never primary.
+    // Force mode: subagent on tier variants: they are spawned by /ob-apply, never primary.
     fm = /^mode:/m.test(fm)
       ? fm.replace(/^mode:.*$/m, 'mode: subagent')
       : `mode: subagent\n${fm}`
@@ -160,7 +160,7 @@ export const ObSubagentTiers = async ({ directory }) => {
           console.error(`[ob-subagent-tiers] Created ${total} variant files (${templates.length} engineers x ${available.length} tiers)`)
         } else if (templates.length > 0) {
           // Only log the "no variants" warning when there ARE engineer templates
-          // but no models resolved — that's a real config problem. Skip when
+          // but no models resolved: that's a real config problem. Skip when
           // there are no templates at all (e.g. global config dir has no agents).
           console.error(`[ob-subagent-tiers] No variants created. Models: ${JSON.stringify(models)}`)
         }

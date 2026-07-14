@@ -2,7 +2,7 @@
 description: Generate or update a project-guardrails skill from ARCHITECTURE.md and relevant project files.
 ---
 
-Analyze `ARCHITECTURE.md` and other project files to generate or update a `project-guardrails` skill — a set of rules and constraints extracted from the project's own documentation that agents must follow.
+Analyze `ARCHITECTURE.md` and other project files to generate or update a `project-guardrails` skill: a set of rules and constraints extracted from the project's own documentation that agents must follow.
 
 **Steps**
 
@@ -13,7 +13,7 @@ Analyze `ARCHITECTURE.md` and other project files to generate or update a `proje
    - **Exists** and has a `<!-- Last updated:` footer → **Update mode**: incrementally update.
    - **Exists** but no timestamp → proceed in **Generate mode** (full regeneration).
 
-2a. **Generate mode — read source documents**
+2a. **Generate mode: read source documents**
 
    Read ALL of the following that exist:
    - `ARCHITECTURE.md` (primary source)
@@ -22,15 +22,15 @@ Analyze `ARCHITECTURE.md` and other project files to generate or update a `proje
    - `README.md` (setup, conventions)
    - `CONTRIBUTING.md` (if present)
    - `.opencode/opencode-onboard.json` (platform, models, concurrency)
-   - `openspec/config.yaml` (if present — domain context and rules)
-   - Root config files: `package.json`, `tsconfig.json`, `biome.json`, `.eslintrc*`, `Cargo.toml`, `go.mod`, `pyproject.toml`, `pom.xml` — whatever exists
-   - CI/CD workflows: `.github/workflows/*`, `azure-pipelines.yml` — whatever exists
+   - `openspec/config.yaml` (if present: domain context and rules)
+   - Root config files: `package.json`, `tsconfig.json`, `biome.json`, `.eslintrc*`, `Cargo.toml`, `go.mod`, `pyproject.toml`, `pom.xml`: whatever exists
+   - CI/CD workflows: `.github/workflows/*`, `azure-pipelines.yml`: whatever exists
 
    Use file tools to discover constraints: `read` the documents above, `grep` for lint/formatter config rules.
 
-   Do not rely on prior knowledge — read the actual files and query the actual code graph.
+   Do not rely on prior knowledge: read the actual files and query the actual code graph.
 
-2b. **Update mode — incremental analysis**
+2b. **Update mode: incremental analysis**
 
    Extract the `<!-- Last updated: <ISO date> -->` timestamp from the existing skill file. Then:
    - Read `ARCHITECTURE.md` and check its `<!-- Last updated:` timestamp. If ARCHITECTURE.md hasn't changed since the guardrails were last generated, report "Guardrails up to date" and stop.
@@ -43,21 +43,21 @@ Analyze `ARCHITECTURE.md` and other project files to generate or update a `proje
 
    From the documents and code graph analysis, extract concrete, actionable rules in these categories. Only include a category if you found real evidence for it:
 
-   - **Architecture constraints** — layer boundaries, module dependencies, forbidden imports, directory ownership rules (e.g. "src/api/ must not import from src/ui/"). Use codegraph MCP tools to verify actual import boundaries.
-   - **Naming conventions** — file naming, component naming, API route conventions, branch naming
-   - **Code style** — formatter config, lint rules, import ordering, max line length — derive from actual config files, not guesses
-   - **Testing rules** — test file locations, naming, coverage gates, what must be tested before merge
-   - **Build & deployment** — build commands, env requirements, deployment targets, CI gates
-   - **Data & state** — migration rules, schema change process, state management patterns
-   - **Security** — auth boundaries, input validation requirements, secrets handling
-   - **Dependencies** — package manager, lockfile rules, upgrade policy, forbidden packages
-   - **Git workflow** — branch naming, commit message format, PR process (platform-specific from `opencode-onboard.json`)
-   - **Domain-specific rules** — anything in `openspec/config.yaml` context or `ARCHITECTURE.md` constraints/risks sections
+   - **Architecture constraints**: layer boundaries, module dependencies, forbidden imports, directory ownership rules (e.g. "src/api/ must not import from src/ui/"). Use codegraph MCP tools to verify actual import boundaries.
+   - **Naming conventions**: file naming, component naming, API route conventions, branch naming
+   - **Code style**: formatter config, lint rules, import ordering, max line length: derive from actual config files, not guesses
+   - **Testing rules**: test file locations, naming, coverage gates, what must be tested before merge
+   - **Build & deployment**: build commands, env requirements, deployment targets, CI gates
+   - **Data & state**: migration rules, schema change process, state management patterns
+   - **Security**: auth boundaries, input validation requirements, secrets handling
+   - **Dependencies**: package manager, lockfile rules, upgrade policy, forbidden packages
+   - **Git workflow**: branch naming, commit message format, PR process (platform-specific from `opencode-onboard.json`)
+   - **Domain-specific rules**: anything in `openspec/config.yaml` context or `ARCHITECTURE.md` constraints/risks sections
 
    Each rule must be:
-   - **Concrete** — "Use `pnpm` not `npm`" not "Use the right package manager"
-   - **Evidence-based** — derive from the files/code graph you analyzed, do not invent rules
-   - **Actionable** — an agent can check it before acting
+   - **Concrete**: "Use `pnpm` not `npm`" not "Use the right package manager"
+   - **Evidence-based**: derive from the files/code graph you analyzed, do not invent rules
+   - **Actionable**: an agent can check it before acting
 
 4. **Write the skill**
 
@@ -109,13 +109,13 @@ Analyze `ARCHITECTURE.md` and other project files to generate or update a `proje
 
 5. **Update agents**
 
-   For every `*-engineer.md` in `.opencode/agents/`, add `@project-guardrails` to the Guardrails ability line (skip if already present). Keep the line's existing entries exactly as they are — only insert `@project-guardrails` after `@ob-generic-guardrails`, never add or remove other skills:
+   For every `*-engineer.md` in `.opencode/agents/`, add `@project-guardrails` to the Guardrails ability line (skip if already present). Keep the line's existing entries exactly as they are: only insert `@project-guardrails` after `@ob-generic-guardrails`, never add or remove other skills:
    ```markdown
    ## Abilities
    - Guardrails: @ob-generic-guardrails, @project-guardrails[, ...existing entries unchanged]
    ```
 
-   Exclude tier variant files (`*-engineer.build.md`, `*-engineer.fast.md`, `*-engineer.plan.md`) — they are generated copies; only update the base templates.
+   Exclude tier variant files (`*-engineer.build.md`, `*-engineer.fast.md`, `*-engineer.plan.md`): they are generated copies; only update the base templates.
 
 6. **Store summary in basic-memory**
 

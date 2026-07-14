@@ -68,6 +68,6 @@
 - All OpenSpec paths resolve from `git rev-parse --show-toplevel`. Never use `/openspec/...`.
 - Only process top-level directories in `$REPO_ROOT/openspec/changes/`; exclude `archive/`.
 - Use change ID and slug only as search hints; do not assume the source branch name.
-- The oldest unarchived change is the only candidate — never ask the user which change to archive.
+- The oldest unarchived change is the only candidate: never ask the user which change to archive.
 - This mode has no GitHub or Azure DevOps integration. Never call `gh` or `az`, and never use browser tools or direct web requests for PR/work-item lookups.
 - Never invent or guess PR, branch, or merge metadata.

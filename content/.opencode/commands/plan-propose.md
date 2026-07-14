@@ -2,11 +2,11 @@
 description: Parse a work item or idea and propose a change plan with enriched task assignments.
 ---
 
-> **Hard rule — never write files before user confirmation.** This command generates the full proposal (proposal.md, specs, tasks.md) in memory, shows it to the user, and only writes to `openspec/changes/` after the user explicitly approves. The one exception is basic-memory notes for context sharing — those are minor and non-destructive. This command generates the full proposal (proposal.md, specs, tasks.md) in memory, shows it to the user, and only writes to `openspec/changes/` after the user explicitly approves. The one exception is basic-memory notes for context sharing — those are minor and non-destructive.
+> **Hard rule: never write files before user confirmation.** This command generates the full proposal (proposal.md, specs, tasks.md) in memory, shows it to the user, and only writes to `openspec/changes/` after the user explicitly approves. The one exception is basic-memory notes for context sharing: those are minor and non-destructive.
 
 **Step 0.a - Check for unarchived changes**
 
-**IMPORTANT**: Never skip this step, with one exception: a calling command may explicitly override it (`/plan-goal` does — treat the answer as `continue`). Otherwise the user must give a response before proceeding.
+**IMPORTANT**: Never skip this step, with one exception: a calling command may explicitly override it (`/plan-goal` does: treat the answer as `continue`). Otherwise the user must give a response before proceeding.
 
 Before proposing a new change, inspect `openspec/changes/` (ignore `openspec/changes/archive`).
 If any change folder exists in `openspec/changes/` (names vary by platform: `gh-*`, `us-*`, or a plain slug), list them and warn the user with this exact prompt:
@@ -30,22 +30,22 @@ Wait for the user to respond:
 
 **Step 1 - Generate the proposal in memory**
 
-Load `@openspec-propose` skill and follow its instructions to **generate** proposal.md, specs, and tasks.md — but **do not write them to disk yet**. Build the complete proposal content in your context.
+Load `@openspec-propose` skill and follow its instructions to **generate** proposal.md, specs, and tasks.md: but **do not write them to disk yet**. Build the complete proposal content in your context.
 
 **Step 2 - Enrich task assignments**
 
 1. List every `*-engineer.md` file in `.opencode/agents/`. For each file read:
-   - `description:` from the YAML frontmatter — the engineer's specialization summary
-   - `## Abilities` section — the skills listed under Development, Testing, Infrastructure (e.g. `@nodejs-backend`, `@secure-nextjs-api-routes`)
+   - `description:` from the YAML frontmatter: the engineer's specialization summary
+   - `## Abilities` section: the skills listed under Development, Testing, Infrastructure (e.g. `@nodejs-backend`, `@secure-nextjs-api-routes`)
    Build a map of `agent-name → { description, abilities }`.
 2. For each task, compare the task text and domain against every engineer's description AND abilities. Pick the engineer whose combined profile most closely matches. Only use `fullstack-engineer` if no specialist is a clear fit.
 3. Pick a **tier** for each task based on complexity:
-   - `build` — complex code: data models, APIs, auth logic, core business logic, UI components
-   - `fast` — light work: i18n keys, config changes, env variables, navigation links, simple markup, verification runs
-   - `plan` — reserved for orchestration, do not use for implementation tasks
-   The tier suffix is appended to the agent name with a dot (e.g. `backend-engineer.build`). This is the agent name you write in the annotation — the `ob-subagent-tiers` plugin resolves the model at startup from `models[<tier>]`.
-4. Derive **`depends_on`** for each task — the OpenSpec task IDs (`N.M`) it logically needs completed first (a task that consumes another's output: UI needs its RPC, tests need the code, a seed needs its migration). Root tasks get `[]`. Reference the IDs OpenSpec already generated; never invent new ones.
-5. Derive **`touches`** for each task — the file path(s)/glob(s) it will create or modify (the task text usually names them, e.g. "Modify src/board/components/CreateForm.tsx"). This lets `/plan-apply` serialize same-file tasks that have no logical dependency. Include net-new files.
+   - `build`: complex code: data models, APIs, auth logic, core business logic, UI components
+   - `fast`: light work: i18n keys, config changes, env variables, navigation links, simple markup, verification runs
+   - `plan`: reserved for orchestration, do not use for implementation tasks
+   The tier suffix is appended to the agent name with a dot (e.g. `backend-engineer.build`). This is the agent name you write in the annotation: the `ob-subagent-tiers` plugin resolves the model at startup from `models[<tier>]`.
+4. Derive **`depends_on`** for each task: the OpenSpec task IDs (`N.M`) it logically needs completed first (a task that consumes another's output: UI needs its RPC, tests need the code, a seed needs its migration). Root tasks get `[]`. Reference the IDs OpenSpec already generated; never invent new ones.
+5. Derive **`touches`** for each task: the file path(s)/glob(s) it will create or modify (the task text usually names them, e.g. "Modify src/board/components/CreateForm.tsx"). This lets `/plan-apply` serialize same-file tasks that have no logical dependency. Include net-new files.
 6. Annotate each task line in-place with all three fields:
 
 ```
@@ -87,9 +87,9 @@ Wait for the user's response. Do NOT proceed without a response.
 **Step 4 - Write (only after user confirms)**
 
 Write the proposal files to `openspec/changes/{change-slug}/`:
-- `proposal.md` — the change description and rationale
-- `specs/` — any spec files generated
-- `tasks.md` — the enriched task list with agent annotations
+- `proposal.md`: the change description and rationale
+- `specs/`: any spec files generated
+- `tasks.md`: the enriched task list with agent annotations
 - `write_note` with title `proposal-{change-slug}` containing the change id, task count, and agent+tier assignments. This lets `/plan-apply` verify the plan on resume.
 - `write_note` with title `change-{slug}-context` containing the proposal context so `/plan-apply` can pick it up for subagent spawns.
 

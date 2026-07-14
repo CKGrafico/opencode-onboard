@@ -7,6 +7,7 @@ import { installQuota } from './quota.js'
 import { installCaveman } from './caveman.js'
 import { installCodegraph } from './codegraph.js'
 import { installMemory } from './memory.js'
+import { installHumanizer } from './humanizer.js'
 import { enableCavemanGuidance } from './caveman-guidance.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -74,7 +75,7 @@ export async function tokenOptimizationStep(options = {}) {
     } catch (err) {
       if (err.name !== 'AbortPromptError') throw err
       selected = defaultSelected
-      info('No response — continuing with the recommended defaults.')
+      info('No response: continuing with the recommended defaults.')
     } finally {
       clearTimeout(timer)
     }
@@ -114,8 +115,12 @@ export async function tokenOptimizationStep(options = {}) {
     ? await installMemory({ skipHeader: true })
     : { optedIn: false, installed: false }
 
+  const humanizer = has('humanizer')
+    ? await installHumanizer({ skipHeader: true, installScope })
+    : { optedIn: false, installed: false }
+
   if (selected.length === 0) warn('No token optimization tools selected')
   else success('Token optimization step completed')
 
-  return { rtk, quota, caveman, cavemanGuidance, codegraph, memory }
+  return { rtk, quota, caveman, cavemanGuidance, codegraph, memory, humanizer }
 }

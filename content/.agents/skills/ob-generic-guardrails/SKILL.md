@@ -36,19 +36,24 @@ license: MIT
 ## CodeGraph
 
 - If `codegraph_explore` is available in your tools, use it BEFORE grep/read to understand or locate code. One call returns the relevant symbols' verbatim source plus the call paths between them.
-- Do NOT run `codegraph` in bash — it is an MCP server, not a CLI tool.
+- Do NOT run `codegraph` in bash: it is an MCP server, not a CLI tool.
 - If codegraph is not available, use standard grep/glob/read for code exploration.
 
 ## Basic Memory
 
 - If basic-memory MCP tools are available (`search`, `write_note`, `edit_note`, `build_context`, `recent_activity`), use them for cross-session context: `search` for prior decisions before implementing unfamiliar areas, `write_note` for architecture decisions and cross-agent context.
-- Do NOT run `basic-memory` in bash — it is an MCP server.
+- Do NOT run `basic-memory` in bash: it is an MCP server.
 - If not available, skip memory operations.
 
 ## Caveman
 
 - If the `@caveman` skill is loaded, activate caveman mode for all responses.
 - No revert unless user says "stop caveman" or "normal mode".
+
+## Humanizer
+
+- If the `@humanizer` skill is loaded, apply it to all written output (commit messages, PR descriptions, docs, proposals) to remove AI writing patterns and sound more natural.
+- Do NOT apply humanizer to code, config files, or terminal output: only to prose.
 
 ## Engineer workflow (when spawned)
 
@@ -59,4 +64,4 @@ When the lead spawns you via the task tool, your assigned task IDs and text are 
 3. Implement your assigned tasks in dependency order. Edit only files within your assigned scope.
 4. Run the project's tests/lint before marking done (see **Code** above).
 5. Write a `task-<id>-result` note to basic-memory summarizing what you changed and any decisions.
-6. Return a concise summary — that is your result to the lead. Then you exit; you do not poll, claim, or wait for more work.
+6. Return a concise summary: that is your result to the lead. Then you exit; you do not poll, claim, or wait for more work.

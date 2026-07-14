@@ -23,7 +23,7 @@ export async function installMemory(options = {}) {
 
   // Pre-install basic-memory so the `basic-memory` binary is on PATH.
   // `uv tool install` puts it in ~/.local/bin (or equivalent),
-  // so opencode can call `basic-memory mcp` directly — no uvx resolution delay.
+  // so opencode can call `basic-memory mcp` directly: no uvx resolution delay.
   loading('installing basic-memory (this may take a minute)...')
   try {
     const installResult = await execa('uv', ['tool', 'install', 'basic-memory'], {
@@ -34,7 +34,7 @@ export async function installMemory(options = {}) {
     if (installResult.exitCode === 0) {
       success('basic-memory installed')
     } else {
-      warn('basic-memory install exited with non-zero code — MCP may be slow on first connect')
+      warn('basic-memory install exited with non-zero code: MCP may be slow on first connect')
     }
   } catch (err) {
     warn(`basic-memory install failed: ${err.message}`)
@@ -78,7 +78,7 @@ export async function installMemory(options = {}) {
     if (result.exitCode === 0) {
       success('basic-memory skill installed')
     } else {
-      warn('basic-memory skill install exited with non-zero code — skipping')
+      warn('basic-memory skill install exited with non-zero code: skipping')
     }
   } catch (err) {
     warn(`basic-memory skill install failed: ${err.message}`)

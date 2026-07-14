@@ -79,7 +79,7 @@ gh issue edit <number> --repo {owner}/{repo} --add-label "in-progress"
 openspec/changes/{change-name}/images/{screenshot}.png
 ```
 
-### Blob URL format (preferred — keep `?raw=true` when embedding in markdown)
+### Blob URL format (preferred: keep `?raw=true` when embedding in markdown)
 ```
 https://github.com/{owner}/{repo}/blob/{sha}/openspec/changes/{change}/images/{file}.png?raw=true
 ```

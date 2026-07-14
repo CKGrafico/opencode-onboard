@@ -11,9 +11,9 @@ Usage:
 /make-user-model user <tier> <model>
 ```
 
-- `user` — optional prefix. If present, writes to `.opencode/opencode-onboard.user.json` (gitignored, overrides team config for this machine only). If absent, writes to `.opencode/opencode-onboard.json` (shared with the team).
-- `<tier>` — one of `plan`, `build`, `fast`.
-- `<model>` — a fully-qualified model id (e.g. `opencode/big-pickle`) OR the keyword `current` to use the model active in this session.
+- `user`: optional prefix. If present, writes to `.opencode/opencode-onboard.user.json` (gitignored, overrides team config for this machine only). If absent, writes to `.opencode/opencode-onboard.json` (shared with the team).
+- `<tier>`: one of `plan`, `build`, `fast`.
+- `<model>`: a fully-qualified model id (e.g. `opencode/big-pickle`) OR the keyword `current` to use the model active in this session.
 
 Arguments: `$ARGUMENTS`
 
@@ -45,4 +45,4 @@ Arguments: `$ARGUMENTS`
 
    **Restart opencode** for the change to take effect. The `ob-subagent-tiers` plugin reads the model configs at startup and injects tier-suffixed agent variants (`<engineer>.<tier>`) into the live config. After restart, `/plan-apply` will spawn agents on the new model.
 
-**This command edits `opencode-onboard.json` (team) or `opencode-onboard.user.json` (user) only.** It never modifies agent files, `opencode.json`, or `tasks.md`. Tier variants are generated in-memory by the `ob-subagent-tiers` plugin at startup — no file re-stamping needed.
+**This command edits `opencode-onboard.json` (team) or `opencode-onboard.user.json` (user) only.** It never modifies agent files, `opencode.json`, or `tasks.md`. Tier variants are generated in-memory by the `ob-subagent-tiers` plugin at startup: no file re-stamping needed.

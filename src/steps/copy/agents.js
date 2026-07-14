@@ -87,7 +87,7 @@ export async function patchAgentsMd(ctx) {
     if (!enabled) continue
     const result = skipStepBlock(content, title, note)
     if (!result.matched) {
-      warn(`repo-initialize.md step "${title}" not found — template drift? Skipping this patch.`)
+      warn(`repo-initialize.md step "${title}" not found: template drift? Skipping this patch.`)
       continue
     }
     content = result.content

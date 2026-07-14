@@ -79,4 +79,4 @@ Browser MCP tools are permitted ONLY for interactions with the LOCAL running app
 - ❌ Use browser tools for any DevOps or GitHub CLI operations, FORBIDDEN
 - ❌ Use browser tools to read or modify production systems, FORBIDDEN
 
-**Exception for "Others (Browser)" backlog platform:** When the user selects "Others (Browser)" as their backlog platform during onboarding, the `ob-userstory` skill explicitly allows navigating to work item URLs the user provides. This is the ONLY case where external navigation is permitted — and ONLY to URLs the user explicitly gives you.
+**Exception for "Others (Browser)" backlog platform:** When the user selects "Others (Browser)" as their backlog platform during onboarding, the `ob-userstory` skill explicitly allows navigating to work item URLs the user provides. This is the ONLY case where external navigation is permitted: and ONLY to URLs the user explicitly gives you.

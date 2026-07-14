@@ -76,7 +76,7 @@ Generate API token at: https://id.atlassian.com/manage-profile/security/api-toke
    - OpenSpec change created: {change-name}
    - Work item transition: {done / skipped}
 
-After reporting, the lead MUST run `/plan-propose` to generate the proposal, specs, and tasks. After `/plan-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"** — do NOT proceed to `/plan-apply` until confirmed.
+After reporting, the lead MUST run `/plan-propose` to generate the proposal, specs, and tasks. After `/plan-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"**: do NOT proceed to `/plan-apply` until confirmed.
 
 ---
 
@@ -112,9 +112,9 @@ acli jira workitem comment create --key "PROJ-123" --body "Implementation starte
 
 ## Rules
 
-- NEVER use browser tools to navigate to atlassian.net — use `acli` CLI only
+- NEVER use browser tools to navigate to atlassian.net: use `acli` CLI only
 - NEVER output API tokens or credentials
 - The Jira issue key format is `PROJECT-NUMBER` (e.g. `PROJ-123`)
 - If `acli` is not installed, report a blocker and tell the user to install from https://developer.atlassian.com/cloud/acli/guides/install-acli/
 - If not authenticated, tell the user to run `acli jira auth login`
-- Jira is a backlog-only platform — it has no code repos or PRs. PR creation and code review use the repo platform (GitHub or Azure DevOps) configured separately
+- Jira is a backlog-only platform: it has no code repos or PRs. PR creation and code review use the repo platform (GitHub or Azure DevOps) configured separately

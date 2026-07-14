@@ -4,13 +4,13 @@
 //   { updatedAt, agents: { <sessionId>: { agent, model, tasks, title, status, startedAt, endedAt } } }
 //
 // Two jobs from one file:
-//   1. Live monitor — the lead reflects this into its native Todo list; you can
+//   1. Live monitor: the lead reflects this into its native Todo list; you can
 //      also navigate the subagents directly with ctrl+x ↓ and ←/→.
-//   2. Crash-recovery fallback — /ob-apply reads it on resume when basic-memory
+//   2. Crash-recovery fallback: /ob-apply reads it on resume when basic-memory
 //      is unavailable, to rebuild which tasks were in flight.
 //
 // This plugin only OBSERVES session lifecycle. Subagents are a black box mid-run
-// (no streaming), so status is coarse: running -> done. It never throws — a
+// (no streaming), so status is coarse: running -> done. It never throws: a
 // monitor failure must not break a session.
 
 import fs from "node:fs/promises"
@@ -24,7 +24,7 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
 
   // Crash recovery: hydrate from the previous run's file so a restart never
   // erases in-flight history. Entries left "running" by a dead process are
-  // marked stale — /ob-apply resume treats them as unknown, not running.
+  // marked stale: /ob-apply resume treats them as unknown, not running.
   try {
     const prev = JSON.parse(await fs.readFile(statePath, "utf-8"))
     if (prev && typeof prev.agents === "object") {
@@ -34,10 +34,10 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
       }
     }
   } catch {
-    // no previous state — fresh start
+    // no previous state: fresh start
   }
 
-  // Cached model resolution — reads config files once, then serves from memory.
+  // Cached model resolution: reads config files once, then serves from memory.
   let _modelsCache = null
   async function loadModels() {
     if (_modelsCache) return _modelsCache
@@ -72,7 +72,7 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
   }
 
   // Tasks are encoded at the front of the spawn description, e.g.
-  // "1.1, 1.2 — ProjectManager" -> ["1.1", "1.2"].
+  // "1.1, 1.2: ProjectManager" -> ["1.1", "1.2"].
   function parseTasks(title) {
     if (!title) return []
     const m = /^\s*([\d]+(?:\.[\d]+)*(?:\s*,\s*[\d]+(?:\.[\d]+)*)*)/.exec(title)
@@ -105,7 +105,7 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
   }
 
   function pruneStale(parentID) {
-    // Clear stale entries that belong to the same parent session —
+    // Clear stale entries that belong to the same parent session -
     // a new wave from the same lead means old crashed workers are irrelevant.
     if (!parentID) return
     for (const [id, entry] of Object.entries(state.agents)) {

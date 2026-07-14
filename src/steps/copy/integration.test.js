@@ -72,28 +72,36 @@ describe('installSkills platform gating (real content/.agents/skills)', () => {
     return fs.existsSync(p) ? fs.readFileSync(p, 'utf-8') : null
   }
 
-  it('azure backlog + gitlab repo → azure userstory, gitlab pullrequest', async () => {
+  it('azure backlog + gitlab repo: azure userstory+backlog, gitlab ship+review', async () => {
     await installSkills('azure', 'gitlab')
     expect(await installedSkill('ob-userstory')).toContain('az boards work-item show')
-    expect(await installedSkill('ob-pullrequest')).toContain('glab mr create')
+    expect(await installedSkill('ob-backlog')).toContain('az boards work-item create')
+    expect(await installedSkill('ob-ship')).toContain('glab mr create')
+    expect(await installedSkill('ob-review')).toContain('glab mr view')
   })
 
-  it('jira backlog + github repo → jira userstory, github pullrequest', async () => {
+  it('jira backlog + github repo: jira userstory+backlog, github ship+review', async () => {
     await installSkills('jira', 'github')
     expect(await installedSkill('ob-userstory')).toContain('acli jira workitem view')
-    expect(await installedSkill('ob-pullrequest')).toContain('gh pr create')
+    expect(await installedSkill('ob-backlog')).toContain('acli jira issue create')
+    expect(await installedSkill('ob-ship')).toContain('gh pr create')
+    expect(await installedSkill('ob-review')).toContain('gh pr view')
   })
 
-  it('github backlog + none repo → github userstory, NO pullrequest skill', async () => {
+  it('github backlog + none repo: github userstory+backlog, NO ship/review skills', async () => {
     await installSkills('github', 'none')
     expect(await installedSkill('ob-userstory')).toContain('gh issue view')
-    expect(await installedSkill('ob-pullrequest')).toBeNull()
+    expect(await installedSkill('ob-backlog')).toContain('gh issue create')
+    expect(await installedSkill('ob-ship')).toBeNull()
+    expect(await installedSkill('ob-review')).toBeNull()
   })
 
-  it('browser backlog + azure repo → browser userstory, azure pullrequest', async () => {
+  it('browser backlog + azure repo: browser userstory, NO backlog, azure ship+review', async () => {
     await installSkills('browser', 'azure')
     expect(await installedSkill('ob-userstory')).toContain('browser_open_tab')
-    expect(await installedSkill('ob-pullrequest')).toContain('az repos pr create')
+    expect(await installedSkill('ob-backlog')).toBeNull()
+    expect(await installedSkill('ob-ship')).toContain('az repos pr create')
+    expect(await installedSkill('ob-review')).toContain('az repos pr list')
   })
 })
 
