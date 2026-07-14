@@ -88,4 +88,21 @@ describe('cleanAiFiles()', () => {
     expect(await fse.pathExists(path.join(agentsDir, 'agents'))).toBe(false)
     expect(await fse.pathExists(path.join(agentsDir, 'skills', 'my-skill', 'SKILL.md'))).toBe(true)
   })
+
+  it('offers .agents folder itself when only skills/ exist inside', async () => {
+    const agentsDir = path.join(tmpDir, '.agents')
+    await fse.ensureDir(path.join(agentsDir, 'skills', 'my-skill'))
+    await fse.writeFile(path.join(agentsDir, 'skills', 'my-skill', 'SKILL.md'), 'skill')
+    checkbox.mockResolvedValue([agentsDir])
+
+    const { cleanAiFiles } = await import('./index.js')
+
+    await cleanAiFiles()
+
+    // The .agents directory itself should appear as a choice and be removed
+    expect(checkbox).toHaveBeenCalled()
+    const choices = checkbox.mock.calls[0][0].choices
+    expect(choices.some(c => c.value === agentsDir)).toBe(true)
+    expect(await fse.pathExists(agentsDir)).toBe(false)
+  })
 })

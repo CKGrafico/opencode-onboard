@@ -64,7 +64,13 @@ export async function cleanAiFiles() {
   for (const dirName of dirTargets) {
     const dirPath = path.join(cwd, dirName)
     const children = await childrenExcludingPreserved(dirPath)
-    dirEntries.push(...children)
+    if (children.length > 0) {
+      dirEntries.push(...children)
+    } else if (await fse.pathExists(dirPath)) {
+      // Directory exists but all children are preserved (e.g. only skills/):
+      // still offer the directory itself as a removable option.
+      dirEntries.push(dirPath)
+    }
   }
 
   const filteredFlat = flatFiles.filter(f => {
