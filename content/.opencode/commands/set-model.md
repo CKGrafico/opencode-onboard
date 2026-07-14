@@ -7,8 +7,8 @@ Set the concrete model for one tier. Writes to `models` in either the team confi
 Usage:
 
 ```
-/ob-set-model <tier> <model>
-/ob-set-model user <tier> <model>
+/set-model <tier> <model>
+/set-model user <tier> <model>
 ```
 
 - `user` — optional prefix. If present, writes to `.opencode/opencode-onboard.user.json` (gitignored, overrides team config for this machine only). If absent, writes to `.opencode/opencode-onboard.json` (shared with the team).
@@ -31,7 +31,7 @@ Arguments: `$ARGUMENTS`
 
 3. **Determine target file.**
    - `isUser = false` → `.opencode/opencode-onboard.json` (team). If it does not exist, stop and tell the user onboarding has not generated it yet.
-   - `isUser = true` → `.opencode/opencode-onboard.user.json` (user override). If it does not exist, create it with `{ "wizard": { "models": {} } }`.
+   - `isUser = true` → `.opencode/opencode-onboard.user.json` (user override). If it does not exist, create it with `{ "models": {} }`.
 
 4. **Update the config.** Read the target file, set `models.<tier>` to the resolved model id (create `models` if absent). Do NOT touch any other field. Preserve the existing 2-space JSON formatting, then write the file back.
 
@@ -43,6 +43,6 @@ Arguments: `$ARGUMENTS`
      file: <path written>
    ```
 
-   **Restart opencode** for the change to take effect. The `ob-subagent-tiers` plugin reads the model configs at startup and injects tier-suffixed agent variants (`<engineer>.<tier>`) into the live config. After restart, `/ob-apply` will spawn agents on the new model.
+   **Restart opencode** for the change to take effect. The `ob-subagent-tiers` plugin reads the model configs at startup and injects tier-suffixed agent variants (`<engineer>.<tier>`) into the live config. After restart, `/apply-plan` will spawn agents on the new model.
 
 **This command edits `opencode-onboard.json` (team) or `opencode-onboard.user.json` (user) only.** It never modifies agent files, `opencode.json`, or `tasks.md`. Tier variants are generated in-memory by the `ob-subagent-tiers` plugin at startup — no file re-stamping needed.

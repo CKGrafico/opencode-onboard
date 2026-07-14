@@ -9,5 +9,9 @@
   ],
   "experimental": {
     "mcp_timeout": 300000
+  },
+  "agent": {
+    "build": { "disable": true },
+    "plan": { "disable": true }
   }
 }

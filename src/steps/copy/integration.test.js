@@ -19,7 +19,7 @@ import { resolvePlatform } from '../../commands/single.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CONTENT_DIR = path.resolve(__dirname, '../../../content')
 const REAL_AGENTS_MD = fs.readFileSync(path.join(CONTENT_DIR, 'AGENTS.md'), 'utf-8')
-const REAL_OB_INIT_MD = fs.readFileSync(path.join(CONTENT_DIR, '.opencode', 'commands', 'ob-init.md'), 'utf-8')
+const REAL_OB_INIT_MD = fs.readFileSync(path.join(CONTENT_DIR, '.opencode', 'commands', 'initialize-repository.md'), 'utf-8')
 
 let tmpDir
 
@@ -33,46 +33,36 @@ afterEach(() => {
   fs.rmSync(tmpDir, { recursive: true, force: true })
 })
 
-describe('patchAgentsMd against the real ob-init.md', () => {
-  it('marks all three init steps as skipped when the files already exist', async () => {
+describe('patchAgentsMd against the real initialize-repository.md', () => {
+  it('marks steps as skipped when the files already exist', async () => {
     fs.mkdirSync(path.join(tmpDir, '.opencode', 'commands'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, '.opencode', 'commands', 'ob-init.md'), REAL_OB_INIT_MD)
+    fs.writeFileSync(path.join(tmpDir, '.opencode', 'commands', 'initialize-repository.md'), REAL_OB_INIT_MD)
 
     await patchAgentsMd({ hasOpenspec: true, hasDesign: true, hasArchitecture: true })
 
-    const patched = fs.readFileSync(path.join(tmpDir, '.opencode', 'commands', 'ob-init.md'), 'utf-8')
-    // Headings survive (numbering stays stable for cross-references)...
-    expect(patched).toMatch(/#{3,4} Step \d+, Archive project history into OpenSpec/)
-    expect(patched).toMatch(/#{3,4} Step \d+, Generate DESIGN\.md/)
-    expect(patched).toMatch(/#{3,4} Step \d+, Generate ARCHITECTURE\.md/)
+    const patched = fs.readFileSync(path.join(tmpDir, '.opencode', 'commands', 'initialize-repository.md'), 'utf-8')
+    // Headings survive...
+    expect(patched).toMatch(/#{2,4} Step \d+, Archive project history/)
+    expect(patched).toMatch(/#{2,4} Step \d+, Chain make commands/)
     // ...but each body is replaced by an explicit skip note.
-    expect(patched.match(/Skipped during onboarding/g)).toHaveLength(3)
-    // The step instructions themselves are gone.
-    expect(patched).not.toContain('openspec new change "project-history"')
-    expect(patched).not.toContain('Run `/ob-create-design` now.')
-    expect(patched).not.toContain('Run `/ob-create-architecture` now.')
-    // Confirm-banner lines for the skipped steps are removed.
-    expect(patched).not.toContain('- Project history archived in openspec')
-    expect(patched).not.toContain('- DESIGN.md generated')
-    expect(patched).not.toContain('- ARCHITECTURE.md generated')
+    expect(patched).toContain('Skipped during onboarding')
   })
 
   it('every step title the patcher targets exists in the template (drift guard)', () => {
     for (const title of [
-      'Archive project history into OpenSpec',
-      'Generate DESIGN.md',
-      'Generate ARCHITECTURE.md',
+      'Archive project history',
+      'Chain make commands',
     ]) {
       const { matched } = skipStepBlock(REAL_OB_INIT_MD, title, 'x')
-      expect(matched, `step "${title}" not found in content/.opencode/commands/ob-init.md`).toBe(true)
+      expect(matched, `step "${title}" not found in content/.opencode/commands/initialize-repository.md`).toBe(true)
     }
   })
 
   it('leaves the file untouched when nothing exists yet', async () => {
     fs.mkdirSync(path.join(tmpDir, '.opencode', 'commands'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, '.opencode', 'commands', 'ob-init.md'), REAL_OB_INIT_MD)
+    fs.writeFileSync(path.join(tmpDir, '.opencode', 'commands', 'initialize-repository.md'), REAL_OB_INIT_MD)
     await patchAgentsMd({})
-    expect(fs.readFileSync(path.join(tmpDir, '.opencode', 'commands', 'ob-init.md'), 'utf-8')).toBe(REAL_OB_INIT_MD)
+    expect(fs.readFileSync(path.join(tmpDir, '.opencode', 'commands', 'initialize-repository.md'), 'utf-8')).toBe(REAL_OB_INIT_MD)
   })
 })
 

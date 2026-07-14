@@ -26,12 +26,12 @@ function hasFrontmatterModel(content) {
 /**
  * Stamp a per-tier model onto each engineer agent file, since OpenCode resolves
  * a subagent's model from its agent definition (there is no per-spawn override).
- * One file per engineer — no variants. `basic-engineer` runs on the cheap `fast`
+ * One file per engineer — no variants. `fullstack-engineer` runs on the cheap `fast`
  * model; any other engineer present defaults to the capable `build` model.
  *
  * Files that already declare a `model:` are left untouched, so custom engineers
- * created with a specific tier (via /ob-create-engineer) keep their choice on
- * re-runs. /ob-set-model re-stamps when a tier's model changes.
+ * created with a specific tier (via /create-engineer) keep their choice on
+ * re-runs. /set-model re-stamps when a tier's model changes.
  */
 export async function stampAgentModels({ models = {}, cwd = process.cwd() } = {}) {
   const agentsDir = path.join(cwd, '.opencode', 'agents')
@@ -45,7 +45,7 @@ export async function stampAgentModels({ models = {}, cwd = process.cwd() } = {}
     const content = await fse.readFile(filePath, 'utf-8')
     if (hasFrontmatterModel(content)) continue
 
-    const tier = file === 'basic-engineer.md' ? 'fast' : 'build'
+    const tier = file === 'fullstack-engineer.md' ? 'fast' : 'build'
     const model = models[tier]
     if (!model) continue
 

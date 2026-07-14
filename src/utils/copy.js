@@ -5,7 +5,7 @@ import path from 'path'
 const ALWAYS_EXCLUDE = ['.bootstrap', 'skills', 'node_modules']
 
 // Files never overwritten even with forceOverwrite — user owns these.
-// The CLI ships templates, but ob-init / the wizard / the user populate them
+// The CLI ships templates, but init / the wizard / the user populate them
 // with project-specific content. Overwriting on update would destroy user work.
 const NEVER_OVERWRITE = [
   `openspec${path.sep}config.yaml`,

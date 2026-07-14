@@ -1,0 +1,103 @@
+---
+description: Walk the user through the project and its agentic infrastructure. Explains what exists, how agents work, and how to use the system.
+---
+
+This command is a guided tour. Do NOT modify any files. Read and explain only.
+
+---
+
+## Step 1, Project overview
+
+Read `AGENTS.md`, `ARCHITECTURE.md`, and `DESIGN.md`. Summarize:
+
+- What this project is (name, purpose, domain)
+- Tech stack (languages, frameworks, build system)
+- Project structure (key directories and what they contain)
+
+Keep it to 3–5 bullet points. Focus on what a new contributor needs to know.
+
+---
+
+## Step 2, Agent infrastructure
+
+Inspect `.opencode/agents/` and list every agent file. For each agent, read its frontmatter and summarize:
+
+- **Agent name and role** (primary, subagent, or specialist)
+- **Model tier** it uses (plan, build, or fast)
+- **Key abilities** — what it can do
+
+Present as a table:
+
+| Agent | Role | Tier | Purpose |
+|---|---|---|---|
+| ... | ... | ... | ... |
+
+Then explain the agent selection model:
+- **Primary agents** appear in Tab and handle direct user interaction
+- **Subagent engineers** are spawned by the lead for parallel implementation waves
+- **Specialist engineers** are preferred when their domain matches the task; `fullstack-engineer` is the fallback
+
+---
+
+## Step 3, Command reference
+
+Read every `.md` file in `.opencode/commands/`. List each command with its name and description:
+
+| Command | What it does |
+|---|---|
+| ... | ... |
+
+Group them by workflow phase if possible:
+- **Planning**: explore, propose, simple-plan, goal
+- **Implementation**: apply-plan, archive-plan
+- **Maintenance**: make-architecture, make-design, make-engineer, make-guardrails
+- **Shipping**: pull-request
+- **Setup**: initialize-repository, set-model, help
+
+---
+
+## Step 4, Skills
+
+Inspect `.agents/skills/` and `.claude/skills/` (if present). List installed skills with a one-line description each. Note which are platform-specific (userstory, pullrequest) vs general-purpose.
+
+---
+
+## Step 5, OpenSpec workflow
+
+Explain the OpenSpec change lifecycle:
+
+1. **Explore** (`/explore-plan`) — investigate and discuss, no files created
+2. **Propose** (`/propose-plan`) — structured plan, saved to `openspec/changes/`
+3. **Apply** (`/apply-plan`) — implement tasks via parallel subagent waves
+4. **Archive** (`/archive-plan`) — finalize and clean up
+
+Explain `openspec/config.yaml` — what it contains and why it matters.
+
+---
+
+## Step 6, Configuration
+
+Explain `opencode-onboard.json`:
+- What each field controls (platform, models, agents, tools, source)
+- How to change the model for a tier (`/set-model`)
+- What `agents.maxConcurrent` does
+
+---
+
+## Step 7, Quick tips
+
+End with 3–5 practical tips:
+
+- How to start working: "Run `/goal` with a description of what you want to build"
+- How to add a specialist: "Run `/make-engineer`"
+- How to regenerate docs: "Run `/make-architecture` or `/make-design`"
+- How to see all commands: "Run `/help`"
+- How to refresh config after changes: "Re-run `npx opencode-onboard` in the terminal"
+
+---
+
+## Guardrails
+
+- Do NOT modify any files
+- Do NOT create branches or commits
+- Only read and explain

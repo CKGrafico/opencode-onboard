@@ -7,6 +7,9 @@ Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
 Prefix all bash commands with `rtk` when RTK is enabled.
 <!-- OB-CMD-RTK-END -->
 
+This command is **read-only by default**. It investigates, analyzes, and discusses — but never writes files unless you explicitly ask it to.
+
+---
 
 **Step 0.a - Check for unarchived changes**
 
@@ -36,7 +39,7 @@ Use codegraph MCP tools (NOT CLI commands). Do NOT run `codegraph` in bash — u
 <!-- OB-CMD-CODEGRAPH-END -->
 
 <!-- OB-CMD-MEMORY-START -->
-Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash — use the MCP tools directly: `write_note`, `edit_note`, `search`, `build_context`, `recent_activity`.
+Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash — use the MCP tools directly: `search`, `build_context`, `recent_activity`.
 - `search` for any prior exploration notes, decisions, or context related to the user's topic.
 <!-- OB-CMD-MEMORY-END -->
 
@@ -44,7 +47,19 @@ Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash
 
 Load `@openspec-explore` skill and follow its instructions.
 
-<!-- OB-CMD-MEMORY-START -->
-After exploration:
-- `write_note` with title `exploration-{topic}` summarizing the key findings, constraints, and recommended next steps.
-<!-- OB-CMD-MEMORY-END -->
+**Step 1 - Discuss and analyze**
+
+Work through the exploration with the user. Discuss findings, tradeoffs, constraints, and recommended next steps. This is a thinking conversation — no files are created.
+
+**Step 2 - Offer to save (only if useful)**
+
+After the exploration is complete, if the findings are significant and worth preserving, ask the user:
+
+```text
+Save this exploration to basic-memory for future reference? [yes/no]
+```
+
+- `yes` → `write_note` with title `exploration-{topic}` summarizing the key findings, constraints, and recommended next steps.
+- `no` → end the command. Nothing was written.
+
+Do NOT write any files without this explicit ask.

@@ -7,6 +7,7 @@ import { exit } from "../../utils/process.js"
 import { patchAgentGuidance, patchAgentsMd } from "./agents.js"
 import { patchArchiveCommand } from "./commands.js"
 import { installSkills } from "./skills.js"
+import { generateFullstackEngineer } from "./fullstack-engineer.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CONTENT_DIR = path.resolve(__dirname, "../../../content")
@@ -62,6 +63,7 @@ export async function copyContentStep(platform, ctx = {}) {
     if (!ctx.skipSkills) {
       await installSkills(backlogPlatform, repoPlatform)
     }
+    await generateFullstackEngineer()
     success("Files copied to project root")
   } catch (err) {
     error(`Failed to copy content: ${err.message}`)

@@ -88,10 +88,10 @@ The CLI runs a 10-step onboarding wizard. It keeps the current step visible, plu
 When it finishes, open OpenCode in your project and type:
 
 ```
-/ob-init
+/initialize-repository
 ```
 
-OpenCode asks if this is a greenfield or brownfield project. For brownfield projects it generates `ARCHITECTURE.md` and `DESIGN.md` from your actual codebase, archives project history, then activates the full agent team. For greenfield projects it skips doc generation and leaves placeholder files you can populate later with `/ob-create-architecture` and `/ob-create-design`.
+OpenCode asks if this is a greenfield or brownfield project. For brownfield projects it generates `ARCHITECTURE.md` and `DESIGN.md` from your actual codebase, archives project history, then activates the full agent team. For greenfield projects it skips doc generation and leaves placeholder files you can populate later with `/make-architecture` and `/make-design`.
 
 ---
 
@@ -101,20 +101,21 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 
 | Command | Description |
 | ------- | ----------- |
-| `/ob-help` | Show all commands and when to use each one. Start here if you're unsure. |
-| `/ob-init` | Initialize the project. Asks greenfield vs brownfield, then activates the agent team. |
-| `/ob-explore` | Think through an idea or investigate a problem before committing to a plan. |
-| `/ob-propose <url or idea>` | Parse a GitHub Issue / Azure DevOps / Jira / browser URL or a direct idea into a structured plan (proposal, specs, tasks). Enriches each task with agent and model assignments. |
-| `/ob-apply` | Implement tasks from the current OpenSpec change via parallel subagent waves (native `task` tool). |
-| `/ob-pullrequest` | Create a PR for the current branch, or read and classify PR review comments. |
-| `/ob-archive` | Archive a completed OpenSpec change. |
-| `/ob-main <task>` | Quick direct implementation — no OpenSpec, no waves, no PR. Just do it. |
-| `/ob-autopilot <feature or URL>` | Autonomous, no-confirmation pipeline: branch off `main`, then propose → apply → archive (one commit per phase). Default: merge to `main` + delete branch. Add `push` keyword to push branch only. Add `pr` keyword to push + create a PR. For loop-engineering. |
-| `/ob-create-engineer <name> <tier> "<description>"` | Create a custom specialist engineer with skills auto-installed from [skills.sh](https://www.skills.sh/). Agent file is a template; tier variants are injected by the `ob-subagent-tiers` plugin at startup. |
-| `/ob-create-architecture` | Generate or regenerate `ARCHITECTURE.md` from the codebase. |
-| `/ob-create-design` | Generate or regenerate `DESIGN.md` from the design system. |
-| `/ob-create-project-guardrails` | Generate a `project-guardrails` skill from `ARCHITECTURE.md` + project config files. Extracts architecture boundaries, naming, code style, testing, and git workflow rules. Updates all `*-engineer.md` to load the skill. |
-| `/ob-set-model [user] <tier> <model>` | Set the model for a tier (`plan`, `build`, `fast`). Writes to `opencode-onboard.json` (team) or `opencode-onboard.user.json` (user override, gitignored) when `user` prefix is used. Restart to pick up — the `ob-subagent-tiers` plugin rebuilds tier agents at startup. Pass a model id or `current` for the active session model. |
+| `/help` | Show all commands and when to use each one. Start here if you're unsure. |
+| `/onboard-repository` | Guided tour of the project and its agentic infrastructure. Explains agents, commands, skills, OpenSpec workflow, and configuration. Read-only. |
+| `/initialize-repository` | Initialize the project. Asks greenfield vs brownfield, then activates the agent team. |
+| `/explore-plan` | Think through an idea or investigate a problem before committing to a plan. |
+| `/propose-plan <url or idea>` | Parse a GitHub Issue / Azure DevOps / Jira / browser URL or a direct idea into a structured plan (proposal, specs, tasks). Enriches each task with agent and model assignments. |
+| `/simple-plan <task>` | Quick plan for focused changes. Reads the codebase, creates a task checklist, and stops. No OpenSpec, no proposals, no specs. |
+| `/apply-plan` | Implement tasks from the current plan. Detects format automatically: OpenSpec-annotated tasks run as parallel subagent waves; plain checkboxes run sequentially in-session. |
+| `/pull-request` | Create a PR for the current branch, or read and classify PR review comments. |
+| `/archive-plan` | Archive a completed OpenSpec change. |
+| `/goal <feature or URL>` | Autonomous, no-confirmation pipeline: branch off `main`, then propose → apply → archive (one commit per phase). Default: merge to `main` + delete branch. Add `push` keyword to push branch only. Add `pr` keyword to push + create a PR. For loop-engineering. |
+| `/make-engineer` | Interactive persona-driven flow to add a custom specialist engineer. Pick a persona, answer questions about your stack, and skills are installed automatically. |
+| `/make-architecture` | Generate or regenerate `ARCHITECTURE.md` from the codebase. |
+| `/make-design` | Generate or regenerate `DESIGN.md` from the design system. |
+| `/make-guardrails` | Generate a `project-guardrails` skill from `ARCHITECTURE.md` + project config files. Extracts architecture boundaries, naming, code style, testing, and git workflow rules. Updates all `*-engineer.md` to load the skill. |
+| `/set-model [user] <tier> <model>` | Set the model for a tier (`plan`, `build`, `fast`). Writes to `opencode-onboard.json` (team) or `opencode-onboard.user.json` (user override, gitignored) when `user` prefix is used. Restart to pick up — the `ob-subagent-tiers` plugin rebuilds tier agents at startup. Pass a model id or `current` for the active session model. |
 
 ---
 
@@ -130,11 +131,11 @@ Current baseline uses a generic execution model:
 
 ```
 lead     lead/orchestrator, planning, PR lifecycle
-basic-engineer     implementation worker, ability-driven
+fullstack-engineer     implementation worker, ability-driven
 ```
 
-`basic-engineer` behavior is composed by abilities, not hardcoded role silos.
-Project-specific specialization comes from user-created custom engineers via `/ob-create-engineer`. During `/ob-apply`, the lead should inspect the engineers that actually exist in `.opencode/agents/`, prefer matching custom engineers, and fall back to `basic-engineer` only when no specialist is a clear fit.
+`fullstack-engineer` behavior is composed by abilities, not hardcoded role silos.
+Project-specific specialization comes from user-created custom engineers via `/make-engineer`. During `/apply-plan`, the lead should inspect the engineers that actually exist in `.opencode/agents/`, prefer matching custom engineers, and fall back to `fullstack-engineer` only when no specialist is a clear fit.
 
 ### Skills, platform knowledge
 
@@ -148,7 +149,7 @@ Current loading model:
 - `ob-default` is fallback when nothing else matches
 - Baseline context rules and token-optimization guidance live in `AGENTS.md` (always in context), not in a skill
 
-Default `basic-engineer` abilities:
+Default `fullstack-engineer` abilities:
 
 ```
 ## Abilities
@@ -185,7 +186,7 @@ During onboarding you pick three models:
 | --------- | -------------------------------------- | --------------------------------------- |
 | **plan**  | Main OpenCode session (the lead)       | Something capable with strong reasoning |
 | **build** | Specialist engineers (default tier)    | Something capable for implementation    |
-| **fast**  | `basic-engineer` & light helpers       | Something fast and cheap                |
+| **fast**  | `fullstack-engineer` & light helpers       | Something fast and cheap                |
 
 Models are fetched live from [models.dev](https://models.dev) (3000+ models, cached weekly). Cost tiers `[$]` `[$$]` `[$$$]` always reflect the canonical provider price, so `github-copilot/claude-opus-4.7` shows `[$$]` not `[$]`.
 
@@ -205,7 +206,7 @@ lead
                   ↓
              [confirm with user]
                   ↓
- wave of subagents (basic-engineer / *-engineer, per-tier model)
+ wave of subagents (fullstack-engineer / *-engineer, per-tier model)
  each implements its assigned tasks → returns result → lead commits group
                   ↓
        verify (tests/build/lint as needed)
@@ -215,10 +216,10 @@ lead
 ```
 
 1. Load the platform userstory skill (installed as `ob-userstory`, from the variant matching your backlog platform)
-2. Run `/ob-propose` to produce `proposal.md`, specs, and `tasks.md`
+2. Run `/propose-plan` to produce `proposal.md`, specs, and `tasks.md`
 3. Confirm with user before implementation
-4. Run `/ob-apply` to orchestrate implementation in waves
-5. Each wave spawns engineers in parallel (`basic-engineer` and/or custom engineers, each carrying its own tier model), capped at `maxConcurrentAgents`
+4. Run `/apply-plan` to orchestrate implementation in waves
+5. Each wave spawns engineers in parallel (`fullstack-engineer` and/or custom engineers, each carrying its own tier model), capped at `agents.maxConcurrent`
 6. Each subagent receives its task IDs in its prompt, loads relevant abilities, implements, and returns; the lead commits each group
 7. Verify with tests/build/lint according to task scope
 8. Ship/update PR via lead flow
@@ -231,13 +232,13 @@ Agents run as native OpenCode subagents in parallel waves — no external plugin
 
 ```
 your-project/
-├── AGENTS.md                        ← bootstrap mode, replaced after first "/ob-init"
+├── AGENTS.md                        ← bootstrap mode, replaced after first "/initialize-repository"
 ├── ARCHITECTURE.md                  ← prompt for agents to fill in from your codebase
 ├── DESIGN.md                        ← prompt for agents to fill in from your codebase
 ├── .opencode/
 │   ├── opencode.json                ← default model + plugin config
 │   ├── opencode-onboard.json        ← onboarding metadata + runtime config (models, maxConcurrentAgents)
-│   ├── agents/                      ← basic-engineer + user-created *-engineer files (each carries its model)
+│   ├── agents/                      ← fullstack-engineer + user-created *-engineer files (each carries its model)
 │   ├── tui.json                     ← registers the Subagents sidebar panel
 │   ├── tui/
 │   │   └── ob-subagents.tsx         ← TUI plugin: live Subagents panel in the sidebar
@@ -264,8 +265,8 @@ The first time you type `init` in OpenCode after onboarding, the agent asks whet
 
 1. Bootstrap-mode `AGENTS.md` triggers the initialization workflow
 2. OpenCode archives existing project context into OpenSpec (`project-history`)
-3. OpenCode runs `/ob-create-architecture` → generates real `ARCHITECTURE.md` from your codebase
-4. OpenCode runs `/ob-create-design` → generates real `DESIGN.md` from your design system
+3. OpenCode runs `/make-architecture` → generates real `ARCHITECTURE.md` from your codebase
+4. OpenCode runs `/make-design` → generates real `DESIGN.md` from your design system
 5. OpenSpec `config.yaml` is populated with discovered tech stack and domain context
 6. Bootstrap `AGENTS.md` is replaced with production guidance
 7. Team workflows become fully active for normal implementation tasks
@@ -278,8 +279,8 @@ The first time you type `init` in OpenCode after onboarding, the agent asks whet
 4. `ARCHITECTURE.md` and `DESIGN.md` are left as placeholder files
 
 Once your codebase has meaningful content, run:
-- `/ob-create-architecture` to generate architecture docs
-- `/ob-create-design` to generate design system docs
+- `/make-architecture` to generate architecture docs
+- `/make-design` to generate design system docs
 
 Both commands are safe to rerun at any time as the project evolves.
 
@@ -298,9 +299,9 @@ Long unattended agent sessions can consume significant tokens. Set these control
 
 3. **Install the quota plugin** — the [`@slkiser/opencode-quota`](https://www.npmjs.com/package/@slkiser/opencode-quota) plugin adds `/quota` and `/quota_status` commands that surface real-time token usage inside OpenCode sessions.
 
-4. **Use `/quota` checkpoints** — run `/quota` before starting any `/ob-apply` session and after each agent wave. Pause at 75% consumed; stop at 90%.
+4. **Use `/quota` checkpoints** — run `/quota` before starting any `/apply-plan` session and after each agent wave. Pause at 75% consumed; stop at 90%.
 
-5. **Confirm before large runs** — the onboarded `/ob-apply` workflow will ask for your confirmation before spawning agents for Medium (4–7 tasks) or High (8+ tasks) scope sessions.
+5. **Confirm before large runs** — the onboarded `/apply-plan` workflow will ask for your confirmation before spawning agents for Medium (4–7 tasks) or High (8+ tasks) scope sessions.
 
 ---
 

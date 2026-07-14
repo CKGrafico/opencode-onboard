@@ -23,4 +23,4 @@ The `@ob-pullrequest` skill is platform-specific. Repo platform is set in `.open
 
 **Create mode** (default): creates a PR for the current feature branch with screenshots if UI changed.
 
-**Feedback mode** (when user mentions PR comments or review feedback): reads and classifies PR review comments. Reports what needs fixing — does not implement fixes directly. Fixing is done via `/ob-apply`.
+**Feedback mode** (when user mentions PR comments or review feedback): reads and classifies PR review comments. Reports what needs fixing — does not implement fixes directly. Fixing is done via `/apply-plan`.

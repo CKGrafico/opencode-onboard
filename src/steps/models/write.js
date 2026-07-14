@@ -6,7 +6,7 @@ import { success, warn } from '../../utils/exec.js'
 /**
  * Writes the selected build model as the default model in opencode.json.
  * Per-tier models (plan/build/fast) are recorded in opencode-onboard.json (models)
- * by the metadata step, then consumed by the agent-variant generator and /ob-apply.
+ * by the metadata step, then consumed by the agent-variant generator and /apply-plan.
  *
  * opencode tolerates JSONC (comments, trailing commas) in its config, so this
  * must not use readJson/writeJson: a strict parse crashes on valid configs and

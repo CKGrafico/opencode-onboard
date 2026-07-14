@@ -46,7 +46,7 @@
         "openai":          "openai/gpt-4.1",
         "deepseek":        "deepseek/deepseek-v4-pro"
       },
-      "agents": ["basic-engineer"]
+      "agents": ["fullstack-engineer"]
     },
     "fast": {
       "prompt": "Fast model:",

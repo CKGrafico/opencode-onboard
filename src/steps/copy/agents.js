@@ -9,17 +9,14 @@ const agentsContent = await fse.readJson(path.resolve(__dirname, '../../presets/
 // Steps are matched by their title text, not by exact heading string:
 // heading level (###/####) and step numbers have drifted before and silently
 // broke removal. Matching `^#{3,4} Step N, <title>` survives both.
-const HISTORY_STEP_TITLE = 'Archive project history into OpenSpec'
-const DESIGN_STEP_TITLE = 'Generate DESIGN.md'
-const ARCHITECTURE_STEP_TITLE = 'Generate ARCHITECTURE.md'
+const HISTORY_STEP_TITLE = 'Archive project history'
+const CHAIN_STEP_TITLE = 'Chain make commands'
 
-const HISTORY_CONFIRM_LINE = '- Project history archived in openspec'
-const DESIGN_CONFIRM_LINE = '- DESIGN.md generated'
-const ARCHITECTURE_CONFIRM_LINE = '- ARCHITECTURE.md generated'
+const CHAIN_CONFIRM_LINE = '- ARCHITECTURE.md generated'
 
 function stepHeadingPattern(title) {
   const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return new RegExp(`^#{3,4} Step \\d+, ${escaped}$`)
+  return new RegExp(`^#{2,4} Step \\d+, ${escaped}`)
 }
 
 // The step heading is kept and its body replaced with an explicit skip note.
@@ -73,37 +70,35 @@ function replaceBetween(content, start, end, replacement) {
 }
 
 export async function patchAgentsMd(ctx) {
-  const obInitPath = path.join(process.cwd(), '.opencode', 'commands', 'ob-init.md')
+  const obInitPath = path.join(process.cwd(), '.opencode', 'commands', 'initialize-repository.md')
   if (!await fse.pathExists(obInitPath)) return
 
   let content = await fse.readFile(obInitPath, 'utf-8')
   const patches = []
 
   const skips = [
-    [ctx.hasOpenspec, HISTORY_STEP_TITLE, HISTORY_CONFIRM_LINE,
+    [ctx.hasOpenspec, HISTORY_STEP_TITLE, null,
       'Skipped during onboarding: this project already had an openspec/ history. Do not archive again; continue with the next step.'],
-    [ctx.hasDesign, DESIGN_STEP_TITLE, DESIGN_CONFIRM_LINE,
-      'Skipped during onboarding: DESIGN.md already exists in this project and is preserved. Do not regenerate it; continue with the next step.'],
-    [ctx.hasArchitecture, ARCHITECTURE_STEP_TITLE, ARCHITECTURE_CONFIRM_LINE,
-      'Skipped during onboarding: ARCHITECTURE.md already exists in this project and is preserved. Do not regenerate it; continue with the next step.'],
+    [ctx.hasDesign || ctx.hasArchitecture, CHAIN_STEP_TITLE, CHAIN_CONFIRM_LINE,
+      'Skipped during onboarding: project files already exist. Run /make-architecture or /make-design individually to regenerate.'],
   ]
 
   for (const [enabled, title, confirmLine, note] of skips) {
     if (!enabled) continue
     const result = skipStepBlock(content, title, note)
     if (!result.matched) {
-      warn(`ob-init.md step "${title}" not found — template drift? Skipping this patch.`)
+      warn(`initialize-repository.md step "${title}" not found — template drift? Skipping this patch.`)
       continue
     }
     content = result.content
-    content = removeConfirmLine(content, confirmLine)
+    if (confirmLine) content = removeConfirmLine(content, confirmLine)
     patches.push(`Step "${title}" marked as skipped, file already exists`)
   }
 
   if (patches.length > 0) {
     await fse.writeFile(obInitPath, content, 'utf-8')
     for (const msg of patches) info(msg)
-    success('ob-init.md patched for existing project state')
+    success('initialize-repository.md patched for existing project state')
   }
 }
 

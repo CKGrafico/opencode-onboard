@@ -7,10 +7,11 @@ Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
 Prefix all bash commands with `rtk` when RTK is enabled.
 <!-- OB-CMD-RTK-END -->
 
+> **Hard rule — never write files before user confirmation.** This command generates the full proposal (proposal.md, specs, tasks.md) in memory, shows it to the user, and only writes to `openspec/changes/` after the user explicitly approves. The one exception is basic-memory notes for context sharing — those are minor and non-destructive.
 
 **Step 0.a - Check for unarchived changes**
 
-**IMPORTANT**: Never skip this step, with one exception: a calling command may explicitly override it (`/ob-autopilot` does — treat the answer as `continue`). Otherwise the user must give a response before proceeding.
+**IMPORTANT**: Never skip this step, with one exception: a calling command may explicitly override it (`/goal` does — treat the answer as `continue`). Otherwise the user must give a response before proceeding.
 
 Before proposing a new change, inspect `openspec/changes/` (ignore `openspec/changes/archive`).
 If any change folder exists in `openspec/changes/` (names vary by platform: `gh-*`, `us-*`, or a plain slug), list them and warn the user with this exact prompt:
@@ -32,9 +33,9 @@ Wait for the user to respond:
 
 **If a work item URL or issue key is provided** (GitHub Issue, Azure DevOps work item, Jira issue, or browser-based backlog): load `@ob-userstory` skill and fetch the work item before continuing. Backlog platform is set in `.opencode/opencode-onboard.json` → `platform.backlog`. If backlog platform is `none`, skip this step and work from direct user input.
 
-Load `@openspec-propose` skill and follow its instructions.
+**Step 1 - Generate the proposal in memory**
 
-> ⚠️ **CHECKPOINT — `tasks.md` was just written. STOP. Do NOT show the plan yet. You MUST complete the enrichment below before continuing. Skipping this breaks `/ob-apply`.**
+Load `@openspec-propose` skill and follow its instructions to **generate** proposal.md, specs, and tasks.md — but **do not write them to disk yet**. Build the complete proposal content in your context.
 
 <!-- OB-CMD-CODEGRAPH-START -->
 Use codegraph MCP tools (NOT CLI commands). Do NOT run `codegraph` in bash — use the MCP tools directly.
@@ -43,30 +44,31 @@ Use codegraph MCP tools (NOT CLI commands). Do NOT run `codegraph` in bash — u
 <!-- OB-CMD-CODEGRAPH-END -->
 
 <!-- OB-CMD-MEMORY-START -->
-Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash — use the MCP tools directly.
+Use basic-memory MCP tools (NOT CLI commands). Do NOT run `basic-memory` in bash — use the MCP tools directly:
 - `search` for any prior exploration notes or decisions related to this change.
-- Write the proposal context to a `change-{slug}-context` note so `/ob-apply` can pick it up for subagent spawns.
 <!-- OB-CMD-MEMORY-END -->
+
+**Step 2 - Enrich task assignments**
 
 1. List every `*-engineer.md` file in `.opencode/agents/`. For each file read:
    - `description:` from the YAML frontmatter — the engineer's specialization summary
    - `## Abilities` section — the skills listed under Development, Testing, Infrastructure (e.g. `@nodejs-backend`, `@secure-nextjs-api-routes`)
    Build a map of `agent-name → { description, abilities }`.
-2. For each task, compare the task text and domain against every engineer's description AND abilities. Pick the engineer whose combined profile most closely matches. Only use `basic-engineer` if no specialist is a clear fit.
+2. For each task, compare the task text and domain against every engineer's description AND abilities. Pick the engineer whose combined profile most closely matches. Only use `fullstack-engineer` if no specialist is a clear fit.
 3. Pick a **tier** for each task based on complexity:
    - `build` — complex code: data models, APIs, auth logic, core business logic, UI components
    - `fast` — light work: i18n keys, config changes, env variables, navigation links, simple markup, verification runs
    - `plan` — reserved for orchestration, do not use for implementation tasks
    The tier suffix is appended to the agent name with a dot (e.g. `backend-engineer.build`). This is the agent name you write in the annotation — the `ob-subagent-tiers` plugin resolves the model at startup from `models[<tier>]`.
 4. Derive **`depends_on`** for each task — the OpenSpec task IDs (`N.M`) it logically needs completed first (a task that consumes another's output: UI needs its RPC, tests need the code, a seed needs its migration). Root tasks get `[]`. Reference the IDs OpenSpec already generated; never invent new ones.
-5. Derive **`touches`** for each task — the file path(s)/glob(s) it will create or modify (the task text usually names them, e.g. "Modify src/board/components/CreateForm.tsx"). This lets `/ob-apply` serialize same-file tasks that have no logical dependency. Include net-new files.
+5. Derive **`touches`** for each task — the file path(s)/glob(s) it will create or modify (the task text usually names them, e.g. "Modify src/board/components/CreateForm.tsx"). This lets `/apply-plan` serialize same-file tasks that have no logical dependency. Include net-new files.
 6. Annotate each task line in-place with all three fields:
 
 ```
 - [ ] <task text> <!-- agent: <name>, depends_on: [<ids>], touches: [<globs>] -->
 ```
 
-Example result (note same-file tasks like 1.1/1.2 share `touches`, so `/ob-apply` runs them sequentially even with no `depends_on` between them; tier suffix encodes the model):
+Example result (note same-file tasks like 1.1/1.2 share `touches`, so `/apply-plan` runs them sequentially even with no `depends_on` between them; tier suffix encodes the model):
 
 ```
 - [ ] 1.1 Add Project model to schema <!-- agent: backend-engineer.build, depends_on: [], touches: [src/types.ts] -->
@@ -74,16 +76,41 @@ Example result (note same-file tasks like 1.1/1.2 share `touches`, so `/ob-apply
 - [ ] 2.1 Project RPC endpoints <!-- agent: backend-engineer.build, depends_on: [1.1], touches: [src/rpc/project/**] -->
 - [ ] 3.1 Accept page UI <!-- agent: frontend-engineer.build, depends_on: [2.1], touches: [src/board/components/CreateForm.tsx] -->
 - [ ] 3.2 i18n keys for invitation flow <!-- agent: frontend-engineer.fast, depends_on: [3.1], touches: [src/i18n/**] -->
-- [ ] 4.1 Run typecheck and fix errors <!-- agent: basic-engineer.fast, depends_on: [2.1,3.1], touches: [] -->
+- [ ] 4.1 Run typecheck and fix errors <!-- agent: fullstack-engineer.fast, depends_on: [2.1,3.1], touches: [] -->
 ```
 
-`/ob-apply` reads these annotations to build conflict-free waves: `depends_on` gates ordering, `touches` keeps concurrent agents file-disjoint, and the tier suffix in `agent` determines the model (resolved at startup by the `ob-subagent-tiers` plugin). **`depends_on` is mandatory; `touches` is a best-effort hint** that codegraph MCP tools refine at apply time.
+`/apply-plan` reads these annotations to build conflict-free waves: `depends_on` gates ordering, `touches` keeps concurrent agents file-disjoint, and the tier suffix in `agent` determines the model (resolved at startup by the `ob-subagent-tiers` plugin). **`depends_on` is mandatory; `touches` is a best-effort hint** that codegraph MCP tools refine at apply time.
 
-**After enrichment, show the plan:** change name, total task count, full task list with agent (including tier suffix) and dependency annotations.
+**Step 3 - Show the plan and ask for confirmation**
+
+Display the complete proposal to the user:
+- Change name and description
+- Total task count
+- Full task list with agent (including tier suffix) and dependency annotations
+
+Then ask:
+
+```text
+Save this proposal? [yes/edit/stop]
+```
+
+- `yes` → proceed to Step 4 and write all files
+- `edit` → user provides feedback, revise in memory, show again, ask again
+- `stop` → end the command without writing anything
+
+Wait for the user's response. Do NOT proceed without a response.
+
+**Step 4 - Write (only after user confirms)**
+
+Write the proposal files to `openspec/changes/{change-slug}/`:
+- `proposal.md` — the change description and rationale
+- `specs/` — any spec files generated
+- `tasks.md` — the enriched task list with agent annotations
 
 <!-- OB-CMD-MEMORY-START -->
-After showing the plan:
-- `write_note` with title `proposal-{change-slug}` containing the change id, task count, and agent+tier assignments. This lets `/ob-apply` verify the plan on resume.
+Also write:
+- `write_note` with title `proposal-{change-slug}` containing the change id, task count, and agent+tier assignments. This lets `/apply-plan` verify the plan on resume.
+- `write_note` with title `change-{slug}-context` containing the proposal context so `/apply-plan` can pick it up for subagent spawns.
 <!-- OB-CMD-MEMORY-END -->
 
-**Stop.** Ask the user: "Ready to implement? Run `/ob-apply` to start." Do NOT run `/ob-apply` automatically.
+**Stop.** Ask the user: "Ready to implement? Run `/apply-plan` to start." Do NOT run `/apply-plan` automatically.

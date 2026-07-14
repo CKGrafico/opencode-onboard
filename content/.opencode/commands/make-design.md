@@ -92,4 +92,4 @@ Examples from the spec repo:
    - Whether basic-memory was used or degraded to file tools
 <!-- OB-CMD-MEMORY-END -->
    - Key design tokens found (color palette, fonts, spacing scale)
-   - Tip: "Rerun `/ob-create-design` any time your design system changes."
+   - Tip: "Rerun `/make-design` any time your design system changes."

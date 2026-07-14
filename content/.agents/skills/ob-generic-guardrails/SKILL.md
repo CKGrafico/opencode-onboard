@@ -11,7 +11,7 @@ license: MIT
 - NEVER merge PRs (human-only)
 - Work branches only: `feature/*`, `bugfix/*`, or `archive/*`
 
-**Single sanctioned exception:** `/ob-autopilot` in default mode performs one local merge into the default branch, because the user explicitly invoked that autonomous command. Even then: never *push* the default branch, and every other rule above still applies.
+**Single sanctioned exception:** `/goal` in default mode performs one local merge into the default branch, because the user explicitly invoked that autonomous command. Even then: never *push* the default branch, and every other rule above still applies.
 
 ## Secrets
 

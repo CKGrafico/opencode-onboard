@@ -48,22 +48,22 @@ describe('stampAgentModels()', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true })
   })
 
-  it('stamps basic-engineer with the fast model and a specialist with the build model', async () => {
-    writeAgent('basic-engineer.md', '---\ndescription: Basic.\nmode: all\n---\n\n## Abilities')
+  it('stamps fullstack-engineer with the fast model and a specialist with the build model', async () => {
+    writeAgent('fullstack-engineer.md', '---\ndescription: Fullstack.\nmode: primary\n---\n\n## Abilities')
     writeAgent('frontend-engineer.md', '---\ndescription: Frontend.\nmode: all\n---\n\n## Abilities')
 
     const res = await stampAgentModels({ models: { build: 'prov/build-m', fast: 'prov/fast-m' }, cwd: tmpDir })
     expect(res.stamped).toBe(2)
 
-    expect(fs.readFileSync(path.join(agentsDir, 'basic-engineer.md'), 'utf-8')).toContain('model: prov/fast-m')
+    expect(fs.readFileSync(path.join(agentsDir, 'fullstack-engineer.md'), 'utf-8')).toContain('model: prov/fast-m')
     expect(fs.readFileSync(path.join(agentsDir, 'frontend-engineer.md'), 'utf-8')).toContain('model: prov/build-m')
   })
 
   it('does not produce any -build / -fast variant files', async () => {
-    writeAgent('basic-engineer.md', '---\ndescription: Basic.\nmode: all\n---')
+    writeAgent('fullstack-engineer.md', '---\ndescription: Fullstack.\nmode: primary\n---')
     await stampAgentModels({ models: { build: 'b', fast: 'f' }, cwd: tmpDir })
     const files = fs.readdirSync(agentsDir)
-    expect(files).toEqual(['basic-engineer.md'])
+    expect(files).toEqual(['fullstack-engineer.md'])
   })
 
   it('respects an engineer that already declares a model (no override)', async () => {
@@ -74,7 +74,7 @@ describe('stampAgentModels()', () => {
   })
 
   it('skips when the needed tier model is unset', async () => {
-    writeAgent('basic-engineer.md', '---\ndescription: Basic.\nmode: all\n---')
+    writeAgent('fullstack-engineer.md', '---\ndescription: Fullstack.\nmode: primary\n---')
     const res = await stampAgentModels({ models: { build: 'b' }, cwd: tmpDir })
     expect(res.stamped).toBe(0)
   })

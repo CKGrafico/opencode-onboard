@@ -1,5 +1,5 @@
 ---
-description: Implement tasks from an OpenSpec change via native parallel subagent waves.
+description: Implement tasks from a plan — works with OpenSpec proposals and in-conversation plans.
 ---
 
 Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
@@ -7,9 +7,24 @@ Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
 Prefix all bash commands with `rtk` when RTK is enabled.
 <!-- OB-CMD-RTK-END -->
 
-Load `@openspec-apply-change` skill and follow its instructions, replacing **Step 6 (Implement)** with the protocol below.
+This command detects the plan source and implements accordingly:
+
+- **OpenSpec plan** (from `/propose-plan`): tasks have `<!-- agent, depends_on, touches -->` annotations in `tasks.md` → runs as parallel subagent waves
+- **In-conversation plan** (from `/simple-plan`): plain `- [ ] task text` in the current conversation context → runs sequentially in this session
 
 ---
+
+## Mode detection
+
+1. Check if an OpenSpec change exists: inspect `openspec/changes/` for an active change folder with a `tasks.md`.
+2. If found and tasks have `<!-- agent` annotations → **OpenSpec mode** → follow the protocol below.
+3. If no OpenSpec change exists, or tasks are plain text in the current conversation → **Simple mode** → skip to the Simple mode section.
+
+---
+
+## OpenSpec mode — parallel subagent waves
+
+Load `@openspec-apply-change` skill and follow its instructions, replacing **Step 6 (Implement)** with the protocol below.
 
 **Step 6 — Implement via native subagent waves. Replace the default step 6 with this protocol.**
 
@@ -19,7 +34,7 @@ You are the **lead**. You orchestrate from this session only; you spawn workers 
 
 **1. Branch.** Create `feature/{change-slug}` if not already on one.
 
-**2. Load the plan.** Parse `tasks.md`. Each task carries `<!-- agent, depends_on, touches -->` (from `/ob-propose`). The agent name includes a tier suffix (e.g. `backend-engineer.build`, `basic-engineer.fast`) — the `ob-subagent-tiers` plugin resolved the model at startup from `models[<tier>]` and injected these tier-suffixed agents into the config. You do not worry about models. Read `.opencode/opencode-onboard.json` → `agents.maxConcurrent` (the wave cap, 1–5).
+**2. Load the plan.** Parse `tasks.md`. Each task carries `<!-- agent, depends_on, touches -->` (from `/propose-plan`). The agent name includes a tier suffix (e.g. `backend-engineer.build`, `fullstack-engineer.fast`) — the `ob-subagent-tiers` plugin resolved the model at startup from `models[<tier>]` and injected these tier-suffixed agents into the config. You do not worry about models. Read `.opencode/opencode-onboard.json` → `agents.maxConcurrent` (the wave cap, 1–5).
 
 **3. Hydrate the Todo board.** `todowrite` one item per task: `pending`. **The Todo pane is the visible subagent board** (opencode plugins cannot draw a custom pane, so the native Todo widget is the live UI). While a task is in flight, its label must carry the worker — `<agent> · <model>` — so the pane shows which agent on which model is doing what. The Todo list is a **projection only**: never read it for recovery; rebuild it from `tasks.md` + git + `.opencode/.ob-run.json`.
 
@@ -45,7 +60,7 @@ wave     = pick groups whose file-sets are pairwise DISJOINT, capped at maxConcu
 - basic-memory `search` MCP tool for prior decisions and the `change-<slug>-context` note (write that context note once before wave 1).
 
 **7. Spawn the wave — one assistant turn, multiple `task()` calls (they run in parallel).** For each group:
-- `subagent_type` = the task's `agent` **exactly as written** in `tasks.md` (e.g. `frontend-engineer.build`, `basic-engineer.fast`). This is a tier-suffixed agent injected at startup by the `ob-subagent-tiers` plugin — it carries the model from `models[<tier>]`. If that agent is missing (plugin not loaded or tier model unset), fall back to the base template agent (strip the `.<tier>` suffix, e.g. `frontend-engineer`) which inherits the lead's model. **Never** spawn the built-in `general` agent for implementation work — its model is wrong.
+- `subagent_type` = the task's `agent` **exactly as written** in `tasks.md` (e.g. `frontend-engineer.build`, `fullstack-engineer.fast`). This is a tier-suffixed agent injected at startup by the `ob-subagent-tiers` plugin — it carries the model from `models[<tier>]`. If that agent is missing (plugin not loaded or tier model unset), fall back to the base template agent (strip the `.<tier>` suffix, e.g. `frontend-engineer`) which inherits the lead's model. **Never** spawn the built-in `general` agent for implementation work — its model is wrong.
 - `description` = `"<task-ids> — <short label>"` (e.g. `"2.1,2.2 — RPC endpoints"`) so the subagent is legible in the `←`/`→` list and the monitor.
 - `prompt` must contain: the exact task IDs + text, and the gathered context (codegraph MCP results + relevant basic-memory MCP notes). The worker follows the **Engineer workflow** defined once in `@ob-generic-guardrails` (load abilities → implement in dependency order → write a `task-<id>-result` note → return a summary) — do not restate it in the prompt.
 - Flip each spawned task's Todo item to `in_progress` and prefix its label with `<agent> — ` (e.g. `frontend-engineer.build — 2.1 Consolidate logic`) so the running worker is visible in the Todo pane. On completion, drop the prefix and mark `completed`.
@@ -61,4 +76,26 @@ wave     = pick groups whose file-sets are pairwise DISJOINT, capped at maxConcu
 
 **11. Close.** Mark all `tasks.md` checkboxes, run `openspec status --change "<name>" --json`, report progress (N/M tasks). The wave state in `.opencode/.ob-run.json` and basic-memory MCP persists for resume.
 
-> **Resume:** re-running `/ob-apply` after any crash recomputes DONE / FAILED / eligible from `tasks.md` + git + basic-memory MCP + `.ob-run.json` and continues. State is on disk, not in this conversation.
+> **Resume:** re-running `/apply-plan` after any crash recomputes DONE / FAILED / eligible from `tasks.md` + git + basic-memory MCP + `.ob-run.json` and continues. State is on disk, not in this conversation.
+
+---
+
+## Simple mode — sequential in-session
+
+When the plan lives in the current conversation (from `/simple-plan`) and no OpenSpec change exists:
+
+1. Read the task list from the conversation context (the `- [ ]` items shown by `/simple-plan`).
+2. **Create a feature branch** if not already on one: `git switch -c feature/{slug}`.
+3. Work through tasks **one at a time, in order**, directly in this session:
+   - Read the task text.
+   - Implement it (edit files, run commands as needed).
+   - Mark the task `[x]` in the conversation (or in a local tracking list).
+   - Commit the change: `git add -A && git commit -m "task {id}: {summary}"`.
+4. After all tasks are done, run the project's typecheck/build check if one exists. Fix any errors.
+5. Report: tasks N/N completed, commits made, branch name.
+
+**Rules for simple mode:**
+- No subagent spawning — work in this session only.
+- No OpenSpec commands.
+- Keep each commit focused on one task.
+- If a task is too complex or blocked, skip it, mark it failed, and continue with the next.

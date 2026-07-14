@@ -116,4 +116,4 @@ Reference material:
    - Whether basic-memory was used or degraded to file tools
 <!-- OB-CMD-MEMORY-END -->
    - Top-level components found
-   - Tip: "Rerun `/ob-create-architecture` any time the architecture changes significantly."
+   - Tip: "Rerun `/make-architecture` any time the architecture changes significantly."

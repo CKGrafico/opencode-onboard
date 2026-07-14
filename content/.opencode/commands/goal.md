@@ -1,5 +1,5 @@
 ---
-description: Autonomous pipeline - propose, apply, then archive on one branch off the default branch, then merge. For loop-engineering.
+description: Autonomous pipeline — explore, propose, apply, archive, then merge/PR/push. For loop-engineering.
 ---
 
 Apply `## Optimizations` from AGENTS.md (RTK, codegraph, memory, etc.).
@@ -8,10 +8,10 @@ Prefix all bash commands with `rtk` when RTK is enabled.
 <!-- OB-CMD-RTK-END -->
 
 ```
-/ob-autopilot <feature description | GitHub Issue URL | Azure DevOps URL>
+/goal <feature description | GitHub Issue URL | Azure DevOps URL>
 ```
 
-Run the full change lifecycle end to end with **no human interaction**: branch off the default branch, propose, apply, archive, and merge back. Built for **loop-engineering / unattended runs**.
+Run the **full OpenSpec lifecycle** end to end with **no human interaction**: explore the codebase, propose a plan, implement via subagent waves, archive, and merge back. Built for **loop-engineering / unattended runs**.
 
 > **Hard rule — never ask the user to confirm anything.** Skip every checkpoint, confirmation, and "stop and ask" in the underlying commands. The only time you halt is a hard failure (see **Failure policy**). Each phase produces its own commit; the branch merges to `$DEFAULT_BRANCH` only after verification passes.
 >
@@ -19,8 +19,8 @@ Run the full change lifecycle end to end with **no human interaction**: branch o
 
 **Output mode** — determined ONLY by the **first whitespace-delimited token** of `$ARGUMENTS`. The words `pr` or `push` anywhere else (e.g. "add push notifications", "create a pr template") are part of the feature description and MUST NOT change the mode:
 - **Default (first token is neither `pr` nor `push`):** merge to the default branch locally, delete the feature branch. No push, no PR.
-- **First token `pr`** (e.g. `/ob-autopilot pr <description>`): push the branch to remote, then create a PR using the platform skill (`@ob-pullrequest`). Do NOT merge — leave the PR open for human review.
-- **First token `push`** (e.g. `/ob-autopilot push <description>`): push the branch to remote only. No PR, no merge.
+- **First token `pr`** (e.g. `/goal pr <description>`): push the branch to remote, then create a PR using the platform skill (`@ob-pullrequest`). Do NOT merge — leave the PR open for human review.
+- **First token `push`** (e.g. `/goal push <description>`): push the branch to remote only. No PR, no merge.
 
 If the first token is `pr` or `push`, strip it from `$ARGUMENTS` before resolving the input in Phase 0.
 
@@ -41,7 +41,7 @@ Input: `$ARGUMENTS`
   DEFAULT_BRANCH="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
   [ -z "$DEFAULT_BRANCH" ] && DEFAULT_BRANCH="main"
   ```
-- Ensure a clean tree. If there are uncommitted changes, `git stash push -u -m "autopilot-wip"` — it MUST be restored on `$START_BRANCH` at the end (Phase 5 or Failure policy).
+- Ensure a clean tree. If there are uncommitted changes, `git stash push -u -m "goal-wip"` — it MUST be restored on `$START_BRANCH` at the end (Phase 6 or Failure policy).
 - Sync and branch (skip the pull if there is no `origin` remote):
   ```bash
   git switch "$DEFAULT_BRANCH" && git pull origin "$DEFAULT_BRANCH"
@@ -50,30 +50,42 @@ Input: `$ARGUMENTS`
   ```
 - Everything below happens on `$BRANCH`. `$DEFAULT_BRANCH` is never modified until the final merge.
 
-**Phase 2 — Propose (no confirmation).**
-- Run the `/ob-propose` protocol with these overrides: **skip its Step 0 unarchived-changes prompt** (treat the answer as `continue`), do **not** pause at the enrichment checkpoint, and **skip the final "Stop / ask the user" step**. Enrich silently.
+**Phase 2 — Explore (read-only).**
+- Load `@openspec-explore` skill and follow its instructions.
+- Analyze the codebase to understand the problem space, existing patterns, relevant files, and constraints.
+<!-- OB-CMD-CODEGRAPH-START -->
+- Use codegraph MCP tools (NOT CLI commands): `codegraph_search` for structure, `codegraph_impact` for dependencies.
+<!-- OB-CMD-CODEGRAPH-END -->
+<!-- OB-CMD-MEMORY-START -->
+- Use basic-memory MCP tools (NOT CLI commands): `search` for prior decisions and context.
+<!-- OB-CMD-MEMORY-END -->
+- Synthesize findings into a brief exploration summary (in memory only — no files written). This summary feeds directly into Phase 3.
+- Commit: nothing to commit yet (exploration is read-only).
+
+**Phase 3 — Propose (no confirmation).**
+- Run `/propose-plan` Steps 1 and 2 (generate proposal in memory + enrich with agent/tier assignments), incorporating the exploration findings from Phase 2. **Skip** Step 0 (unarchived-changes check — treat as `continue`), **skip** Step 3 (show and ask for confirmation — this is autonomous), proceed directly to Step 4 (write files).
 <!-- OB-CMD-CODEGRAPH-START -->
 - Use codegraph MCP tools (NOT CLI commands) for accurate `touches` annotations.
 <!-- OB-CMD-CODEGRAPH-END -->
 <!-- OB-CMD-MEMORY-START -->
 - Use basic-memory MCP tools (NOT CLI commands) for proposal context notes.
 <!-- OB-CMD-MEMORY-END -->
-- Load `@openspec-propose`, generate `proposal.md`, specs, and `tasks.md`, then annotate every task line with `<!-- agent, depends_on, touches -->` exactly as `/ob-propose` specifies (agent name includes tier suffix e.g. `backend-engineer.build`; `depends_on` mandatory; `touches` best-effort).
+- Write the proposal files to `openspec/changes/{change-slug}/` and the memory notes.
 - If the canonical change slug differs from `{slug}`, rename the branch to match: `git branch -m feature/{change-slug}` and refresh `BRANCH="$(git branch --show-current)"`.
 - Commit: `git add -A && git commit -m "propose: {title} ({change-id})"`.
 
-**Phase 3 — Apply (no confirmation).**
-- Run the `/ob-apply` Step 6 wave protocol to completion. You are already on `$BRANCH`, so **skip its branch-creation step (1)**; start from "Load the plan". The wave protocol already has its own codegraph/basic-memory markers — no extra wiring needed here.
+**Phase 4 — Apply (no confirmation).**
+- Run the `/apply-plan` Step 6 wave protocol to completion. You are already on `$BRANCH`, so **skip its branch-creation step (1)**; start from "Load the plan". The wave protocol already has its own codegraph/basic-memory markers — no extra wiring needed here.
 - Spawn subagent waves by `depends_on` / `touches`, committing each group `"{ids}: {summary}"` as that protocol dictates. Honour `agents.maxConcurrent`.
 - Do **not** return control to the user between waves — keep looping until every task is DONE, or the progress guard / one-retry limit trips (→ **Failure policy**).
 - Run the verify step (tests / lint / build) from this lead session. Reopen and re-wave failing tasks as the protocol allows.
 - Ensure `tasks.md` is fully checked and any residual changes are committed.
 
-**Phase 4 — Archive (forced, same branch, no PR).**
+**Phase 5 — Archive (forced, same branch, no PR).**
 - Do **not** run the platform PR archive flow and do **not** create an `archive/` branch. Archive in place on `$BRANCH`.
 - Load `@openspec-archive-change` and archive the change you just implemented, by its id.
 - Compare the archived change's specs against `ARCHITECTURE.md` and `DESIGN.md`; apply any needed doc updates directly (no approval prompt).
-- If you were implementing a bug or a new functionallity and had an important impact check if @project-guardrails exist and update it.
+- If you were implementing a bug or new functionality and had an important impact, check if `@project-guardrails` exists and update it.
 <!-- OB-CMD-CODEGRAPH-START -->
 - Use codegraph `codegraph_impact` MCP tool to identify exactly which doc sections need updates.
 <!-- OB-CMD-CODEGRAPH-END -->
@@ -82,19 +94,19 @@ Input: `$ARGUMENTS`
 <!-- OB-CMD-MEMORY-END -->
 - Commit: `git add -A && git commit -m "archive: {title} ({change-id})"`.
 
-**Phase 5 — Output (mode-dependent).**
-- Proceed only if Phase 3 verification passed and the tree is clean. Otherwise → **Failure policy**.
+**Phase 6 — Output (mode-dependent).**
+- Proceed only if Phase 4 verification passed and the tree is clean. Otherwise → **Failure policy**.
 
-**Restore stash (used by every mode and the Failure policy):** if Phase 1 created the `autopilot-wip` stash, switch back to `$START_BRANCH` (if it still exists; otherwise stay where you are and say so) and `git stash pop`. If the pop conflicts, abort the pop, leave the stash intact, and tell the user its `git stash list` reference. Never silently drop user WIP.
+**Restore stash (used by every mode and the Failure policy):** if Phase 1 created the `goal-wip` stash, switch back to `$START_BRANCH` (if it still exists; otherwise stay where you are and say so) and `git stash pop`. If the pop conflicts, abort the pop, leave the stash intact, and tell the user its `git stash list` reference. Never silently drop user WIP.
 
 **Default mode (local merge, delete branch):**
 - ```bash
   git switch "$DEFAULT_BRANCH" && git pull origin "$DEFAULT_BRANCH"
-  git merge --no-ff "$BRANCH" -m "autopilot: {title} ({change-id})"
+  git merge --no-ff "$BRANCH" -m "goal: {title} ({change-id})"
   ```
   (Skip the pull if there is no `origin` remote.)
 - On a merge conflict you cannot resolve cleanly and automatically: `git merge --abort`, stay on `$DEFAULT_BRANCH`, and report (→ **Failure policy**). Never commit a conflicted or broken merge.
-- **Never push `$DEFAULT_BRANCH`.** The merge stays local; tell the user to review and push it themselves. (Unattended pushes to the default branch are not autopilot's call to make.)
+- **Never push `$DEFAULT_BRANCH`.** The merge stays local; tell the user to review and push it themselves. (Unattended pushes to the default branch are not goal's call to make.)
 - Delete the feature branch: `git branch -d "$BRANCH"`
 - Restore stash.
 
@@ -114,14 +126,15 @@ Input: `$ARGUMENTS`
 - If `@ob-pullrequest` is not available or PR creation fails: leave the branch pushed and report the error. Do NOT merge.
 - Restore stash.
 
-**Phase 6 — Report.** One summary block: change id, branch, tasks N/N done, the commits made (propose / apply group commits / archive), verification result, output mode (default/push/pr), and final state (merged to main / pushed branch / PR URL).
+**Phase 7 — Report.** One summary block: change id, branch, tasks N/N done, the commits made (explore / propose / apply group commits / archive), verification result, output mode (default/push/pr), and final state (merged to main / pushed branch / PR URL).
 
 ---
 
-**Failure policy (the only stops).** Autopilot never asks for input, but it MUST halt instead of shipping broken work when:
+**Failure policy (the only stops).** Goal never asks for input, but it MUST halt instead of shipping broken work when:
+- explore finds the task is infeasible or out of scope,
 - propose produces no tasks,
 - a wave stalls (no eligible tasks while tasks remain) or a task exhausts its single retry,
 - verification (tests / lint / build) fails and cannot be cleared by re-waving,
 - a merge conflict cannot be auto-resolved.
 
-On any of these: **STOP**, leave `$BRANCH` intact and unmerged, **restore the Phase 1 stash** (see Phase 5), and report exactly what failed and where. For loop-engineering, a clean failure with the branch preserved is the correct outcome — never merge unverified code into the default branch.
+On any of these: **STOP**, leave `$BRANCH` intact and unmerged, **restore the Phase 1 stash** (see Phase 6), and report exactly what failed and where. For loop-engineering, a clean failure with the branch preserved is the correct outcome — never merge unverified code into the default branch.

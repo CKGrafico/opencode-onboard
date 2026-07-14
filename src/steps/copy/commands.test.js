@@ -16,9 +16,9 @@ describe('platform patching', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true })
   })
 
-  it('patches ob-archive for azure platform', async () => {
-    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'ob-archive.md')
-    const dest = path.join(tmpDir, '.opencode', 'commands', 'ob-archive.md')
+  it('patches archive-plan for azure platform', async () => {
+    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'archive-plan.md')
+    const dest = path.join(tmpDir, '.opencode', 'commands', 'archive-plan.md')
     await fse.ensureDir(path.dirname(dest))
     await fse.copyFile(source, dest)
 
@@ -29,9 +29,9 @@ describe('platform patching', () => {
     expect(content).not.toContain('gh pr list --repo {owner}/{repo} --state merged')
   })
 
-  it('patches ob-archive for github platform', async () => {
-    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'ob-archive.md')
-    const dest = path.join(tmpDir, '.opencode', 'commands', 'ob-archive.md')
+  it('patches archive-plan for github platform', async () => {
+    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'archive-plan.md')
+    const dest = path.join(tmpDir, '.opencode', 'commands', 'archive-plan.md')
     await fse.ensureDir(path.dirname(dest))
     await fse.copyFile(source, dest)
 
@@ -42,9 +42,9 @@ describe('platform patching', () => {
     expect(content).not.toContain('az repos pr list --repository {repo} --status completed')
   })
 
-  it('patches ob-archive for none platform without throwing', async () => {
-    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'ob-archive.md')
-    const dest = path.join(tmpDir, '.opencode', 'commands', 'ob-archive.md')
+  it('patches archive-plan for none platform without throwing', async () => {
+    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'archive-plan.md')
+    const dest = path.join(tmpDir, '.opencode', 'commands', 'archive-plan.md')
     await fse.ensureDir(path.dirname(dest))
     await fse.copyFile(source, dest)
 
@@ -56,9 +56,9 @@ describe('platform patching', () => {
     expect(content).not.toContain('az repos pr list --repository {repo} --status completed')
   })
 
-  it('patches ob-archive for gitlab platform', async () => {
-    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'ob-archive.md')
-    const dest = path.join(tmpDir, '.opencode', 'commands', 'ob-archive.md')
+  it('patches archive-plan for gitlab platform', async () => {
+    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'archive-plan.md')
+    const dest = path.join(tmpDir, '.opencode', 'commands', 'archive-plan.md')
     await fse.ensureDir(path.dirname(dest))
     await fse.copyFile(source, dest)
 

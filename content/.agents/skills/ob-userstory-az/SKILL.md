@@ -155,7 +155,7 @@ https://dev.azure.com/{org}/{project}/_git/{repo}/pullrequest/{pr-id}
 **Change Created:** us-{id}-{slug}
 ```
 
-After outputting the above, the lead MUST run `/ob-propose` to generate the proposal, specs, and tasks. After `/ob-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"**, do NOT proceed to `/ob-apply` until confirmed.
+After outputting the above, the lead MUST run `/propose-plan` to generate the proposal, specs, and tasks. After `/propose-plan` completes, STOP and ask the user: **"Ready to implement? (yes/no)"**, do NOT proceed to `/apply-plan` until confirmed.
 
 ---
 
@@ -163,7 +163,7 @@ After outputting the above, the lead MUST run `/ob-propose` to generate the prop
 
 - ✅ Parse Azure DevOps URL and create OpenSpec change
 - ✅ Use `az` CLI for all Azure DevOps operations
-- ✅ Always run `/ob-propose` after parsing, never skip to implementation
-- ✅ Always stop and confirm with user after propose, before running `/ob-apply`
+- ✅ Always run `/propose-plan` after parsing, never skip to implementation
+- ✅ Always stop and confirm with user after propose, before running `/apply-plan`
 - ❌ Browser MCP tools for Azure DevOps operations, FORBIDDEN
 - ❌ Jump to implementation without user confirmation, FORBIDDEN
