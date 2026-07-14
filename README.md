@@ -116,7 +116,7 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 | `/make-engineer` | Interactive persona-driven flow to add a custom specialist engineer. Pick a persona, answer questions about your stack, and skills are installed automatically. |
 | `/make-architecture` | Generate or regenerate `ARCHITECTURE.md` from the codebase. |
 | `/make-design` | Generate or regenerate `DESIGN.md` from the design system. |
-| `/make-guardrails` | Generate a `project-guardrails` skill from `ARCHITECTURE.md` + project config files. Extracts architecture boundaries, naming, code style, testing, and git workflow rules. Updates all `*-engineer.md` to load the skill. |
+| `/make-guardrails` | Generate a `ob-guardrails-project` skill from `ARCHITECTURE.md` + project config files. Extracts architecture boundaries, naming, code style, testing, and git workflow rules. Updates all `*-engineer.md` to load the skill. |
 | `/make-user-model [user] <tier> <model>` | Set the model for a tier (`plan`, `build`, `fast`). Writes to `opencode-onboard.json` (team) or `opencode-onboard.user.json` (user override, gitignored) when `user` prefix is used. Restart to pick up: the `ob-subagent-tiers` plugin rebuilds tier agents at startup. Pass a model id or `current` for the active session model. |
 
 ---
@@ -147,7 +147,7 @@ If you choose backlog platform `None`, no userstory skills are injected into the
 
 Current loading model:
 
-- `ob-generic-guardrails` is mandatory baseline for every agent (git/secrets/quality rules + the engineer workflow)
+- `ob-guardrails-generic` is mandatory baseline for every agent (git/secrets/quality rules + the engineer workflow)
 - `ob-default` is fallback when nothing else matches
 - Baseline context rules and token-optimization guidance live in `AGENTS.md` (always in context), not in a skill
 
@@ -155,7 +155,7 @@ Default `fullstack-engineer` abilities:
 
 ```
 ## Abilities
-- Guardrails: @ob-generic-guardrails, @ob-default
+- Guardrails: @ob-guardrails-generic, @ob-default
 - Development: @ob-default
 - Testing: @ob-default
 - Infrastructure: @ob-default
@@ -168,7 +168,8 @@ Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 | Skill                   | Purpose                                                                                                          |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `ob-default`            | Fallback, when no other skill matches                                                                            |
-| `ob-generic-guardrails` | Foundation for user guardrails skills                                                                            |
+| `ob-guardrails-generic` | Foundation for user guardrails skills                                                                            |
+| `ob-guardrails-project` | Project-specific guardrails, populated by `/make-guardrails`                                                      |
 | `ob-userstory-gh`       | Parse a GitHub Issue URL into a structured work item                                                             |
 | `ob-userstory-az`       | Parse an Azure DevOps work item URL                                                                              |
 | `ob-userstory-jira`     | Parse a Jira issue URL via `acli` CLI                                                                            |
@@ -248,12 +249,13 @@ your-project/
 └── .agents/
     └── skills/
         ├── ob-default/             ← fallback skill
-        ├── ob-generic-guardrails/  ← foundation for user guardrails
+        ├── ob-guardrails-generic/  ← foundation for user guardrails
+        ├── ob-guardrails-project/  ← populated by /make-guardrails
         ├── ob-userstory/           ← the variant matching your backlog platform, renamed on install
         └── browser-automation/
 ```
 
-Platform skills ship as suffixed variants (`ob-userstory-gh/-az/-jira/-browser`) and the installer copies only the matching one, renamed to its generic name. Platform operations (ship/review/backlog) are injected directly into the `/ops-*` command files from `src/presets/ops-*/` during onboarding. Source-roots metadata lands in `.opencode/source-roots.json`; token-optimization guidance is injected into `ob-generic-guardrails` marker blocks during onboarding.
+Platform skills ship as suffixed variants (`ob-userstory-gh/-az/-jira/-browser`) and the installer copies only the matching one, renamed to its generic name. Platform operations (ship/review/backlog) are injected directly into the `/ops-*` command files from `src/presets/ops-*/` during onboarding. Source-roots metadata lands in `.opencode/source-roots.json`; token-optimization guidance is injected into `ob-guardrails-generic` marker blocks during onboarding.
 
 ---
 

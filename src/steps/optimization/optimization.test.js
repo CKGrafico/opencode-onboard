@@ -22,6 +22,11 @@ vi.mock('./memory.js', () => ({ installMemory: vi.fn() }))
 vi.mock('./humanizer.js', () => ({ installHumanizer: vi.fn() }))
 vi.mock('./caveman-guidance.js', () => ({ enableCavemanGuidance: vi.fn() }))
 vi.mock('./patch-guardrails.js', () => ({ patchGuardrails: vi.fn().mockResolvedValue({ patched: true, count: 0 }) }))
+vi.mock('./skills-lock.js', () => ({ addSkillToLock: vi.fn().mockResolvedValue(true) }))
+
+vi.mock('execa', () => ({
+  execa: vi.fn().mockResolvedValue({ exitCode: 0, stderr: '' }),
+}))
 
 vi.mock('fs-extra', () => ({
   default: {
@@ -37,6 +42,8 @@ vi.mock('fs-extra', () => ({
         { value: 'memory', checked: false },
       ],
     }),
+    pathExists: vi.fn().mockResolvedValue(false),
+    writeJson: vi.fn().mockResolvedValue(undefined),
   },
 }))
 

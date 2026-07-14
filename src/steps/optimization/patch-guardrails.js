@@ -16,10 +16,10 @@ const MARKER_SECTIONS = {
 
 export async function patchGuardrails(selections = {}) {
   const destSkillsDir = path.join(process.cwd(), '.agents', 'skills')
-  const guardrailsPath = path.join(destSkillsDir, 'ob-generic-guardrails', 'SKILL.md')
+  const guardrailsPath = path.join(destSkillsDir, 'ob-guardrails-generic', 'SKILL.md')
 
   if (!await fse.pathExists(guardrailsPath)) {
-    info('ob-generic-guardrails not found, skipping guardrails patching')
+    info('ob-guardrails-generic not found, skipping guardrails patching')
     return { patched: false }
   }
 

@@ -46,7 +46,7 @@ Display the following reference to the user exactly as written. Do not summarize
 
 **`/make-design`**: Regenerate `DESIGN.md` from the design system (Tailwind, CSS vars, tokens, etc.).
 
-**`/make-guardrails`**: Generate a `project-guardrails` skill from `ARCHITECTURE.md` and project config files. Extracts concrete rules (architecture boundaries, naming, code style, testing, git workflow) that all agents must follow. Updates every `*-engineer.md` to load the skill.
+**`/make-guardrails`**: Generate a `ob-guardrails-project` skill from `ARCHITECTURE.md` and project config files. Extracts concrete rules (architecture boundaries, naming, code style, testing, git workflow) that all agents must follow. Updates every `*-engineer.md` to load the skill.
 
 **`/make-user-model <tier> <model>`**: Set the model for a tier (`plan`, `build`, or `fast`). Writes to `.opencode/opencode-onboard.json` (`models`). Use `user` prefix for a personal override: `/make-user-model user fast opencode/big-pickle`. Use a model id or `current` for the active session model. Restart opencode for the `ob-subagent-tiers` plugin to rebuild tier agents.
 

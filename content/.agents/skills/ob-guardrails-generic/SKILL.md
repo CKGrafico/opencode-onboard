@@ -1,5 +1,5 @@
 ---
-name: ob-generic-guardrails
+name: ob-guardrails-generic
 description: Generic guardrails, foundational rules that all agents follow. Users add specialized guardrails skills for specific concerns. Covers secrets, code quality, security, tool usage, and engineer workflow.
 license: MIT
 ---
@@ -15,6 +15,12 @@ license: MIT
 - Run tests before marking done
 - Run lint/build before pushing
 - Keep changes small and focused
+- Code must be self-explanatory. Names, structure, and types should tell the reader what the code does. Do NOT add comments that restate what the code already says.
+- Comments are for WHY, not WHAT. Use them only when the code does something non-obvious or the reason cannot be inferred from context.
+- Keep comment ratio under 10%. If more than 10% of lines in a file are comments, the code is probably not understandable enough. Refactor for clarity instead of commenting.
+- DELETE comments that are stale, obvious, or restating code. Every comment must earn its place.
+- Each file should have one clear responsibility. Do NOT create catch-all files like `constants.js`, `types.ts`, `config.js`, or `utils.ts` that collect unrelated things from different domains. Split by domain or feature instead (e.g. `user-constants.ts`, `order-types.ts`, `auth-config.ts`).
+- A file that imports from many unrelated modules is a sign it should be split into smaller, focused files.
 
 ## Security
 

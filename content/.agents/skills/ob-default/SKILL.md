@@ -4,4 +4,4 @@ description: Fallback skill, used when no other skill matches. Use when the task
 license: MIT
 ---
 
-Follow @ob-generic-guardrails for all rules, tool usage, and engineer workflow. No other specialized guidance.
+Follow @ob-guardrails-generic for all rules, tool usage, and engineer workflow. No other specialized guidance.

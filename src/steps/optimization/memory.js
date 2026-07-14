@@ -1,4 +1,5 @@
 import { execa } from 'execa'
+import { addSkillToLock } from './skills-lock.js'
 import fse from 'fs-extra'
 import path from 'node:path'
 import { commandExists, error, info, loading, success, warn } from '../../utils/exec.js'
@@ -67,22 +68,12 @@ export async function installMemory(options = {}) {
     return { optedIn: true, installed: false, uvAvailable }
   }
 
-  // Install basic-memory skill
-  loading('installing basic-memory skill...')
-  try {
-    const result = await execa(
-      'npx',
-      ['skills', 'add', 'basicmachines-co/basic-memory', '--path', 'skills', '--yes'],
-      { cwd: process.cwd(), reject: false, stdio: 'pipe', timeout: 300000 }
-    )
-    if (result.exitCode === 0) {
-      success('basic-memory skill installed')
-    } else {
-      warn('basic-memory skill install exited with non-zero code: skipping')
-    }
-  } catch (err) {
-    warn(`basic-memory skill install failed: ${err.message}`)
-  }
+  // Add basic-memory skill to skills-lock.json for batch install
+  await addSkillToLock('basic-memory', {
+    source: 'basicmachines-co/basic-memory',
+    sourceType: 'github',
+    skillPath: 'skills/basic-memory/SKILL.md',
+  })
 
   info('Notes stored in ~/basic-memory by default.')
   info('To use a project-specific path: basic-memory project add <name> <path>')

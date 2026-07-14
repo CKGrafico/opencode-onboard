@@ -36,7 +36,7 @@ export async function generateFullstackEngineer({ cwd = process.cwd() } = {}) {
   frontmatter.push('---')
 
   const abilities = existingAbilities ?? [
-    '- Guardrails: @ob-generic-guardrails, @ob-default',
+    '- Guardrails: @ob-guardrails-generic, @ob-guardrails-project, @ob-default',
     '- Development: @ob-default',
     '- Testing: @ob-default',
     '- Infrastructure: @ob-default',

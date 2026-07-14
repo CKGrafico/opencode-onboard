@@ -1,14 +1,14 @@
 ---
-description: Generate or update a project-guardrails skill from ARCHITECTURE.md and relevant project files.
+description: Generate or update a ob-guardrails-project skill from ARCHITECTURE.md and relevant project files.
 ---
 
-Analyze `ARCHITECTURE.md` and other project files to generate or update a `project-guardrails` skill: a set of rules and constraints extracted from the project's own documentation that agents must follow.
+Analyze `ARCHITECTURE.md` and other project files to generate or update a `ob-guardrails-project` skill: a set of rules and constraints extracted from the project's own documentation that agents must follow.
 
 **Steps**
 
 1. **Check current state**
 
-   Read `.agents/skills/project-guardrails/SKILL.md`. Determine which mode to use:
+   Read `.agents/skills/ob-guardrails-project/SKILL.md`. Determine which mode to use:
    - **Does not exist** → **Generate mode**: create from scratch.
    - **Exists** and has a `<!-- Last updated:` footer → **Update mode**: incrementally update.
    - **Exists** but no timestamp → proceed in **Generate mode** (full regeneration).
@@ -44,6 +44,7 @@ Analyze `ARCHITECTURE.md` and other project files to generate or update a `proje
    From the documents and code graph analysis, extract concrete, actionable rules in these categories. Only include a category if you found real evidence for it:
 
    - **Architecture constraints**: layer boundaries, module dependencies, forbidden imports, directory ownership rules (e.g. "src/api/ must not import from src/ui/"). Use codegraph MCP tools to verify actual import boundaries.
+   - **File organization**: avoid god-files and dumping-ground constants. Each file should have one clear responsibility. Do NOT create files like `constants.js`, `types.ts`, `config.js`, or `utils.ts` that collect unrelated things from different domains. Split by domain or feature instead (e.g. `user-constants.ts`, `order-types.ts`, `auth-config.ts`). A file that imports from 5+ unrelated modules is a sign it should be split.
    - **Naming conventions**: file naming, component naming, API route conventions, branch naming
    - **Code style**: formatter config, lint rules, import ordering, max line length: derive from actual config files, not guesses
    - **Testing rules**: test file locations, naming, coverage gates, what must be tested before merge
@@ -61,11 +62,11 @@ Analyze `ARCHITECTURE.md` and other project files to generate or update a `proje
 
 4. **Write the skill**
 
-   Write (or update) `.agents/skills/project-guardrails/SKILL.md`:
+   Write (or update) `.agents/skills/ob-guardrails-project/SKILL.md`:
 
    ```markdown
    ---
-   name: project-guardrails
+   name: ob-guardrails-project
    description: Project-specific rules and constraints extracted from ARCHITECTURE.md. Load this skill before implementing any change to understand boundaries, conventions, and constraints for this codebase.
    license: MIT
    ---
@@ -109,10 +110,10 @@ Analyze `ARCHITECTURE.md` and other project files to generate or update a `proje
 
 5. **Update agents**
 
-   For every `*-engineer.md` in `.opencode/agents/`, add `@project-guardrails` to the Guardrails ability line (skip if already present). Keep the line's existing entries exactly as they are: only insert `@project-guardrails` after `@ob-generic-guardrails`, never add or remove other skills:
+   For every `*-engineer.md` in `.opencode/agents/`, add `@ob-guardrails-project` to the Guardrails ability line (skip if already present). Keep the line's existing entries exactly as they are: only insert `@ob-guardrails-project` after `@ob-guardrails-generic`, never add or remove other skills:
    ```markdown
    ## Abilities
-   - Guardrails: @ob-generic-guardrails, @project-guardrails[, ...existing entries unchanged]
+   - Guardrails: @ob-guardrails-generic, @ob-guardrails-project[, ...existing entries unchanged]
    ```
 
    Exclude tier variant files (`*-engineer.build.md`, `*-engineer.fast.md`, `*-engineer.plan.md`): they are generated copies; only update the base templates.

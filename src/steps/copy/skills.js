@@ -1,8 +1,7 @@
-import { execa } from 'execa'
 import fse from 'fs-extra'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { info, success, warn } from '../../utils/exec.js'
+import { info, success } from '../../utils/exec.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CONTENT_SKILLS_DIR = path.resolve(__dirname, '../../../content/.agents/skills')
@@ -73,14 +72,7 @@ export async function installSkills(backlogPlatform = 'github', repoPlatform) {
     }
   }
 
-  info('Installing npx skills from skills-lock.json...')
-  try {
-    await execa('npx', ['skills', 'experimental_install', '--yes'], {
-      cwd: process.cwd(),
-      stdio: 'inherit',
-      reject: false,
-    })
-  } catch (err) {
-    warn(`npx skills failed: ${err.message}`)
-  }
+  // npx skills experimental_install is now called once at the end of the
+  // optimization step, after the user has selected which tools to enable.
+  // This avoids multiple npx skills add calls during onboarding.
 }

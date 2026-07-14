@@ -6,6 +6,6 @@ export async function enableCavemanGuidance(cavemanResult) {
     return { enabled: false }
   }
 
-  // Caveman guidance is now injected into ob-generic-guardrails via patchGuardrails
+  // Caveman guidance is now injected into ob-guardrails-generic via patchGuardrails
   return { enabled: true, patchedFiles: 0 }
 }

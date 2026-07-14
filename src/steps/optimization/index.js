@@ -1,4 +1,5 @@
 import { checkbox, confirm } from '@inquirer/prompts'
+import { execa } from 'execa'
 import fse from 'fs-extra'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -120,6 +121,10 @@ export async function tokenOptimizationStep(options = {}) {
     ? await installHumanizer({ skipHeader: true, installScope })
     : { optedIn: false, installed: false }
 
+  // Run a single npx skills experimental_install to pick up all skills
+  // that were added to skills-lock.json by the individual installers above.
+  await syncSkillsLock()
+
   // Patch guardrails skill with selected tool guidance sections
   await patchGuardrails({
     rtk: rtk.available,
@@ -133,4 +138,31 @@ export async function tokenOptimizationStep(options = {}) {
   else success('Token optimization step completed')
 
   return { rtk, quota, caveman, cavemanGuidance, codegraph, memory, humanizer }
+}
+
+async function syncSkillsLock() {
+  const destLock = path.join(process.cwd(), 'skills-lock.json')
+  if (!await fse.pathExists(destLock)) {
+    info('No skills-lock.json found, skipping skills sync')
+    return
+  }
+
+  loading('syncing skills via npx skills experimental_install...')
+  try {
+    const result = await execa('npx', ['skills', 'experimental_install', '--yes'], {
+      cwd: process.cwd(),
+      reject: false,
+      stdio: 'pipe',
+      timeout: 600000,
+    })
+
+    if (result.exitCode === 0) {
+      success('Skills synced from skills-lock.json')
+    } else {
+      const errLine = result.stderr?.trim().split('\n').slice(-3).join('\n')
+      warn(`npx skills experimental_install exited with non-zero code${errLine ? `: ${errLine}` : ''}`)
+    }
+  } catch (err) {
+    warn(`npx skills experimental_install failed: ${err.message}`)
+  }
 }

@@ -35,7 +35,7 @@ Inspect `.opencode/agents/*.md` before spawning. Prefer the most specialized cus
 
 ## Skills
 
-Skills live in `.agents/skills/`. Always installed: `@ob-default`, `@ob-generic-guardrails`, `@browser-automation`. Agents load them via `@skill-name` in their `## Abilities` section.
+Skills live in `.agents/skills/`. Always installed: `@ob-default`, `@ob-guardrails-generic`, `@ob-guardrails-project`, `@browser-automation`. Agents load them via `@skill-name` in their `## Abilities` section.
 
 <!-- OB-PLATFORM-SKILLS-GUIDE-START -->
 <!-- OB-PLATFORM-SKILLS-GUIDE-END -->

@@ -1,34 +1,17 @@
-import { execa } from 'execa'
-import { header, success, warn, error, loading, info } from '../../utils/exec.js'
+import { addSkillToLock } from './skills-lock.js'
+import { header, success, info } from '../../utils/exec.js'
+
+const SKILL_ENTRY = {
+  source: 'juliusbrussee/caveman',
+  sourceType: 'github',
+  skillPath: 'caveman/SKILL.md',
+}
 
 export async function installCaveman(options = {}) {
   if (!options.skipHeader) header('Installing caveman')
 
-  loading('installing caveman...')
-
-  const isGlobal = options.installScope === 'global'
-  const skillsArgs = isGlobal
-    ? ['skills', 'add', 'https://github.com/juliusbrussee/caveman', '--skill', 'caveman', '-a', 'opencode', '--yes', '-g']
-    : ['skills', 'add', 'https://github.com/juliusbrussee/caveman', '--skill', 'caveman', '-a', 'opencode', '--yes']
-
-  try {
-    info('Installing caveman via npx skills')
-    const result = await execa('npx', skillsArgs, {
-      reject: false,
-      timeout: 600000,
-      stdio: 'pipe',
-    })
-
-    if (result.exitCode === 0) {
-      success('caveman installed')
-      return { optedIn: true, installed: true }
-    }
-
-    if (result.stderr?.trim()) warn(result.stderr.trim().split('\n').slice(-3).join('\n'))
-    warn('caveman install exited with non-zero code')
-    return { optedIn: true, installed: false }
-  } catch (err) {
-    error(`Failed to install caveman: ${err.message}`)
-    return { optedIn: true, installed: false }
-  }
+  info('Adding caveman to skills-lock.json for batch install')
+  await addSkillToLock('caveman', SKILL_ENTRY)
+  success('caveman queued for installation')
+  return { optedIn: true, installed: true }
 }

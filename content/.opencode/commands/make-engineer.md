@@ -89,7 +89,7 @@ permission:
 ---
 
 ## Abilities
-- Guardrails: @ob-generic-guardrails
+- Guardrails: @ob-guardrails-generic, @ob-guardrails-project
 - Development: <@installed-skill-1>, <@installed-skill-2>, ...
 - Testing: <@installed-skill-for-testing>, ...
 - Infrastructure: <@installed-skill-for-devops>, ...
@@ -97,7 +97,7 @@ permission:
 
 Rules for the generated file:
 - **No `model:` field**: the `ob-subagent-tiers` plugin injects tier variants at startup
-- **No `## Workflow` section**: the engineer workflow is defined once in `@ob-generic-guardrails`
+- **No `## Workflow` section**: the engineer workflow is defined once in `@ob-guardrails-generic`
 - Only include ability categories that have at least one real skill (besides Guardrails which is always present)
 - **Development** = language/framework/UI skills. **Testing** = test/lint/typecheck skills. **Infrastructure** = DevOps/CI/CD/cloud skills
 - Name follows `{persona}-engineer` pattern (e.g. `frontend-engineer`, `backend-engineer`)
@@ -139,7 +139,7 @@ Report:
 - "Restart opencode for the `ob-subagent-tiers` plugin to pick up the new engineer."
 
 **Guidelines**
-- Always keep `@ob-generic-guardrails` in the Guardrails ability
+- Always keep `@ob-guardrails-generic` in the Guardrails ability
 - NEVER use `@ob-default` in any ability category: all abilities must reference real installed skills
 - One file per engineer: do NOT create `-build`/`-fast` variant files. The `ob-subagent-tiers` plugin injects tier variants at startup
 - Skills should match both the persona AND the project's tech stack
