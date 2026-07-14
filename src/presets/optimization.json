@@ -24,7 +24,7 @@
       "checked": true
     },
     {
-      "name": "basic-memory knowledge graph (requires uv)",
+      "name": "agentmemory local memory server",
       "value": "memory",
       "checked": true
     },
