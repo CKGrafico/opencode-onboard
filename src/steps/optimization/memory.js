@@ -2,7 +2,7 @@ import { execa } from 'execa'
 import { addSkillToLock } from './skills-lock.js'
 import fse from 'fs-extra'
 import path from 'node:path'
-import { commandExists, error, info, loading, success, warn } from '../../utils/exec.js'
+import { error, info, loading, success, warn } from '../../utils/exec.js'
 
 /**
  * Configures the agentmemory MCP server in .opencode/opencode.json
