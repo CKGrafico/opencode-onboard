@@ -1,13 +1,3 @@
----
-name: ob-backlog
-description: Create a Jira issue from a description. Use when user runs /ops-backlog.
-license: MIT
-compatibility: Requires acli (Atlassian CLI).
-metadata:
-  author: copilots
-  version: "1.0"
----
-
 **NEVER use browser tools to navigate to atlassian.net: use `acli` CLI only.**
 
 ---
@@ -37,9 +27,3 @@ Issue created
 Tell the user: "Use `/plan-propose {issue-url}` to turn this into a plan."
 
 ---
-
-## Guardrails
-
-- Use `acli` CLI for all Jira operations
-- NEVER use browser tools to navigate to atlassian.net
-- Jira is a backlog-only platform: it has no code repos or PRs. PR creation and code review use the repo platform (GitHub or Azure DevOps) configured separately

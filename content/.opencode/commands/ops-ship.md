@@ -2,6 +2,7 @@
 description: Create a pull request for the current feature branch with screenshots if UI changed.
 ---
 
-The `@ob-ship` skill is platform-specific. Repo platform is set in `.opencode/opencode-onboard.json` → `platform.repo`. Load the skill matching the repo platform and follow its instructions.
+Repo platform is set in `.opencode/opencode-onboard.json` → `platform.repo`. The platform-specific content below is injected by the CLI during onboarding.
 
-Creates a PR for the current feature branch: pushes the branch, creates the PR, and posts screenshots if UI changed.
+<!-- OB-PLATFORM-SHIP-START -->
+<!-- OB-PLATFORM-SHIP-END -->

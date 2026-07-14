@@ -5,7 +5,7 @@ import { copyContent } from "../../utils/copy.js"
 import { error, header, success } from "../../utils/exec.js"
 import { exit } from "../../utils/process.js"
 import { patchAgentGuidance, patchAgentsMd } from "./agents.js"
-import { patchArchiveCommand } from "./commands.js"
+import { patchArchiveCommand, patchOpsShip, patchOpsReview, patchOpsBacklog } from "./commands.js"
 import { installSkills } from "./skills.js"
 import { generateFullstackEngineer } from "./fullstack-engineer.js"
 import { patchOpencodeJson } from "./opencode-json.js"
@@ -59,6 +59,9 @@ export async function copyContentStep(platform, ctx = {}) {
 
     await patchAgentGuidance(backlogPlatform, repoPlatform)
     await patchArchiveCommand({ backlogPlatform, repoPlatform })
+    await patchOpsShip({ backlogPlatform, repoPlatform })
+    await patchOpsReview({ backlogPlatform, repoPlatform })
+    await patchOpsBacklog({ backlogPlatform, repoPlatform })
     await patchOpencodeJson()
     await patchAgentsMd(ctx)
 

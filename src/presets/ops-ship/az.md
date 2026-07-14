@@ -1,13 +1,3 @@
----
-name: ob-ship
-description: Create Azure DevOps PRs with screenshots. Use when shipping a feature branch via /ops-ship.
-license: MIT
-compatibility: Requires az CLI, az devops extension, openspec CLI, and opencode-browser for screenshots.
-metadata:
-  author: copilots
-  version: "1.0"
----
-
 **Browser MCP tools are FORBIDDEN for all Azure DevOps operations.**
 Browser tools are ONLY permitted for screenshots of the LOCAL running app on `localhost` URLs.
 
@@ -89,13 +79,3 @@ az devops invoke \
 ```
 
 ---
-
-## Guardrails
-
-- Commit and push to feature branches only
-- Create and comment on PRs via az CLI
-- Screenshots of localhost only via browser_screenshot
-- NEVER commit or push to `main`
-- NEVER force push
-- NEVER merge or approve PRs: human-only
-- NEVER navigate browser to dev.azure.com

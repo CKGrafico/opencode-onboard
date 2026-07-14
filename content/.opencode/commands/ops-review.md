@@ -2,6 +2,7 @@
 description: Read and triage PR review feedback. Reports what needs fixing, does not implement fixes.
 ---
 
-The `@ob-review` skill is platform-specific. Repo platform is set in `.opencode/opencode-onboard.json` → `platform.repo`. Load the skill matching the repo platform and follow its instructions.
+Repo platform is set in `.opencode/opencode-onboard.json` → `platform.repo`. The platform-specific content below is injected by the CLI during onboarding.
 
-Reads and classifies PR review comments. Reports what needs fixing: does not implement fixes directly. Fixing is done via `/plan-apply`.
+<!-- OB-PLATFORM-REVIEW-START -->
+<!-- OB-PLATFORM-REVIEW-END -->

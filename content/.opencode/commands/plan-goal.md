@@ -10,7 +10,7 @@ Run the **full OpenSpec lifecycle** end to end with **no human interaction**: ex
 
 **Output mode**: determined ONLY by the **first whitespace-delimited token** of `$ARGUMENTS`. The words `pr` or `push` anywhere else (e.g. "add push notifications", "create a pr template") are part of the feature description and MUST NOT change the mode:
 - **Default (first token is neither `pr` nor `push`):** merge to the default branch locally, delete the feature branch. No push, no PR.
-- **First token `pr`** (e.g. `/plan-goal pr <description>`): push the branch to remote, then create a PR using the platform skill (`@ob-ship`). Do NOT merge: leave the PR open for human review.
+- **First token `pr`** (e.g. `/plan-goal pr <description>`): push the branch to remote, then create a PR via `/ops-ship`. Do NOT merge: leave the PR open for human review.
 - **First token `push`** (e.g. `/plan-goal push <description>`): push the branch to remote only. No PR, no merge.
 
 If the first token is `pr` or `push`, strip it from `$ARGUMENTS` before resolving the input in Phase 0.
@@ -101,10 +101,10 @@ Input: `$ARGUMENTS`
 - ```bash
   git push -u origin "$BRANCH"
   ```
-- Load `@ob-ship` skill and create a PR from `$BRANCH` to `$DEFAULT_BRANCH` with:
+- Create a PR using `/ops-ship` from `$BRANCH` to `$DEFAULT_BRANCH` with:
   - Title: `{title}`
   - Body: summary of the change (change id, tasks N/N, commit list)
-- If `@ob-ship` is not available or PR creation fails: leave the branch pushed and report the error. Do NOT merge.
+- If `/ops-ship` is not available or PR creation fails: leave the branch pushed and report the error. Do NOT merge.
 - Restore stash.
 
 **Phase 7: Report.** One summary block: change id, branch, tasks N/N done, the commits made (explore / propose / apply group commits / archive), verification result, output mode (default/push/pr), and final state (merged to main / pushed branch / PR URL).

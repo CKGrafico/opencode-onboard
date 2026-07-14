@@ -18,9 +18,9 @@ Display the following reference to the user exactly as written. Do not summarize
 
 ### Ready to implement?
 
-**`/plan-todos <task>`**: Quick plan for focused changes. Reads the codebase, creates a task checklist in the Todo pane. No files, no OpenSpec. Then you decide: `/plan-apply` to implement, or `/plan-propose` for a full OpenSpec plan.
+**`/plan-quick <task>`**: Quick plan for focused changes. Reads the codebase, creates a task checklist in the Todo pane. No files, no OpenSpec. Then you decide: `/plan-apply` to implement, or `/plan-propose` for a full OpenSpec plan.
 
-**`/plan-apply`**: Implement a plan. Detects the source automatically: OpenSpec-annotated tasks (from `/plan-propose`) run as parallel subagent waves; Todo pane tasks (from `/plan-todos`) run sequentially in-session.
+**`/plan-apply`**: Implement a plan. Detects the source automatically: OpenSpec-annotated tasks (from `/plan-propose`) run as parallel subagent waves; Todo pane tasks (from `/plan-quick`) run sequentially in-session.
 
 **`/plan-goal <feature or URL>`**: Fully autonomous, no confirmations. Branches off `main`, then runs propose → apply → archive on that branch (each phase its own commit). Default: merges to `main` and deletes the branch. Add `push` keyword to push the branch only. Add `pr` keyword to push + create a PR. Built for loop-engineering / unattended runs. Stops only on a hard failure, leaving the branch unmerged.
 
@@ -65,7 +65,7 @@ Display the following reference to the user exactly as written. Do not summarize
 
 **Quick change:**
 ```
-/plan-todos     ← create a focused task list
+/plan-quick     ← create a focused task list
 /plan-apply     ← implement
 ```
 

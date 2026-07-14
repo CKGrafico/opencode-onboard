@@ -106,7 +106,7 @@ Custom slash commands are installed into `.opencode/commands/` and are available
 | `/repo-initialize` | Initialize the project. Asks greenfield vs brownfield, then activates the agent team. |
 | `/plan-explore` | Think through an idea or investigate a problem before committing to a plan. |
 | `/plan-propose <url or idea>` | Parse a GitHub Issue / Azure DevOps / Jira / browser URL or a direct idea into a structured plan (proposal, specs, tasks). Enriches each task with agent and model assignments. |
-| `/plan-todos <task>` | Quick plan for focused changes. Reads the codebase, creates a task checklist in the Todo pane, and stops. No OpenSpec, no proposals, no specs. |
+| `/plan-quick <task>` | Quick plan for focused changes. Reads the codebase, creates a task checklist in the Todo pane, and stops. No OpenSpec, no proposals, no specs. |
 | `/plan-apply` | Implement tasks from the current plan. Detects format automatically: OpenSpec-annotated tasks run as parallel subagent waves; plain checkboxes run sequentially in-session. |
 | `/ops-ship` | Create a PR for the current branch with screenshots if UI changed. |
 | `/ops-review` | Read and triage PR review feedback. Reports what needs fixing. |
@@ -173,16 +173,9 @@ Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 | `ob-userstory-az`       | Parse an Azure DevOps work item URL                                                                              |
 | `ob-userstory-jira`     | Parse a Jira issue URL via `acli` CLI                                                                            |
 | `ob-userstory-browser`  | Parse work item from any URL via browser automation (Linear, Trello, etc.)                                       |
-| `ob-ship-gh`            | Create GitHub PRs with screenshots                                                                               |
-| `ob-ship-az`            | Create Azure DevOps PRs with screenshots                                                                         |
-| `ob-ship-gl`            | Create GitLab merge requests with screenshots                                                                    |
-| `ob-review-gh`          | Read and triage GitHub PR review feedback                                                                        |
-| `ob-review-az`          | Read and triage Azure DevOps PR review feedback                                                                  |
-| `ob-review-gl`          | Read and triage GitLab MR review feedback                                                                        |
-| `ob-backlog-gh`         | Create a GitHub issue from a description                                                                         |
-| `ob-backlog-az`         | Create an Azure DevOps work item from a description                                                              |
-| `ob-backlog-jira`       | Create a Jira issue from a description                                                                           |
 | `browser-automation`    | Browser control via `@different-ai/opencode-browser` (localhost + browser backlog exception)                    |
+
+Platform operations (PR creation, PR review, issue creation) are injected directly into `/ops-ship`, `/ops-review`, and `/ops-backlog` command files during onboarding. No separate skills needed.
 
 Skills live in `.agents/skills/`. Any `SKILL.md` file in a subdirectory is automatically discoverable, write your own and agents will pick them up.
 
@@ -257,13 +250,10 @@ your-project/
         ├── ob-default/             ← fallback skill
         ├── ob-generic-guardrails/  ← foundation for user guardrails
         ├── ob-userstory/           ← the variant matching your backlog platform, renamed on install
-        ├── ob-ship/                ← the variant matching your repo platform, renamed on install
-        ├── ob-review/              ← the variant matching your repo platform, renamed on install
-        ├── ob-backlog/             ← the variant matching your backlog platform, renamed on install
         └── browser-automation/
 ```
 
-Platform skills ship as suffixed variants (`ob-userstory-gh/-az/-jira/-browser`, `ob-ship-gh/-az/-gl`, `ob-review-gh/-az/-gl`, `ob-backlog-gh/-az/-jira`) and the installer copies only the matching one, renamed to its generic name. Source-roots metadata lands in `.opencode/source-roots.json`; token-optimization guidance is injected into AGENTS.md marker blocks during onboarding.
+Platform skills ship as suffixed variants (`ob-userstory-gh/-az/-jira/-browser`) and the installer copies only the matching one, renamed to its generic name. Platform operations (ship/review/backlog) are injected directly into the `/ops-*` command files from `src/presets/ops-*/` during onboarding. Source-roots metadata lands in `.opencode/source-roots.json`; token-optimization guidance is injected into `ob-generic-guardrails` marker blocks during onboarding.
 
 ---
 

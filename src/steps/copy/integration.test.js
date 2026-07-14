@@ -14,6 +14,7 @@ vi.mock('../../utils/exec.js')
 
 import { patchAgentsMd, patchAgentGuidance } from './agents.js'
 import { installSkills } from './skills.js'
+import { patchOpsShip, patchOpsReview, patchOpsBacklog } from './commands.js'
 import { resolvePlatform } from '../../commands/single.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -72,36 +73,73 @@ describe('installSkills platform gating (real content/.agents/skills)', () => {
     return fs.existsSync(p) ? fs.readFileSync(p, 'utf-8') : null
   }
 
-  it('azure backlog + gitlab repo: azure userstory+backlog, gitlab ship+review', async () => {
+  it('azure backlog + gitlab repo: azure userstory, gitlab ops commands', async () => {
     await installSkills('azure', 'gitlab')
     expect(await installedSkill('ob-userstory')).toContain('az boards work-item show')
-    expect(await installedSkill('ob-backlog')).toContain('az boards work-item create')
-    expect(await installedSkill('ob-ship')).toContain('glab mr create')
-    expect(await installedSkill('ob-review')).toContain('glab mr view')
-  })
-
-  it('jira backlog + github repo: jira userstory+backlog, github ship+review', async () => {
-    await installSkills('jira', 'github')
-    expect(await installedSkill('ob-userstory')).toContain('acli jira workitem view')
-    expect(await installedSkill('ob-backlog')).toContain('acli jira issue create')
-    expect(await installedSkill('ob-ship')).toContain('gh pr create')
-    expect(await installedSkill('ob-review')).toContain('gh pr view')
-  })
-
-  it('github backlog + none repo: github userstory+backlog, NO ship/review skills', async () => {
-    await installSkills('github', 'none')
-    expect(await installedSkill('ob-userstory')).toContain('gh issue view')
-    expect(await installedSkill('ob-backlog')).toContain('gh issue create')
     expect(await installedSkill('ob-ship')).toBeNull()
     expect(await installedSkill('ob-review')).toBeNull()
+    expect(await installedSkill('ob-backlog')).toBeNull()
   })
 
-  it('browser backlog + azure repo: browser userstory, NO backlog, azure ship+review', async () => {
+  it('jira backlog + github repo: jira userstory, github ops commands', async () => {
+    await installSkills('jira', 'github')
+    expect(await installedSkill('ob-userstory')).toContain('acli jira workitem view')
+    expect(await installedSkill('ob-ship')).toBeNull()
+    expect(await installedSkill('ob-review')).toBeNull()
+    expect(await installedSkill('ob-backlog')).toBeNull()
+  })
+
+  it('github backlog + none repo: github userstory, NO ops skills', async () => {
+    await installSkills('github', 'none')
+    expect(await installedSkill('ob-userstory')).toContain('gh issue view')
+    expect(await installedSkill('ob-ship')).toBeNull()
+    expect(await installedSkill('ob-review')).toBeNull()
+    expect(await installedSkill('ob-backlog')).toBeNull()
+  })
+
+  it('browser backlog + azure repo: browser userstory, NO ops skills', async () => {
     await installSkills('browser', 'azure')
     expect(await installedSkill('ob-userstory')).toContain('browser_open_tab')
+    expect(await installedSkill('ob-ship')).toBeNull()
+    expect(await installedSkill('ob-review')).toBeNull()
     expect(await installedSkill('ob-backlog')).toBeNull()
-    expect(await installedSkill('ob-ship')).toContain('az repos pr create')
-    expect(await installedSkill('ob-review')).toContain('az repos pr list')
+  })
+})
+
+describe('ops command patching (real presets + real command templates)', () => {
+  async function patchedCommand(name) {
+    const p = path.join(tmpDir, '.opencode', 'commands', name)
+    return fs.existsSync(p) ? fs.readFileSync(p, 'utf-8') : null
+  }
+
+  it.each([
+    ['azure', 'gitlab'],
+    ['jira', 'github'],
+    ['browser', 'azure'],
+    ['github', 'gitlab'],
+  ])('backlog=%s repo=%s patches all ops commands', async (backlog, repo) => {
+    // Copy command files to tmpDir
+    fs.mkdirSync(path.join(tmpDir, '.opencode', 'commands'), { recursive: true })
+    for (const cmd of ['ops-ship.md', 'ops-review.md', 'ops-backlog.md']) {
+      const src = path.join(CONTENT_DIR, '.opencode', 'commands', cmd)
+      fs.copyFileSync(src, path.join(tmpDir, '.opencode', 'commands', cmd))
+    }
+
+    await patchOpsShip({ backlogPlatform: backlog, repoPlatform: repo }, tmpDir)
+    await patchOpsReview({ backlogPlatform: backlog, repoPlatform: repo }, tmpDir)
+    await patchOpsBacklog({ backlogPlatform: backlog, repoPlatform: repo }, tmpDir)
+
+    const ship = await patchedCommand('ops-ship.md')
+    const review = await patchedCommand('ops-review.md')
+    const backlogCmd = await patchedCommand('ops-backlog.md')
+
+    // Markers must survive
+    expect(ship).toContain('OB-PLATFORM-SHIP-START')
+    expect(ship).toContain('OB-PLATFORM-SHIP-END')
+    expect(review).toContain('OB-PLATFORM-REVIEW-START')
+    expect(review).toContain('OB-PLATFORM-REVIEW-END')
+    expect(backlogCmd).toContain('OB-PLATFORM-BACKLOG-START')
+    expect(backlogCmd).toContain('OB-PLATFORM-BACKLOG-END')
   })
 })
 

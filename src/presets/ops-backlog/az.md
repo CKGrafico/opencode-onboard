@@ -1,13 +1,3 @@
----
-name: ob-backlog
-description: Create an Azure DevOps work item from a description. Use when user runs /ops-backlog.
-license: MIT
-compatibility: Requires az CLI and az devops extension.
-metadata:
-  author: copilots
-  version: "1.0"
----
-
 **Browser MCP tools are FORBIDDEN for all Azure DevOps operations.**
 
 ---
@@ -37,8 +27,3 @@ Work item created
 Tell the user: "Use `/plan-propose {work-item-url}` to turn this into a plan."
 
 ---
-
-## Guardrails
-
-- Use `az` CLI for all Azure DevOps operations
-- NEVER use browser MCP tools for Azure DevOps operations

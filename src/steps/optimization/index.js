@@ -9,6 +9,7 @@ import { installCodegraph } from './codegraph.js'
 import { installMemory } from './memory.js'
 import { installHumanizer } from './humanizer.js'
 import { enableCavemanGuidance } from './caveman-guidance.js'
+import { patchGuardrails } from './patch-guardrails.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const OPTIMIZATION_PRESET_PATH = path.resolve(__dirname, '../../presets/optimization.json')
@@ -118,6 +119,15 @@ export async function tokenOptimizationStep(options = {}) {
   const humanizer = has('humanizer')
     ? await installHumanizer({ skipHeader: true, installScope })
     : { optedIn: false, installed: false }
+
+  // Patch guardrails skill with selected tool guidance sections
+  await patchGuardrails({
+    rtk: rtk.available,
+    codegraph: codegraph.optedIn,
+    memory: memory.optedIn,
+    caveman: caveman.installed,
+    humanizer: humanizer.optedIn,
+  })
 
   if (selected.length === 0) warn('No token optimization tools selected')
   else success('Token optimization step completed')

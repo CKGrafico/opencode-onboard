@@ -54,7 +54,7 @@ Ask the user:
 ```text
 What next? Options:
   /plan-propose: turn this into a full OpenSpec proposal with design, specs, and tasks
-  /plan-todos  : lightweight task checklist (skip design/specs)
+  /plan-quick  : lightweight task checklist (skip design/specs)
   /plan-apply  : dive straight into implementation (if the path is clear)
   (or just tell me to keep exploring)
 ```

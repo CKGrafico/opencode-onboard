@@ -1,13 +1,3 @@
----
-name: ob-backlog
-description: Create a GitHub issue from a description. Use when user runs /ops-backlog.
-license: MIT
-compatibility: Requires gh CLI.
-metadata:
-  author: copilots
-  version: "1.0"
----
-
 **ALL GitHub data MUST come from `gh` CLI. NEVER use webfetch, HTTP requests, or browser MCP tools for GitHub operations, even if gh CLI fails. If `gh` is unavailable, report as a blocker.**
 Always pass `--repo {owner}/{repo}` explicitly, never rely on git context to resolve the repo.
 
@@ -38,9 +28,3 @@ Issue created
 Tell the user: "Use `/plan-propose {issue-url}` to turn this into a plan."
 
 ---
-
-## Guardrails
-
-- Use `gh` CLI for all GitHub operations
-- NEVER use webfetch or HTTP requests to GitHub URLs
-- NEVER use browser MCP tools for GitHub operations

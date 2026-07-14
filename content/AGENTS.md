@@ -20,7 +20,7 @@ When the user provides a work item URL or says "implement the plan" or "I've add
 Trigger patterns, I recognize ALL of these, exact wording does not matter:
 - User pastes or mentions a work item URL → load `ob-userstory` skill → parse it → run `/plan-propose` → confirm with user → run `/plan-apply` → ship
 - `implement the plan` / `implement` / `start` / `go` (referring to the current plan) → run `/plan-apply` → ship
-- `I've added comments to the PR` or a PR URL in a feedback/fix request → load `ob-review` → classify feedback → fix via `/plan-apply` → update PR
+- `I've added comments to the PR` or a PR URL in a feedback/fix request → run `/ops-review` → classify feedback → fix via `/plan-apply` → update PR
 
 **A work-item URL in the user's message is a strong trigger: follow the pipeline unless the user explicitly asks for analysis or context only.**
 <!-- OB-PLATFORM-WORKFLOW-END -->

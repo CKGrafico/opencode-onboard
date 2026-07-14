@@ -1,13 +1,3 @@
----
-name: ob-review
-description: Read and triage GitHub PR review feedback. Use when user says "I've added comments to the PR" or runs /ops-review.
-license: MIT
-compatibility: Requires gh CLI and openspec CLI.
-metadata:
-  author: copilots
-  version: "1.0"
----
-
 **ALL GitHub data MUST come from `gh` CLI. NEVER use webfetch, HTTP requests, or browser MCP tools for GitHub operations, even if gh CLI fails. If `gh` is unavailable, report as a blocker.**
 Always pass `--repo {owner}/{repo}` explicitly, never rely on git context to resolve the repo.
 
@@ -61,10 +51,3 @@ gh pr comment {pr-number} --body "Updated design.md to reflect feedback."
 ```
 
 ---
-
-## Guardrails
-
-- Create and comment on PRs via gh CLI with explicit `--repo {owner}/{repo}`
-- NEVER merge or approve PRs: human-only
-- NEVER navigate browser to github.com
-- NEVER use webfetch or HTTP requests to GitHub URLs

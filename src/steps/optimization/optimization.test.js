@@ -19,7 +19,9 @@ vi.mock('./quota.js', () => ({ installQuota: vi.fn() }))
 vi.mock('./caveman.js', () => ({ installCaveman: vi.fn() }))
 vi.mock('./codegraph.js', () => ({ installCodegraph: vi.fn() }))
 vi.mock('./memory.js', () => ({ installMemory: vi.fn() }))
+vi.mock('./humanizer.js', () => ({ installHumanizer: vi.fn() }))
 vi.mock('./caveman-guidance.js', () => ({ enableCavemanGuidance: vi.fn() }))
+vi.mock('./patch-guardrails.js', () => ({ patchGuardrails: vi.fn().mockResolvedValue({ patched: true, count: 0 }) }))
 
 vi.mock('fs-extra', () => ({
   default: {

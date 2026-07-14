@@ -28,32 +28,20 @@ license: MIT
 - Report blockers immediately
 - Show progress when asked
 
-## RTK
+<!-- OB-GUARDRAILS-RTK-START -->
+<!-- OB-GUARDRAILS-RTK-END -->
 
-- If `rtk` is available on PATH, prefix ALL CLI commands with `rtk` (e.g. `rtk git diff`, `rtk pnpm test`). Read-only commands like `cat`, `ls`, `Get-Content` are exempt.
-- If `rtk` is not available, run commands directly without the prefix.
+<!-- OB-GUARDRAILS-CODEGRAPH-START -->
+<!-- OB-GUARDRAILS-CODEGRAPH-END -->
 
-## CodeGraph
+<!-- OB-GUARDRAILS-MEMORY-START -->
+<!-- OB-GUARDRAILS-MEMORY-END -->
 
-- If `codegraph_explore` is available in your tools, use it BEFORE grep/read to understand or locate code. One call returns the relevant symbols' verbatim source plus the call paths between them.
-- Do NOT run `codegraph` in bash: it is an MCP server, not a CLI tool.
-- If codegraph is not available, use standard grep/glob/read for code exploration.
+<!-- OB-GUARDRAILS-CAVEMAN-START -->
+<!-- OB-GUARDRAILS-CAVEMAN-END -->
 
-## Basic Memory
-
-- If basic-memory MCP tools are available (`search`, `write_note`, `edit_note`, `build_context`, `recent_activity`), use them for cross-session context: `search` for prior decisions before implementing unfamiliar areas, `write_note` for architecture decisions and cross-agent context.
-- Do NOT run `basic-memory` in bash: it is an MCP server.
-- If not available, skip memory operations.
-
-## Caveman
-
-- If the `@caveman` skill is loaded, activate caveman mode for all responses.
-- No revert unless user says "stop caveman" or "normal mode".
-
-## Humanizer
-
-- If the `@humanizer` skill is loaded, apply it to all written output (commit messages, PR descriptions, docs, proposals) to remove AI writing patterns and sound more natural.
-- Do NOT apply humanizer to code, config files, or terminal output: only to prose.
+<!-- OB-GUARDRAILS-HUMANIZER-START -->
+<!-- OB-GUARDRAILS-HUMANIZER-END -->
 
 ## Engineer workflow (when spawned)
 

@@ -1,13 +1,3 @@
----
-name: ob-ship
-description: Create GitHub PRs with screenshots. Use when shipping a feature branch via /ops-ship.
-license: MIT
-compatibility: Requires gh CLI, openspec CLI, and opencode-browser for screenshots.
-metadata:
-  author: copilots
-  version: "1.0"
----
-
 **ALL GitHub data MUST come from `gh` CLI. NEVER use webfetch, HTTP requests, or browser MCP tools for GitHub operations, even if gh CLI fails. If `gh` is unavailable, report as a blocker.**
 Always pass `--repo {owner}/{repo}` explicitly, never rely on git context to resolve the repo.
 
@@ -77,14 +67,3 @@ gh pr comment {pr-number} --repo {owner}/{repo} --body $'## Screenshots\n\n![{fe
 ```
 
 ---
-
-## Guardrails
-
-- Commit and push to feature branches only
-- Create and comment on PRs via gh CLI with explicit `--repo {owner}/{repo}`
-- Screenshots of localhost only via browser_screenshot
-- NEVER commit or push to `main`
-- NEVER force push
-- NEVER merge or approve PRs: human-only
-- NEVER navigate browser to github.com
-- NEVER use webfetch or HTTP requests to GitHub URLs

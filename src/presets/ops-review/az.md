@@ -1,13 +1,3 @@
----
-name: ob-review
-description: Read and triage Azure DevOps PR review feedback. Use when user says "I've added comments to the PR" or runs /ops-review.
-license: MIT
-compatibility: Requires az CLI, az devops extension, and openspec CLI.
-metadata:
-  author: copilots
-  version: "1.0"
----
-
 **Browser MCP tools are FORBIDDEN for all Azure DevOps operations.**
 
 ---
@@ -71,9 +61,3 @@ az devops invoke \
 ```
 
 ---
-
-## Guardrails
-
-- Create and comment on PRs via az CLI
-- NEVER merge or approve PRs: human-only
-- NEVER navigate browser to dev.azure.com

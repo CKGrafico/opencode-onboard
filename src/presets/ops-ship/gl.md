@@ -1,13 +1,3 @@
----
-name: ob-ship
-description: Create GitLab merge requests with screenshots. Use when shipping a feature branch via /ops-ship.
-license: MIT
-compatibility: Requires glab CLI, openspec CLI, and opencode-browser for screenshots.
-metadata:
-  author: copilots
-  version: "1.0"
----
-
 **ALL GitLab data MUST come from `glab` CLI. NEVER use webfetch, HTTP requests, or browser MCP tools for GitLab operations, even if glab CLI fails. If `glab` is unavailable, report as a blocker.**
 Always pass `--repo {owner}/{repo}` explicitly, never rely on git context to resolve the repo.
 
@@ -94,14 +84,3 @@ Merge Request created
 ```
 
 ---
-
-## Guardrails
-
-- NEVER use browser tools to navigate to gitlab.com: use `glab` CLI only
-- NEVER output API tokens or credentials
-- NEVER merge MRs: human-only action
-- NEVER use `--yes` flag in interactive mode (only in autopilot)
-- If `glab` is not installed, report a blocker and tell the user to install from https://gitlab.com/gitlab-org/cli/#installation
-- If not authenticated, tell the user to run `glab auth login`
-- GitLab uses "merge requests" (MR) not "pull requests" (PR): use GitLab terminology
-- GitLab is a repo-only platform: it has no backlog/work item integration. Backlog operations use the backlog platform (GitHub / Azure / Jira) configured separately

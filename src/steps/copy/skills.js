@@ -9,9 +9,6 @@ const CONTENT_SKILLS_DIR = path.resolve(__dirname, '../../../content/.agents/ski
 const CONTENT_SKILLS_LOCK = path.resolve(__dirname, '../../../content/skills-lock.json')
 
 // Userstory skills parse backlog work items: selected by backlogPlatform only.
-// Backlog skills create issues in the backlog: selected by backlogPlatform only.
-// Ship skills create PRs: selected by repoPlatform only.
-// Review skills triage PR feedback: selected by repoPlatform only.
 // Mixing the two axes here installs the wrong variant on mixed setups, because
 // all variants rename to the same generic dir and the first copy wins.
 const BACKLOG_PLATFORM_SKILLS = {
@@ -19,17 +16,6 @@ const BACKLOG_PLATFORM_SKILLS = {
   'ob-userstory-az': 'azure',
   'ob-userstory-jira': 'jira',
   'ob-userstory-browser': 'browser',
-  'ob-backlog-gh': 'github',
-  'ob-backlog-az': 'azure',
-  'ob-backlog-jira': 'jira',
-}
-const REPO_PLATFORM_SKILLS = {
-  'ob-ship-gh': 'github',
-  'ob-ship-az': 'azure',
-  'ob-ship-gl': 'gitlab',
-  'ob-review-gh': 'github',
-  'ob-review-az': 'azure',
-  'ob-review-gl': 'gitlab',
 }
 
 // Platform-specific skills are renamed to their generic form on install.
@@ -40,20 +26,10 @@ const SKILL_RENAME = {
   'ob-userstory-az':      'ob-userstory',
   'ob-userstory-jira':    'ob-userstory',
   'ob-userstory-browser': 'ob-userstory',
-  'ob-ship-gh':           'ob-ship',
-  'ob-ship-az':           'ob-ship',
-  'ob-ship-gl':           'ob-ship',
-  'ob-review-gh':         'ob-review',
-  'ob-review-az':         'ob-review',
-  'ob-review-gl':         'ob-review',
-  'ob-backlog-gh':        'ob-backlog',
-  'ob-backlog-az':        'ob-backlog',
-  'ob-backlog-jira':      'ob-backlog',
 }
 
-function shouldInstallSkill(skill, backlogPlatform, repoPlatform) {
+function shouldInstallSkill(skill, backlogPlatform, _repoPlatform) {
   if (skill in BACKLOG_PLATFORM_SKILLS) return BACKLOG_PLATFORM_SKILLS[skill] === backlogPlatform
-  if (skill in REPO_PLATFORM_SKILLS) return REPO_PLATFORM_SKILLS[skill] === repoPlatform
   return true
 }
 
