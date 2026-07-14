@@ -91,8 +91,8 @@ export async function runJoin() {
     }
   }
 
-  // Step 5: basic-memory (if project uses it)
-  header('Step 5, Checking basic-memory')
+  // Step 5: agentmemory (if project uses it)
+  header('Step 5, Checking agentmemory')
   let cfg = {}
   if (await fse.pathExists(opencodeJsonPath)) {
     try {
@@ -102,35 +102,48 @@ export async function runJoin() {
     }
   }
 
-  if (cfg?.mcp?.['basic-memory']) {
-    info('Project uses basic-memory MCP')
-    const uvAvailable = await commandExists('uv')
-    if (uvAvailable) {
-      loading('installing basic-memory via uv tool install...')
+  if (cfg?.mcp?.['agentmemory']) {
+    info('Project uses agentmemory MCP')
+    loading('checking agentmemory server...')
+
+    // Check if agentmemory is installed
+    const agentmemoryAvailable = await commandExists('agentmemory')
+    if (agentmemoryAvailable) {
+      success('agentmemory CLI is available')
+    } else {
+      info('agentmemory not found on PATH, installing...')
       try {
-        const installResult = await execa('uv', ['tool', 'install', 'basic-memory'], {
+        const installResult = await execa('npm', ['install', '-g', '@agentmemory/agentmemory'], {
           reject: false,
           timeout: 300000,
           stdio: 'pipe',
         })
         if (installResult.exitCode === 0) {
-          success('basic-memory installed')
+          success('agentmemory installed')
         } else {
-          const stderr = installResult.stderr?.trim() ?? ''
-          if (stderr.includes('already installed')) {
-            success('basic-memory already installed')
-          } else {
-            warn('basic-memory install exited with non-zero code: MCP may not work')
-          }
+          warn('agentmemory install failed, run `npm install -g @agentmemory/agentmemory` manually')
         }
       } catch (err) {
-        warn(`basic-memory install failed: ${err.message}`)
+        warn(`agentmemory install failed: ${err.message}`)
       }
-    } else {
-      warn('uv not found: basic-memory MCP will not work. Install uv from https://docs.astral.sh/uv/')
+    }
+
+    // Health-check the server
+    try {
+      const healthResult = await execa('curl', ['-s', '-o', '/dev/null', '-w', '%{http_code}', 'http://localhost:3111/agentmemory/health'], {
+        reject: false,
+        timeout: 5000,
+      })
+      if (healthResult.stdout.trim() === '200') {
+        success('agentmemory server is running')
+      } else {
+        info('agentmemory server not running, start it with `agentmemory` in a separate terminal')
+      }
+    } catch {
+      info('agentmemory server not running, start it with `agentmemory` in a separate terminal')
     }
   } else {
-    info('basic-memory not configured for this project: skipping')
+    info('agentmemory not configured for this project, skipping')
   }
 
   // Step 6: Codegraph (if project uses it)

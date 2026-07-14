@@ -7,7 +7,7 @@ description: Quick plan: analyze the codebase and create a task checklist using 
 > This command is **strictly read-only**. You may read files, search code, and use `todowrite` to create Todo pane items. You must NOT:
 > - Create or edit any source files, config files, or documentation.
 > - Create or modify any OpenSpec artifacts (`openspec/changes/`, specs, tasks.md).
-> - Write basic-memory notes.
+> - Write agentmemory notes.
 > - Run `git commit`, `git add`, or any file-writing shell command.
 > - Run `/plan-apply` or any other command that writes files.
 >
@@ -57,4 +57,4 @@ What next? Options:
   (or just tell me to start on specific tasks)
 ```
 
-Do NOT create any files. Do NOT run `/plan-apply` or `/plan-propose` automatically. Do NOT write basic-memory notes. The ONLY output is the Todo pane checklist.
+Do NOT create any files. Do NOT run `/plan-apply` or `/plan-propose` automatically. Do NOT write agentmemory notes. The ONLY output is the Todo pane checklist.

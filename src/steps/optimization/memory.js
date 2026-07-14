@@ -2,43 +2,35 @@ import { execa } from 'execa'
 import { addSkillToLock } from './skills-lock.js'
 import fse from 'fs-extra'
 import path from 'node:path'
-import { commandExists, error, info, loading, success, warn } from '../../utils/exec.js'
+import { error, info, loading, success, warn } from '../../utils/exec.js'
 
 /**
- * Configures the basic-memory MCP server in .opencode/opencode.json
- * and installs the basic-memory skill.
+ * Configures the agentmemory MCP server in .opencode/opencode.json
+ * and installs the agentmemory skills.
  *
- * basic-memory runs via `basic-memory mcp` (stdio, no Docker).
- * Requires uv: https://docs.astral.sh/uv/getting-started/installation/
- * Skill source: https://github.com/basicmachines-co/basic-memory (skills/ directory)
+ * agentmemory runs as a persistent local server on localhost:3111.
+ * Requires Node.js 18+ (npm install -g @agentmemory/agentmemory).
+ * MCP bridge: npx -y @agentmemory/mcp (proxies to the running server).
+ * Skill source: https://github.com/rohitg00/agentmemory
  */
 export async function installMemory(options = {}) {
-  if (!options.skipHeader) info('Configuring basic-memory knowledge graph...')
+  if (!options.skipHeader) info('Configuring agentmemory local memory server...')
 
-  loading('checking uv...')
-  const uvAvailable = await commandExists('uv')
-  if (!uvAvailable) {
-    warn('uv not found on PATH. basic-memory requires uv to run.')
-    warn('Install uv from https://docs.astral.sh/uv/getting-started/installation/')
-  }
-
-  // Pre-install basic-memory so the `basic-memory` binary is on PATH.
-  // `uv tool install` puts it in ~/.local/bin (or equivalent),
-  // so opencode can call `basic-memory mcp` directly: no uvx resolution delay.
-  loading('installing basic-memory (this may take a minute)...')
+  // Install agentmemory globally so the `agentmemory` command is on PATH
+  loading('installing agentmemory (this may take a minute)...')
   try {
-    const installResult = await execa('uv', ['tool', 'install', 'basic-memory'], {
+    const installResult = await execa('npm', ['install', '-g', '@agentmemory/agentmemory'], {
       reject: false,
       timeout: 300000,
       stdio: 'pipe',
     })
     if (installResult.exitCode === 0) {
-      success('basic-memory installed')
+      success('agentmemory installed')
     } else {
-      warn('basic-memory install exited with non-zero code: MCP may be slow on first connect')
+      warn('agentmemory install exited with non-zero code — MCP may fall back to npx resolution')
     }
   } catch (err) {
-    warn(`basic-memory install failed: ${err.message}`)
+    warn(`agentmemory install failed: ${err.message}`)
   }
 
   // Configure MCP server in .opencode/opencode.json
@@ -51,32 +43,36 @@ export async function installMemory(options = {}) {
       : { $schema: 'https://opencode.ai/config.json' }
 
     if (!opencode.mcp) opencode.mcp = {}
-    if (!opencode.mcp['basic-memory']) {
-      opencode.mcp['basic-memory'] = {
+    if (!opencode.mcp['agentmemory']) {
+      opencode.mcp['agentmemory'] = {
         type: 'local',
-        command: ['basic-memory', 'mcp'],
+        command: ['npx', '-y', '@agentmemory/mcp'],
+        env: {
+          AGENTMEMORY_URL: 'http://localhost:3111',
+        },
         enabled: true,
-        timeout: 300000,
+        timeout: 120000,
       }
     }
 
     await fse.ensureDir(opencodeDir)
     await fse.writeJson(opencodePath, opencode, { spaces: 2 })
-    success('basic-memory MCP server configured in .opencode/opencode.json')
+    success('agentmemory MCP server configured in .opencode/opencode.json')
   } catch (err) {
-    error(`Failed to configure basic-memory MCP: ${err.message}`)
-    return { optedIn: true, installed: false, uvAvailable }
+    error(`Failed to configure agentmemory MCP: ${err.message}`)
+    return { optedIn: true, installed: false }
   }
 
-  // Add basic-memory skill to skills-lock.json for batch install
-  await addSkillToLock('basic-memory', {
-    source: 'basicmachines-co/basic-memory',
+  // Add agentmemory skills to skills-lock.json for batch install
+  await addSkillToLock('agentmemory', {
+    source: 'rohitg00/agentmemory',
     sourceType: 'github',
-    skillPath: 'skills/basic-memory/SKILL.md',
+    skillPath: 'skills/remember/SKILL.md',
   })
 
-  info('Notes stored in ~/basic-memory by default.')
-  info('To use a project-specific path: basic-memory project add <name> <path>')
+  info('Memory server: run `agentmemory` to start on localhost:3111')
+  info('Real-time viewer: http://localhost:3113')
+  info('Health check: curl http://localhost:3111/agentmemory/health')
 
-  return { optedIn: true, installed: true, uvAvailable }
+  return { optedIn: true, installed: true }
 }

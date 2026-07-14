@@ -52,7 +52,7 @@ Examples from the spec repo:
    <!-- Last updated: <current ISO timestamp> -->
    ```
 
-4. **Store summary in basic-memory**
+4. **Store summary in agentmemory**
 
    `write_note` MCP tool with title `design-summary` containing:
    - The ISO timestamp of this run
