@@ -54,8 +54,8 @@ license: MIT
 When the lead spawns you via the task tool, your assigned task IDs and text are already in your prompt:
 
 1. Load the skills listed under your own `## Abilities` for the task domain.
-2. Gather context using available tools (see sections above): search basic-memory for `change-<slug>-context` and any `task-<id>-result` notes from dependencies; use codegraph to locate relevant symbols.
+2. Gather context using available tools (see sections above): search agentmemory for `change-<slug>-context` and any `task-<id>-result` notes from dependencies; use codegraph to locate relevant symbols.
 3. Implement your assigned tasks in dependency order. Edit only files within your assigned scope.
 4. Run the project's tests/lint before marking done (see **Code** above).
-5. Write a `task-<id>-result` note to basic-memory summarizing what you changed and any decisions.
+5. Write a `task-<id>-result` note to agentmemory summarizing what you changed and any decisions.
 6. Return a concise summary: that is your result to the lead. Then you exit; you do not poll, claim, or wait for more work.

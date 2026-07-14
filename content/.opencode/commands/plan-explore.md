@@ -10,7 +10,7 @@ description: Think through an idea, investigate a problem, or clarify requiremen
 > - Run `git commit`, `git add`, or any file-writing shell command.
 > - Run `/plan-apply`, `/plan-propose`, or any other command that writes files.
 >
-> The ONLY exception is basic-memory `write_note` in Step 2, and ONLY if the user explicitly says `yes` when asked. Everything else is in-memory discussion only.
+> The ONLY exception is agentmemory `memory_save` in Step 2, and ONLY if the user explicitly says `yes` when asked. Everything else is in-memory discussion only.
 
 This command is **read-only**. It investigates, analyzes, and discusses: but never writes files unless you explicitly ask it to.
 
@@ -49,10 +49,10 @@ Work through the exploration with the user. Discuss findings, tradeoffs, constra
 After the exploration is complete, if the findings are significant and worth preserving, ask the user:
 
 ```text
-Save this exploration to basic-memory for future reference? [yes/no]
+Save this exploration to agentmemory for future reference? [yes/no]
 ```
 
-- `yes` → `write_note` with title `exploration-{topic}` summarizing the key findings, constraints, and recommended next steps.
+- `yes` → `memory_save` with title `exploration-{topic}` summarizing the key findings, constraints, and recommended next steps.
 - `no` → proceed to Step 3.
 
 Do NOT write any files without this explicit ask.
@@ -69,4 +69,4 @@ What next? Options:
   (or just tell me to keep exploring)
 ```
 
-Do NOT create any files. Do NOT run any of these commands automatically. The ONLY output of this command is the discussion and the optional basic-memory note (with explicit user consent).
+Do NOT create any files. Do NOT run any of these commands automatically. The ONLY output of this command is the discussion and the optional agentmemory note (with explicit user consent).

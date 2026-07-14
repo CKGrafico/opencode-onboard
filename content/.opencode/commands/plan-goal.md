@@ -60,12 +60,12 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
 
 **Phase 3: Propose (no confirmation).**
 - Run `/plan-propose` with the resolved input. **Skip every user-interaction checkpoint** in that command (Step 0.a unarchived-changes check → treat as `continue`; Step 3 show-and-ask-for-confirmation → do not ask, write files immediately). Incorporate the exploration findings from Phase 2 into the proposal.
-- `/plan-propose` writes the proposal files to `openspec/changes/{change-slug}/` and the basic-memory notes.
+- `/plan-propose` writes the proposal files to `openspec/changes/{change-slug}/` and the agentmemory notes.
 - If the canonical change slug differs from `{slug}`, rename the branch to match: `git branch -m feature/{change-slug}` and refresh `BRANCH="$(git branch --show-current)"`.
 - Commit: `git add -A && git commit -m "propose: {title} ({change-id})"`.
 
 **Phase 4: Apply (no confirmation).**
-- Run `/plan-apply`. You are already on `$BRANCH`, so **skip its branch-creation step**; start from "Load the plan". The wave protocol inside `/plan-apply` handles codegraph and basic-memory integration via `@ob-guardrails-generic`: no extra wiring needed here.
+- Run `/plan-apply`. You are already on `$BRANCH`, so **skip its branch-creation step**; start from "Load the plan". The wave protocol inside `/plan-apply` handles codegraph and agentmemory integration via `@ob-guardrails-generic`: no extra wiring needed here.
 - `/plan-apply` spawns subagent waves by `depends_on` / `touches`, committing each group `"{ids}: {summary}"` as its protocol dictates. Honour `agents.maxConcurrent`.
 - Do **not** return control to the user between waves: keep looping until every task is DONE, or the progress guard / one-retry limit trips (→ **Failure policy**).
 - `/plan-apply` runs the verify step (tests / lint / build) from this lead session. Reopen and re-wave failing tasks as the protocol allows.

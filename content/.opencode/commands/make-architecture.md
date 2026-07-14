@@ -70,7 +70,7 @@ Analyze the architecture of this codebase and generate or update `ARCHITECTURE.m
    - Use Mermaid diagrams where helpful
    - Write as if this document will be committed and maintained over time
 
-4. **Store summary in basic-memory**
+4. **Store summary in agentmemory**
 
    `write_note` MCP tool with title `architecture-summary` containing:
    - The ISO timestamp of this run

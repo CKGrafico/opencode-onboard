@@ -10,7 +10,7 @@ description: Parse a work item or idea and propose a change plan with enriched t
 > - Run `git commit`, `git add`, or any file-writing shell command.
 > - Run `/plan-apply` or any other command that writes files.
 >
-> The ONLY exception is basic-memory `write_note` for context-sharing notes (`proposal-{slug}`, `change-{slug}-context`) in Step 4, and ONLY after the user has confirmed the proposal. These are non-destructive metadata notes, not source code or project files.
+> The ONLY exception is agentmemory `memory_save` for context-sharing notes (`proposal-{slug}`, `change-{slug}-context`) in Step 4, and ONLY after the user has confirmed the proposal. These are non-destructive metadata notes, not source code or project files.
 
 **Step 0.a - Check for unarchived changes**
 
@@ -98,7 +98,7 @@ Write the proposal files to `openspec/changes/{change-slug}/`:
 - `proposal.md`: the change description and rationale
 - `specs/`: any spec files generated
 - `tasks.md`: the enriched task list with agent annotations
-- `write_note` with title `proposal-{change-slug}` containing the change id, task count, and agent+tier assignments. This lets `/plan-apply` verify the plan on resume.
-- `write_note` with title `change-{slug}-context` containing the proposal context so `/plan-apply` can pick it up for subagent spawns.
+- `memory_save` with title `proposal-{change-slug}` containing the change id, task count, and agent+tier assignments. This lets `/plan-apply` verify the plan on resume.
+- `memory_save` with title `change-{slug}-context` containing the proposal context so `/plan-apply` can pick it up for subagent spawns.
 
 **Stop.** Ask the user: "Ready to implement? Run `/plan-apply` to start." Do NOT run `/plan-apply` automatically.
