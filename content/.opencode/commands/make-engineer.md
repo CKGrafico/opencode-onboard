@@ -2,9 +2,17 @@
 description: Create a custom engineer agent via persona-driven interactive design
 ---
 
-Create a custom engineer agent using a **persona-driven** approach. Ask simple choice/yes-no questions: never ask the user to type free text. Context comes from analyzing source roots, not from user descriptions.
+## CRITICAL RULES — READ BEFORE DOING ANYTHING
 
-**Usage**: `/make-engineer`
+1. **ONE file only**: `.opencode/agents/{persona}-engineer.md`. NEVER create `.build.md`, `.fast.md`, `.plan.md`, or any variant file. The `ob-subagent-tiers` plugin creates those at startup.
+2. **File content = template only**: YAML frontmatter + one identity paragraph (2-3 sentences) + `## Abilities` section. No other `##` headings. No expertise notes. No architecture details. No conventions. No file maps. No workflow steps. Those belong in skills, not the agent file.
+3. **NEVER write `model:`** in the agent file. The `ob-subagent-tiers` plugin injects it.
+4. **ALWAYS `mode: all`** — never `mode: subagent` or `mode: primary`.
+5. **Skills FIRST**: You MUST complete Step 4 (run `npx skills find` for every detected signal, install 5-10 skills from skills.sh) BEFORE writing any file. If you have not run `npx skills find` at least once, you are not ready to write the file.
+6. **No global skills**: Only skills installed in the project's `.agents/skills/` directory can be referenced. Skills from `~/.claude/skills/` or `~/.agents/skills/` are FORBIDDEN.
+7. **No `@ob-default`** in any ability category — all abilities must reference real installed skills.
+
+If the finished file has any `##` heading other than `## Abilities`, or has a `model:` field, or has `mode: subagent`, or is missing skills from `.agents/skills/` — you have failed. Rewrite it.
 
 ---
 
@@ -26,13 +34,15 @@ Ask the user this question using the `question` tool:
 
 The chosen persona determines everything: what to detect, what questions to ask, what skills to suggest.
 
-If the user selects "Type your own answer", accept any single-word persona name and proceed with the same flow.
+If the user passes the persona as an argument (e.g. `/make-engineer frontend`) or selects "Type your own answer", accept any single-word persona name and skip to Step 2.
 
 ---
 
 ## Step 2: Detect signals from source roots
 
 **Check `source-roots.json` first.** Read `.opencode/source-roots.json`. If it doesn't exist or has empty roots, ask the user which directories to scan using the `question` tool with the project's top-level directories as options.
+
+Also read `ARCHITECTURE.md` and `DESIGN.md` for context on the tech stack.
 
 Scan for **persona-relevant** signals only. Look in manifest files (`package.json`, `tsconfig.json`, `*.csproj`, `pyproject.toml`, `requirements.txt`, `go.mod`, `Cargo.toml`, etc.) and project structure:
 
@@ -49,7 +59,7 @@ Scan for **persona-relevant** signals only. Look in manifest files (`package.jso
 - **Linting**: linter, formatter, and their config files
 - **Dependency Injection**: DI/IoC containers, hook frameworks
 
-Report what was detected as a **signal inventory**, this list drives Step 4 deterministically:
+Report what was detected as a **signal inventory** — this list drives Step 4 deterministically:
 
 ```
 Signal inventory:
@@ -72,7 +82,9 @@ Based on the detected signals, ask 2-4 relevant questions using the `question` t
 
 ## Step 4: Deterministic skill discovery
 
-This step is the core of the engineer's value. Follow every sub-step. Do NOT skip searches, do NOT fall back to personal/global skills, do NOT use fewer than 5 skills.
+### STOP — DO NOT WRITE ANY FILE YET
+
+You must complete this step fully before writing anything in Step 5. The agent file is worthless without real skills from skills.sh. If you skip this step, the engineer will have no abilities and will fail at every task.
 
 ### 4a. Pre-check already-installed skills
 
@@ -81,7 +93,7 @@ Before searching, build a map of what's already available:
 1. List every directory in `.agents/skills/`
 2. Read `skills-lock.json` for npx-installed skills
 3. For each detected signal from Step 2, check if an already-installed skill covers it
-4. Mark covered signals as **already-satisfied**, they won't be searched again
+4. Mark covered signals as **already-satisfied** — they won't be searched again
 
 Report:
 ```
@@ -130,17 +142,17 @@ If a signal doesn't fit any table row, derive a query from the signal value itse
 
 From each search result, select the best candidate using these rules in order:
 
-1. **Install count ≥ 100**, skip anything below. Prefer ≥ 1000.
-2. **Official/canonical source**, prefer `vercel-labs`, `anthropics`, `microsoft`, `feature-sliced`, `wshobson`, `github` over unknown authors.
-3. **Topical match**, the skill description must clearly match the signal. A React skill with 500K installs doesn't cover TypeScript if its description is only about React components.
+1. **Install count ≥ 100** — skip anything below. Prefer ≥ 1000.
+2. **Official/canonical source** — prefer `vercel-labs`, `anthropics`, `microsoft`, `feature-sliced`, `wshobson`, `github` over unknown authors.
+3. **Topical match** — the skill description must clearly match the signal. A React skill with 500K installs doesn't cover TypeScript if its description is only about React components.
 4. If the top result is < 100 installs → record "no quality skill found on skills.sh for \<signal\>" and move on.
 
 ### 4e. Coverage requirement: 5-10 skills
 
-- **Minimum = number of detected persona-relevant signals** (if 6 signals detected, need ≥ 6 skills, one per signal minimum)
+- **Minimum = number of detected persona-relevant signals** (if 6 signals detected, need ≥ 6 skills — one per signal minimum)
 - **Ideal range: 5-8** for most engineers
-- **Hard cap: 10**, if more candidates found, rank by install count + source reputation and keep the top 10
-- **No redundant skills**, if an already-selected skill covers the same scope as a new candidate (e.g. `vercel-react-best-practices` already covers TypeScript basics), skip the new candidate unless it provides genuinely deeper coverage for a different concern (e.g. `typescript-advanced-types` is deeper than React general guidance, so both are fine)
+- **Hard cap: 10** — if more candidates found, rank by install count + source reputation and keep the top 10
+- **No redundant skills** — if an already-selected skill covers the same scope as a new candidate (e.g. `vercel-react-best-practices` already covers TypeScript basics), skip the new candidate unless it provides genuinely deeper coverage for a different concern (e.g. `typescript-advanced-types` is deeper than React general guidance, so both are fine)
 - If fewer than 5 skills are found after all searches → tell the user how many were found and ask whether to proceed with fewer or cancel
 
 ### 4f. Install selected skills
@@ -151,7 +163,7 @@ Install each selected skill using explicit `@skill-name` syntax (project-local, 
 npx skills add <owner/repo@skill-name>
 ```
 
-Do NOT use the `-g` flag, skills must be project-local so they land in `.agents/skills/` and are tracked in `skills-lock.json`.
+Do NOT use the `-g` flag — skills must be project-local so they land in `.agents/skills/` and are tracked in `skills-lock.json`.
 
 ### 4g. Post-install verification
 
@@ -164,17 +176,22 @@ If either check fails (network glitch, wrong repo name, auth issue):
 - Retry the install once
 - If still failing, drop the skill from the selection and note it in the summary as "install failed"
 
-### 4h. Reject global/personal skills
+### 4h. GATE — Verify you are ready to write the file
 
-Skills from `~/.claude/skills/` or `~/.agents/skills/` (visible in the system prompt as available skills) must **NEVER** be referenced in the agent file. Only skills installed in the project's `.agents/skills/` directory are allowed.
+Before proceeding to Step 5, answer these questions. If any answer is "no", you are NOT ready.
 
-If you are tempted to reference a skill because it appears in the session's available skills list but is NOT in `.agents/skills/`, stop, run `npx skills find` to find a project-local equivalent and install it instead.
+1. Did you run `npx skills find` for every uncovered signal? (yes/no)
+2. Did you install at least 5 skills from skills.sh into `.agents/skills/`? (yes/no)
+3. Did you verify each installed skill exists in `.agents/skills/<name>/SKILL.md`? (yes/no)
+4. Are you about to write ONE file only (no `.build.md` variant)? (yes/no)
+
+If any answer is "no", go back and fix it. Do not proceed to Step 5.
 
 ---
 
 ## Step 5: Fill the template
 
-All the research from Steps 2-4 (signal detection, project analysis, tech stack knowledge) was for **selecting the right skills**. The agent file itself is **just the template below, nothing else**. Do NOT write project knowledge, architecture notes, coding conventions, file maps, testing patterns, or workflow instructions into the file. Those belong in skills and guardrails, not in the agent file.
+All the research from Steps 2-4 (signal detection, project analysis, tech stack knowledge) was for **selecting the right skills**. The agent file itself is **just the template below — nothing else**. Do NOT write project knowledge, architecture notes, coding conventions, file maps, testing patterns, or workflow instructions into the file. Those belong in skills and guardrails, not in the agent file.
 
 ### 5a. Idempotency check
 
@@ -185,7 +202,7 @@ Before creating the file, check if `.opencode/agents/{persona}-engineer.md` alre
 
 ### 5b. Fill the template
 
-The agent file is **exactly** this structure, frontmatter + `## Abilities` section. No other sections. No other content.
+The agent file is **exactly** this structure — frontmatter + one identity paragraph + `## Abilities` section. No other sections. No other content.
 
 ```markdown
 ---
@@ -213,7 +230,7 @@ That is the **entire file**: frontmatter, one identity paragraph, and the `## Ab
 
 ### 5c. Description quality bar
 
-The `description:` field is the **matching key** for `/ob-apply`, the lead compares task domain text against agent descriptions to pick the right specialist. A weak description means the wrong engineer gets spawned.
+The `description:` field is the **matching key** for `/plan-apply` — the lead compares task domain text against agent descriptions to pick the right specialist. A weak description means the wrong engineer gets spawned.
 
 **Bad:** `"A frontend engineer for React"`
 **Good:** `"Frontend engineer for Ink 7 + React 19 TUI, FSD architecture, Inversify DI, design tokens, and i18n"`
@@ -223,9 +240,9 @@ Rules:
 - List the top 3-5 detected technologies from Step 2
 - One sentence, no padding
 
-### 5c2. Identity paragraph
+### 5d. Identity paragraph
 
-The identity paragraph sits between frontmatter and `## Abilities`. It tells the engineer who it is and what it owns in **2-3 sentences max**. Not a spec, not a knowledge dump, a quick scoping statement.
+The identity paragraph sits between frontmatter and `## Abilities`. It tells the engineer who it is and what it owns in **2-3 sentences max**. Not a spec, not a knowledge dump — a quick scoping statement.
 
 **Bad:** 5 paragraphs of architecture details, FSD rules, design tokens, file maps, testing patterns...
 **Good:** `"You are a frontend engineer specializing in terminal UI development with Ink 7 + React 19. You own all work in the FSD layers: src/app/, src/widgets/, src/features/, src/entities/, and src/shared/."`
@@ -235,25 +252,27 @@ Rules:
 - State what files/layers the engineer owns in one sentence
 - Never exceed 3 sentences
 
-### 5d. Category rules
+### 5e. Category rules
 
 - **Development** = language/framework/UI/DI skills. **Testing** = test/lint/typecheck skills. **Infrastructure** = DevOps/CI/CD/cloud skills
 - Only include ability categories that have at least one real skill (besides Guardrails which is always present)
 - Name follows `{persona}-engineer` pattern (e.g. `frontend-engineer`, `backend-engineer`)
 - Read existing agents' `color:` frontmatter first: pick a color not already used
 
-### 5e. FORBIDDEN content
+### 5f. FORBIDDEN content
 
-The following MUST NOT appear in the agent file. If you are about to write any of these, STOP, you are doing it wrong:
+The following MUST NOT appear in the agent file. If you are about to write any of these, STOP — you are doing it wrong:
 
-- **No `model:` field**, the `ob-subagent-tiers` plugin injects tier variants at startup
-- **No `## Workflow` or `## When Spawned` section**, the engineer workflow is defined once in `@ob-guardrails-generic`, every engineer loads it via its Guardrails ability
-- **No `## Core Expertise` or `## Key Patterns` section**, project knowledge lives in skills and `@ob-guardrails-project`, not in the agent file
-- **No `## Testing` or `## Conventions` section**, these belong in skills
-- **No `## File Responsibilities` or file maps**, the engineer discovers files at spawn time via codegraph and grep
-- **No free-text paragraphs beyond the identity paragraph**, the file is frontmatter + one identity paragraph + categorized abilities, period
-- **No `mode: subagent` or `mode: primary`**, persona engineers are always `mode: all`
-- **No custom `bash:` permission Allowlist**, use `bash: allow`, not a per-command Allowlist
+- **No `model:` field** — the `ob-subagent-tiers` plugin injects tier variants at startup
+- **No `## Workflow` or `## When Spawned` section** — the engineer workflow is defined once in `@ob-guardrails-generic`, every engineer loads it via its Guardrails ability
+- **No `## Core Expertise` or `## Key Patterns` section** — project knowledge lives in skills and `@ob-guardrails-project`, not in the agent file
+- **No `## Testing` or `## Conventions` section** — these belong in skills
+- **No `## File Responsibilities` or file maps** — the engineer discovers files at spawn time via codegraph and grep
+- **No `## Domain Expertise` or `## FSD Layer Rules` or `## Project Patterns` section**
+- **No `## Gate Order` or `## i18n` or `## What You Do NOT Touch` section**
+- **No free-text paragraphs beyond the identity paragraph** — the file is frontmatter + one identity paragraph + categorized abilities, period
+- **No `mode: subagent` or `mode: primary`** — persona engineers are always `mode: all`
+- **No custom `bash:` permission Allowlist** — use `bash: allow`, not a per-command Allowlist
 
 The ONLY permitted content in the file body (after frontmatter) is: one identity paragraph (2-3 sentences) + `## Abilities` section. If the finished file has any `##` heading other than `## Abilities`, or has more than one paragraph before `## Abilities`, **you have failed**. Rewrite it.
 
@@ -267,12 +286,13 @@ After writing the agent file, run **both** checks below. If either fails, fix th
 
 Re-read the file you just wrote and verify:
 
-1. **Frontmatter exists**, starts with `---`, has `description`, `mode: all`, `color`, `permission` block
+1. **Frontmatter exists** — starts with `---`, has `description`, `mode: all`, `color`, `permission` block
 2. **No `model:` field** in the frontmatter
-3. **`## Abilities` is the ONLY `##` heading**, no other `##` sections exist in the file
-4. **One identity paragraph** before `## Abilities`, 2-3 sentences max, not multiple paragraphs
-5. **Abilities are categorized**, each line starts with `- Guardrails:`, `- Development:`, `- Testing:`, or `- Infrastructure:`. No bare `@skill-name` lines.
-6. **No forbidden content**, no expertise notes, no workflow steps, no file maps, no conventions, no extra sections
+3. **`## Abilities` is the ONLY `##` heading** — no other `##` sections exist in the file
+4. **One identity paragraph** before `## Abilities` — 2-3 sentences max, not multiple paragraphs
+5. **Abilities are categorized** — each line starts with `- Guardrails:`, `- Development:`, `- Testing:`, or `- Infrastructure:`. No bare `@skill-name` lines.
+6. **No forbidden content** — no expertise notes, no workflow steps, no file maps, no conventions, no extra sections
+7. **One file only** — no `.build.md`, `.fast.md`, or `.plan.md` variant was created
 
 If ANY check fails: rewrite the file to match the template exactly. Do not proceed with a broken file.
 
@@ -290,7 +310,7 @@ If ANY check fails: rewrite the file to match the template exactly. Do not proce
 
 ## Step 7: Update fullstack-engineer.md abilities
 
-The `fullstack-engineer.md` is `mode: primary`, it's the planning session agent, not a spawned worker. Having all skills here is fine since it does planning, not parallel implementation. Its file follows the same template: frontmatter + `## Abilities`, nothing else.
+The `fullstack-engineer.md` is `mode: primary` — it's the planning session agent, not a spawned worker. Having all skills here is fine since it does planning, not parallel implementation. Its file follows the same template: frontmatter + identity paragraph + `## Abilities`, nothing else.
 
 After creating the persona engineer and validating its references (Step 6), **additively merge** new skills into fullstack:
 
@@ -302,7 +322,7 @@ After creating the persona engineer and validating its references (Step 6), **ad
 6. Preserve the frontmatter (mode, color, permissions, model if stamped) and all existing ability lines
 7. Write the file back
 
-**Do NOT overwrite the Abilities section**, merge new skills into existing categories. If a new skill belongs to "Development" and that line already exists, append to it. If a new category is needed, add it.
+**Do NOT overwrite the Abilities section** — merge new skills into existing categories. If a new skill belongs to "Development" and that line already exists, append to it. If a new category is needed, add it.
 
 ---
 
@@ -322,38 +342,6 @@ Report:
 - Skills installed from skills.sh (list each with source + install count)
 - Signals with no quality skill found on skills.sh (list each)
 - Skills that failed validation or install (list each with reason)
-- `fullstack-engineer.md` updated (additive, list new skills added)
+- `fullstack-engineer.md` updated (additive — list new skills added)
 - How to use: "This agent will be spawned by the lead during `/plan-apply` for tasks matching its specialty."
 - "Restart opencode for the `ob-subagent-tiers` plugin to pick up the new engineer."
-
----
-
-**Guidelines**
-
-- The agent file is **only** frontmatter + one identity paragraph + `## Abilities`. No other sections. No project knowledge. No expertise notes. No workflow steps. The research is for choosing skills, the file is for listing them.
-- Always keep `@ob-guardrails-generic` in the Guardrails ability
-- `@ob-guardrails-project` should also be present when the project has generated a project-guardrails skill
-- NEVER use `@ob-default` in any ability category: all abilities must reference real installed skills
-- One file per engineer: do NOT create `-build`/`-fast` variant files. The `ob-subagent-tiers` plugin injects tier variants at startup
-- Persona engineers are always `mode: all`, never `mode: subagent` or `mode: primary`
-
-**Skill discovery rules:**
-- Run `npx skills find` for **every** detected signal, no skipping
-- Every `@skill-name` in the agent file MUST exist in `.agents/skills/`, never reference global or personal skills from `~/.claude/skills/` or `~/.agents/skills/`
-- Prefer skills with ≥ 1000 installs and official/canonical sources (`vercel-labs`, `anthropics`, `microsoft`, `feature-sliced`, `wshobson`, `github`)
-- Minimum 5 skills per engineer, ideal 5-8, hard cap at 10
-- No redundant skills, skip a candidate if an already-selected skill covers the same scope
-- Use `npx skills add <owner/repo@skill-name>` (project-local, no `-g` flag)
-- Verify each install landed in `.agents/skills/` and `skills-lock.json` before referencing it
-
-**Idempotency / re-run safety:**
-- Before creating the agent file: check if `{persona}-engineer.md` already exists, ask "overwrite or cancel?"
-- Fullstack update is **additive**: merge new skills, never overwrite the existing Abilities section
-- Before searching skills.sh, check `.agents/skills/` and `skills-lock.json` for already-installed skills that cover a signal, don't re-install what you have
-
-**Description quality:**
-- The agent `description:` must name the persona + top 3-5 detected technologies, it's the matching key for `/ob-apply`
-
-**If `npx skills` CLI is not available:**
-- Manually reference skills by their `owner/repo` name in the abilities section and tell the user to install them
-- Still validate that each referenced skill exists in `.agents/skills/`, if not, remove it and warn the user
