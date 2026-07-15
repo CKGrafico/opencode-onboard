@@ -35,7 +35,7 @@ Present as a table:
 Then explain the agent selection model:
 - **Primary agents** appear in Tab and handle direct user interaction
 - **Subagent engineers** are spawned by the lead for parallel implementation waves
-- **Specialist engineers** are preferred when their domain matches the task; `fullstack-engineer` is the fallback
+- **Specialist engineers** are preferred when their domain matches the task; `fullstack-engineer` is the user's planning agent (`mode: primary`), not a spawned worker — if no specialist matches, create one with `/make-engineer`
 
 ---
 

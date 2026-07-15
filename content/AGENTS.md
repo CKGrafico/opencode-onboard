@@ -29,7 +29,7 @@ Trigger patterns, I recognize ALL of these, exact wording does not matter:
 
 ## Engineer Selection
 
-Inspect `.opencode/agents/*.md` before spawning. Prefer the most specialized custom engineer. Use `fullstack-engineer` only as fallback. Never spawn engineers not present in that directory.
+Inspect `.opencode/agents/*.md` before spawning. Prefer the most specialized custom engineer. **Never assign `fullstack-engineer` to a task** — it is `mode: primary` (the user's planning agent), not a spawned worker. If no specialist matches, tell the user to create one with `/make-engineer`. Never spawn engineers not present in that directory.
 
 **Full wave protocol, pipeline phases, and concurrency limits:** see `/plan-apply` (authoritative). Max concurrent agents is `agents.maxConcurrent` in `.opencode/opencode-onboard.json`.
 

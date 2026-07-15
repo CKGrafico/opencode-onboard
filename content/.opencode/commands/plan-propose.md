@@ -46,7 +46,7 @@ Load `@openspec-propose` skill and follow its instructions to **generate** propo
    - `description:` from the YAML frontmatter: the engineer's specialization summary
    - `## Abilities` section: the skills listed under Development, Testing, Infrastructure (e.g. `@nodejs-backend`, `@secure-nextjs-api-routes`)
    Build a map of `agent-name → { description, abilities }`.
-2. For each task, compare the task text and domain against every engineer's description AND abilities. Pick the engineer whose combined profile most closely matches. Only use `fullstack-engineer` if no specialist is a clear fit.
+2. For each task, compare the task text and domain against every engineer's description AND abilities. Pick the engineer whose combined profile most closely matches. **NEVER assign `fullstack-engineer` to a task** — it is `mode: primary` (the user's planning agent), not a spawned worker. If no specialist matches a task, flag it in the plan: tell the user "No matching specialist for task N.M — create one with `/make-engineer`" and leave the agent field blank (or use `basic-engineer` if it exists in `.opencode/agents/`).
 3. Pick a **tier** for each task based on complexity:
    - `build`: complex code: data models, APIs, auth logic, core business logic, UI components
    - `fast`: light work: i18n keys, config changes, env variables, navigation links, simple markup, verification runs
@@ -68,7 +68,7 @@ Example result (note same-file tasks like 1.1/1.2 share `touches`, so `/plan-app
 - [ ] 2.1 Project RPC endpoints <!-- agent: backend-engineer.build, depends_on: [1.1], touches: [src/rpc/project/**] -->
 - [ ] 3.1 Accept page UI <!-- agent: frontend-engineer.build, depends_on: [2.1], touches: [src/board/components/CreateForm.tsx] -->
 - [ ] 3.2 i18n keys for invitation flow <!-- agent: frontend-engineer.fast, depends_on: [3.1], touches: [src/i18n/**] -->
-- [ ] 4.1 Run typecheck and fix errors <!-- agent: fullstack-engineer.fast, depends_on: [2.1,3.1], touches: [] -->
+- [ ] 4.1 Run typecheck and fix errors <!-- agent: backend-engineer.fast, depends_on: [2.1,3.1], touches: [] -->
 ```
 
 `/plan-apply` reads these annotations to build conflict-free waves: `depends_on` gates ordering, `touches` keeps concurrent agents file-disjoint, and the tier suffix in `agent` determines the model (resolved at startup by the `ob-subagent-tiers` plugin). **`depends_on` is mandatory; `touches` is a best-effort hint** that codegraph MCP tools refine at apply time.

@@ -33,6 +33,7 @@ describe('generateFullstackEngineer()', () => {
     expect(content).toContain('- Development: @ob-default')
     expect(content).toContain('- Testing: @ob-default')
     expect(content).toContain('- Infrastructure: @ob-default')
+    expect(content).toContain('You are the default engineer')
     expect(content).not.toContain('@react19')
     expect(content).not.toContain('@dotnet')
     expect(content).not.toContain('@browser-automation')
@@ -43,7 +44,7 @@ describe('generateFullstackEngineer()', () => {
     fs.mkdirSync(agentsDir, { recursive: true })
     fs.writeFileSync(
       path.join(agentsDir, 'fullstack-engineer.md'),
-      '---\ndescription: Old.\nmode: primary\nmodel: custom/model\n---\n\n## Abilities\n- Guardrails: @ob-guardrails-generic, @ob-guardrails-project, @ob-default\n',
+      '---\ndescription: Old.\nmode: primary\nmodel: custom/model\n---\n\nYou are the default engineer.\n\n## Abilities\n- Guardrails: @ob-guardrails-generic, @ob-guardrails-project, @ob-default\n',
       'utf-8'
     )
 
@@ -51,6 +52,22 @@ describe('generateFullstackEngineer()', () => {
 
     const content = fs.readFileSync(path.join(agentsDir, 'fullstack-engineer.md'), 'utf-8')
     expect(content).toContain('model: custom/model')
+  })
+
+  it('preserves existing identity paragraph when regenerating', async () => {
+    const agentsDir = path.join(tmpDir, '.opencode', 'agents')
+    fs.mkdirSync(agentsDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(agentsDir, 'fullstack-engineer.md'),
+      '---\ndescription: Old.\nmode: primary\n---\n\nYou are a custom identity paragraph.\n\n## Abilities\n- Guardrails: @ob-guardrails-generic\n',
+      'utf-8'
+    )
+
+    await generateFullstackEngineer({ cwd: tmpDir })
+
+    const content = fs.readFileSync(path.join(agentsDir, 'fullstack-engineer.md'), 'utf-8')
+    expect(content).toContain('You are a custom identity paragraph.')
+    expect(content).not.toContain('You are the default engineer')
   })
 
   it('preserves existing abilities when regenerating (e.g. skills added by /create-engineer)', async () => {
@@ -62,6 +79,8 @@ describe('generateFullstackEngineer()', () => {
       'mode: primary',
       'model: custom/model',
       '---',
+      '',
+      'You are the default engineer.',
       '',
       '## Abilities',
       '- Guardrails: @ob-guardrails-generic, @ob-guardrails-project, @ob-default',

@@ -10,7 +10,7 @@ type Row = { id: string; agent: string; model: string; task: string; status: str
 
 // Renders a live "Subagents" panel in the session sidebar.
 //
-// Server plugins (opencode.json) cannot draw UI — only TUI plugins (tui.json)
+// Server plugins (opencode.json) cannot draw UI, only TUI plugins (tui.json)
 // can, via the `sidebar_content` slot. This panel is fed by the
 // `.opencode/.ob-run.json` state file that the `ob-subagent-monitor` server
 // plugin maintains, so the two cooperate: server plugin = data producer,
@@ -18,7 +18,7 @@ type Row = { id: string; agent: string; model: string; task: string; status: str
 const tui: TuiPlugin = async (api) => {
   const statePath = join(process.cwd(), ".opencode", ".ob-run.json")
   const [rows, setRows] = createSignal<Row[]>([])
-  // Only show live subagents — finished/failed ones are kept in .ob-run.json
+  // Only show live subagents, finished/failed ones are kept in .ob-run.json
   // for recovery but are not navigable targets the user cares about here.
   // Entries marked stale (left "running" by a crashed process) are not live.
   const active = () => rows().filter((r) => r.status === "running")
@@ -60,7 +60,7 @@ const tui: TuiPlugin = async (api) => {
     try {
       api.event.on(evt as any, scheduleRefresh)
     } catch {
-      /* event type unavailable on this host — ignore */
+      /* event type unavailable on this host, ignore */
     }
   }
 
@@ -81,7 +81,7 @@ const tui: TuiPlugin = async (api) => {
                     {"▶ "}
                     {r.agent}
                     {r.model ? ` · ${r.model}` : ""}
-                    {r.task ? ` — ${r.task}` : ""}
+                    {r.task ? `, ${r.task}` : ""}
                   </text>
                 </box>
               )}

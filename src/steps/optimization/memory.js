@@ -27,7 +27,7 @@ export async function installMemory(options = {}) {
     if (installResult.exitCode === 0) {
       success('agentmemory installed')
     } else {
-      warn('agentmemory install exited with non-zero code — MCP may fall back to npx resolution')
+      warn('agentmemory install exited with non-zero code, MCP may fall back to npx resolution')
     }
   } catch (err) {
     warn(`agentmemory install failed: ${err.message}`)
