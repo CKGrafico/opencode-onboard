@@ -7,7 +7,7 @@ description: Create a custom engineer agent via persona-driven interactive desig
 1. **ONE file only**: `.opencode/agents/{persona}-engineer.md`. NEVER create `.build.md`, `.fast.md`, `.plan.md`, or any variant file. The `ob-subagent-tiers` plugin creates those at startup.
 2. **File content = template only**: YAML frontmatter + one identity paragraph (2-3 sentences) + `## Abilities` section. No other `##` headings. No expertise notes. No architecture details. No conventions. No file maps. No workflow steps. Those belong in skills, not the agent file.
 3. **NEVER write `model:`** in the agent file. The `ob-subagent-tiers` plugin injects it.
-4. **ALWAYS `mode: all`** — never `mode: subagent` or `mode: primary`.
+4. **ALWAYS `mode: primary`** for template files — the `ob-subagent-tiers` plugin creates variants with `mode: subagent` at startup.
 5. **Skills FIRST**: You MUST complete Step 4 (run `npx skills find` for every detected signal, install 5-10 skills from skills.sh) BEFORE writing any file. If you have not run `npx skills find` at least once, you are not ready to write the file.
 6. **No global skills**: Only skills installed in the project's `.agents/skills/` directory can be referenced. Skills from `~/.claude/skills/` or `~/.agents/skills/` are FORBIDDEN.
 7. **No `@ob-default`** in any ability category — all abilities must reference real installed skills.
@@ -207,7 +207,7 @@ The agent file is **exactly** this structure — frontmatter + one identity para
 ```markdown
 ---
 description: <one sentence naming the persona + top 3-5 detected technologies>
-mode: all
+mode: primary
 color: <pick: primary|secondary|accent|warning|error|info: avoid colors used by existing agents>
 permission:
   edit: allow
@@ -271,7 +271,7 @@ The following MUST NOT appear in the agent file. If you are about to write any o
 - **No `## Domain Expertise` or `## FSD Layer Rules` or `## Project Patterns` section**
 - **No `## Gate Order` or `## i18n` or `## What You Do NOT Touch` section**
 - **No free-text paragraphs beyond the identity paragraph** — the file is frontmatter + one identity paragraph + categorized abilities, period
-- **No `mode: subagent` or `mode: primary`** — persona engineers are always `mode: all`
+- **No `mode: subagent` or `mode: all`** — persona engineer templates are always `mode: primary`; the `ob-subagent-tiers` plugin creates `mode: subagent` variants at startup
 - **No custom `bash:` permission Allowlist** — use `bash: allow`, not a per-command Allowlist
 
 The ONLY permitted content in the file body (after frontmatter) is: one identity paragraph (2-3 sentences) + `## Abilities` section. If the finished file has any `##` heading other than `## Abilities`, or has more than one paragraph before `## Abilities`, **you have failed**. Rewrite it.
@@ -286,7 +286,7 @@ After writing the agent file, run **both** checks below. If either fails, fix th
 
 Re-read the file you just wrote and verify:
 
-1. **Frontmatter exists** — starts with `---`, has `description`, `mode: all`, `color`, `permission` block
+1. **Frontmatter exists** — starts with `---`, has `description`, `mode: primary`, `color`, `permission` block
 2. **No `model:` field** in the frontmatter
 3. **`## Abilities` is the ONLY `##` heading** — no other `##` sections exist in the file
 4. **One identity paragraph** before `## Abilities` — 2-3 sentences max, not multiple paragraphs

@@ -35,7 +35,7 @@ export const ObSubagentTiers = async ({ directory }) => {
     try {
       const entries = await fs.readdir(agentsDir)
       return {
-        templates: entries.filter(f => /^[\w-]+-engineer\.md$/.test(f)).map(f => f.replace(/\.md$/, "")),
+        templates: entries.filter(f => /^[\w-]+-engineer\.md$/.test(f) && f !== 'fullstack-engineer.md').map(f => f.replace(/\.md$/, "")),
         variantFiles: entries.filter(f => /^[\w-]+-engineer\.(build|fast|plan)\.md$/.test(f)),
       }
     } catch {
@@ -59,6 +59,23 @@ export const ObSubagentTiers = async ({ directory }) => {
     // Slice at frontmatter end: never String.replace with content-derived
     // strings, it matches the wrong occurrence and expands $& sequences.
     return `---\n${fm}\n---${templateContent.slice(fmMatch[0].length)}`
+  }
+
+  // Ensure template files have mode: primary. If a template was created with
+  // mode: all or mode: subagent, fix it in-place so the base agent is always
+  // a primary (user-facing) agent. Variants get mode: subagent via buildVariant.
+  function enforcePrimaryMode(templateContent) {
+    const fmMatch = templateContent.match(/^---\r?\n([\s\S]*?)\r?\n---/)
+    if (!fmMatch) return templateContent
+
+    const fm = fmMatch[1]
+    if (/^mode:\s*primary/m.test(fm)) return templateContent
+
+    const newFm = /^mode:/m.test(fm)
+      ? fm.replace(/^mode:.*$/m, 'mode: primary')
+      : `mode: primary\n${fm}`
+
+    return `---\n${newFm}\n---${templateContent.slice(fmMatch[0].length)}`
   }
 
   function descriptionOf(templateContent) {
@@ -85,10 +102,16 @@ export const ObSubagentTiers = async ({ directory }) => {
         const { templates, variantFiles } = await scanEngineers()
 
         const templateContents = await Promise.all(
-          templates.map(async name => ({
-            name,
-            content: await fs.readFile(path.join(agentsDir, `${name}.md`), "utf-8"),
-          }))
+          templates.map(async name => {
+            const rawContent = await fs.readFile(path.join(agentsDir, `${name}.md`), "utf-8")
+            const content = enforcePrimaryMode(rawContent)
+            // If the template had the wrong mode, persist the fix to disk
+            if (content !== rawContent) {
+              await writeIfChanged(path.join(agentsDir, `${name}.md`), content)
+              console.error(`[ob-subagent-tiers] Fixed ${name}.md: mode set to primary`)
+            }
+            return { name, content }
+          })
         )
 
         const keepSet = new Set()
@@ -112,6 +135,12 @@ export const ObSubagentTiers = async ({ directory }) => {
         await Promise.all(variantsToWrite.map(v => writeIfChanged(v.path, v.content)))
 
         if (cfg?.agent) {
+          // Ensure base templates are always mode: primary in-memory
+          for (const { name } of templateContents) {
+            if (cfg.agent[name]) {
+              cfg.agent[name].mode = 'primary'
+            }
+          }
           for (const { name, tier, templateContent } of variantsToWrite) {
             const base = cfg.agent[name]
             cfg.agent[`${name}.${tier}`] = base
