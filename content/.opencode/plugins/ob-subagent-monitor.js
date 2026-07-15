@@ -1,17 +1,6 @@
-// ob-subagent-monitor
-//
-// Maintains a live view of spawned subagents in `.opencode/.ob-run.json`:
-//   { updatedAt, agents: { <sessionId>: { agent, model, tasks, title, status, startedAt, endedAt } } }
-//
-// Two jobs from one file:
-//   1. Live monitor: the lead reflects this into its native Todo list; you can
-//      also navigate the subagents directly with ctrl+x ↓ and ←/→.
-//   2. Crash-recovery fallback: /ob-apply reads it on resume when basic-memory
-//      is unavailable, to rebuild which tasks were in flight.
-//
-// This plugin only OBSERVES session lifecycle. Subagents are a black box mid-run
-// (no streaming), so status is coarse: running -> done. It never throws: a
-// monitor failure must not break a session.
+// ob-subagent-monitor: tracks spawned subagents in .opencode/.ob-run.json for
+// live TUI display and crash recovery. Never throws: monitor failures must
+// not break a session.
 
 import fs from "node:fs/promises"
 import path from "node:path"
@@ -19,25 +8,20 @@ import path from "node:path"
 export const ObSubagentMonitor = async ({ directory, client }) => {
   const root = directory || process.cwd()
   const statePath = path.join(root, ".opencode", ".ob-run.json")
-
   const state = { updatedAt: null, agents: {} }
 
-  // Crash recovery: hydrate from the previous run's file so a restart never
-  // erases in-flight history. Entries left "running" by a dead process are
-  // marked stale: /ob-apply resume treats them as unknown, not running.
   try {
     const prev = JSON.parse(await fs.readFile(statePath, "utf-8"))
-    if (prev && typeof prev.agents === "object") {
+    if (prev?.agents && typeof prev.agents === "object") {
       for (const [id, entry] of Object.entries(prev.agents)) {
         if (entry?.status === "running") entry.stale = true
         state.agents[id] = entry
       }
     }
   } catch {
-    // no previous state: fresh start
+    // fresh start
   }
 
-  // Cached model resolution: reads config files once, then serves from memory.
   let _modelsCache = null
   async function loadModels() {
     if (_modelsCache) return _modelsCache
@@ -45,8 +29,7 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
     for (const file of ["opencode-onboard.user.json", "opencode-onboard.json"]) {
       try {
         const raw = await fs.readFile(path.join(root, ".opencode", file), "utf-8")
-        const data = JSON.parse(raw)
-        const models = data?.models ?? {}
+        const { models = {} } = JSON.parse(raw)
         for (const tier of ["build", "fast", "plan"]) {
           if (!result[tier] && models[tier]) result[tier] = models[tier]
         }
@@ -60,41 +43,42 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
 
   async function modelForAgent(agent) {
     if (!agent) return null
-
     const dotIdx = agent.lastIndexOf(".")
     const tier = dotIdx !== -1 ? agent.slice(dotIdx + 1) : null
     if (tier && ["build", "fast", "plan"].includes(tier)) {
       const models = await loadModels()
       return models[tier] ?? null
     }
-
     return null
   }
 
-  // Tasks are encoded at the front of the spawn description, e.g.
-  // "1.1, 1.2: ProjectManager" -> ["1.1", "1.2"].
   function parseTasks(title) {
     if (!title) return []
     const m = /^\s*([\d]+(?:\.[\d]+)*(?:\s*,\s*[\d]+(?:\.[\d]+)*)*)/.exec(title)
     return m ? m[1].split(",").map(s => s.trim()) : []
   }
 
+  // Debounced persist: coalesce rapid writes when multiple subagents spawn
+  // in the same microtask batch (e.g. a wave of 5 task() calls).
+  let _persistScheduled = false
   async function persist() {
-    state.updatedAt = new Date().toISOString()
-    try {
-      await fs.mkdir(path.dirname(statePath), { recursive: true })
-      // tmp + rename: the TUI reads this file on every session event, and an
-      // in-place write can hand it half-written JSON.
-      const tmpPath = `${statePath}.tmp`
-      await fs.writeFile(tmpPath, JSON.stringify(state, null, 2), "utf-8")
-      await fs.rename(tmpPath, statePath)
-    } catch {
-      // best-effort; never break the session over the monitor
-    }
+    if (_persistScheduled) return
+    _persistScheduled = true
+    queueMicrotask(async () => {
+      _persistScheduled = false
+      state.updatedAt = new Date().toISOString()
+      try {
+        await fs.mkdir(path.dirname(statePath), { recursive: true })
+        const tmpPath = `${statePath}.tmp`
+        await fs.writeFile(tmpPath, JSON.stringify(state, null, 2), "utf-8")
+        await fs.rename(tmpPath, statePath)
+      } catch {
+        // best-effort
+      }
+    })
   }
 
   function sessionInfo(props) {
-    // tolerate both {info:{...}} and flat {...} event shapes
     const info = props?.info ?? props ?? {}
     return {
       id: info.id ?? info.sessionID ?? props?.sessionID,
@@ -104,14 +88,9 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
     }
   }
 
-  function pruneStale(parentID) {
-    // Clear stale entries that belong to the same parent session -
-    // a new wave from the same lead means old crashed workers are irrelevant.
-    if (!parentID) return
+  function pruneStale() {
     for (const [id, entry] of Object.entries(state.agents)) {
-      if (entry?.stale) {
-        delete state.agents[id]
-      }
+      if (entry?.stale) delete state.agents[id]
     }
   }
 
@@ -123,8 +102,7 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
         if (!info.id) return
 
         if (event.type === "session.created" && info.parentID) {
-          // Prune stale entries when a new subagent spawns
-          pruneStale(info.parentID)
+          pruneStale()
 
           state.agents[info.id] = {
             agent: info.agent ?? null,
@@ -154,7 +132,7 @@ export const ObSubagentMonitor = async ({ directory, client }) => {
           })
         }
       } catch {
-        // swallow: monitoring must never disrupt the run
+        // monitoring must never disrupt the run
       }
     },
   }
