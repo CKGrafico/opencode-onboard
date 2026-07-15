@@ -2,7 +2,7 @@
 import chalk from 'chalk'
 import { createRequire } from 'node:module'
 import { runJoin } from './commands/join.js'
-
+import { runUpdate } from './commands/update.js'
 import { runSingleCommand } from './commands/single.js'
 import { runWizard } from './commands/wizard.js'
 import { exit } from './utils/process.js'
@@ -16,6 +16,7 @@ function printHelp(version) {
   console.log()
   console.log('Commands:')
   console.log('  join            New team member setup (checks & local installs only)')
+  console.log('  update          Re-apply all file patches from saved config (no prompts)')
   console.log('  clean           Run AI files cleanup step')
   console.log('  platform        Run platform selection step')
   console.log('  copy            Run content copy step')
@@ -44,6 +45,8 @@ if (args.length > 0) {
   try {
     if (args[0] === 'join') {
       await runJoin()
+    } else if (args[0] === 'update') {
+      await runUpdate()
     } else {
       const ok = await runSingleCommand(args[0])
       if (!ok) {
