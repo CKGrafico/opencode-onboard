@@ -132,12 +132,12 @@ Agents define _how to work_. They are universal personas (same behavior across p
 Current baseline uses a generic execution model:
 
 ```
-lead     lead/orchestrator, planning, pull request lifecycle
-fullstack-engineer     implementation worker, ability-driven
+lead                   lead/orchestrator, planning, pull request lifecycle
+fullstack-engineer     primary planning agent, accumulates all skills (user-facing, not spawned)
+*-engineer             user-created specialists, spawned by the lead for parallel implementation
 ```
 
-`fullstack-engineer` behavior is composed by abilities, not hardcoded role silos.
-Project-specific specialization comes from user-created custom engineers via `/make-engineer`. During `/plan-apply`, the lead should inspect the engineers that actually exist in `.opencode/agents/`, prefer matching custom engineers, and fall back to `fullstack-engineer` only when no specialist is a clear fit.
+`fullstack-engineer` is `mode: primary` — it's the user's planning session agent, not a spawned worker. Project-specific specialization comes from user-created custom engineers via `/make-engineer`. During `/plan-apply`, the lead inspects the engineers that actually exist in `.opencode/agents/` and spawns matching specialists. `fullstack-engineer` is never assigned to tasks — if no specialist matches, the user should create one.
 
 ### Skills, platform knowledge
 
@@ -188,7 +188,7 @@ During onboarding you pick three models:
 | ---- | ------- | ---- |
 | **plan** | Main OpenCode session (the lead) | Something capable with strong reasoning |
 | **build** | Specialist engineers (default tier) | Something capable for implementation |
-| **fast** | `fullstack-engineer` and light helpers | Something fast and cheap |
+| **fast** | Light helpers (fast tier) | Something fast and cheap |
 
 Models are fetched live from [models.dev](https://models.dev) (3000+ models, cached weekly). Cost tiers `[$]` `[$$]` `[$$$]` always reflect the canonical provider price, so `github-copilot/claude-opus-4.7` shows `[$$]` not `[$]`.
 
@@ -208,7 +208,7 @@ lead
                    ↓
               [confirm with user]
                    ↓
-  wave of subagents (fullstack-engineer / *-engineer, per-tier model)
+   wave of subagents (*-engineer, per-tier model)
   each implements its assigned tasks → returns result → lead commits group
                    ↓
         verify (tests, build, lint as needed)
@@ -221,7 +221,7 @@ lead
 2. Run `/plan-propose` to produce `proposal.md`, specs, and `tasks.md`
 3. Confirm with user before implementation
 4. Run `/plan-apply` to orchestrate implementation in waves
-5. Each wave spawns engineers in parallel (`fullstack-engineer` and/or custom engineers, each carrying its own tier model), capped at `agents.maxConcurrent`
+5. Each wave spawns engineers in parallel (custom `*-engineer` specialists, each carrying its own tier model), capped at `agents.maxConcurrent`
 6. Each subagent receives its task IDs in its prompt, loads relevant abilities, implements, and returns; the lead commits each group
 7. Verify with tests, build, and lint according to task scope
 8. Ship or update pull request via lead flow
@@ -240,7 +240,7 @@ your-project/
 ├── .opencode/
 │   ├── opencode.json                ← default model + plugin config
 │   ├── opencode-onboard.json        ← onboarding metadata + runtime config (models, maxConcurrentAgents)
-│   ├── agents/                      ← fullstack-engineer + user-created *-engineer files (each carries its model)
+│   ├── agents/                      ← fullstack-engineer (primary, planning) + user-created *-engineer files
 │   ├── tui.json                     ← registers the Subagents sidebar panel
 │   ├── tui/
 │   │   └── ob-subagents.tsx         ← TUI plugin: live Subagents panel in the sidebar
