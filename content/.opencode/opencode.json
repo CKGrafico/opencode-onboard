@@ -10,6 +10,12 @@
   "experimental": {
     "mcp_timeout": 300000
   },
+  "permission": {
+    "skill": {
+      "ob-*": "allow",
+      "openspec-*": "allow"
+    }
+  },
   "agent": {
     "build": { "disable": true },
     "plan": { "disable": true }

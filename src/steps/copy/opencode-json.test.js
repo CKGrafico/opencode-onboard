@@ -57,7 +57,7 @@ describe('patchOpencodeJson()', () => {
     expect(config.plugin).toEqual(['some-plugin'])
   })
 
-  it('does not write when already disabled', async () => {
+  it('does not write when agents are disabled and skill permissions are present', async () => {
     const opencodeDir = path.join(tmpDir, '.opencode')
     fs.mkdirSync(opencodeDir, { recursive: true })
     fs.writeFileSync(
@@ -65,11 +65,41 @@ describe('patchOpencodeJson()', () => {
       JSON.stringify({
         $schema: 'https://opencode.ai/config.json',
         agent: { build: { disable: true }, plan: { disable: true } },
+        permission: { skill: { 'ob-*': 'allow', 'openspec-*': 'allow' } },
       }, null, 2),
     )
 
     const result = await patchOpencodeJson()
     expect(result.patched).toBe(false)
+  })
+
+  it('adds skill permissions when only they are missing', async () => {
+    const opencodeDir = path.join(tmpDir, '.opencode')
+    fs.mkdirSync(opencodeDir, { recursive: true })
+    fs.writeFileSync(
+      path.join(opencodeDir, 'opencode.json'),
+      JSON.stringify({
+        $schema: 'https://opencode.ai/config.json',
+        agent: { build: { disable: true }, plan: { disable: true } },
+        permission: { skill: { 'internal-*': 'deny' } },
+      }, null, 2),
+    )
+
+    const result = await patchOpencodeJson()
+    expect(result.patched).toBe(true)
+
+    const config = readConfig()
+    expect(config.permission.skill['ob-*']).toBe('allow')
+    expect(config.permission.skill['openspec-*']).toBe('allow')
+    expect(config.permission.skill['internal-*']).toBe('deny')
+  })
+
+  it('creates skill permissions when the file is missing', async () => {
+    await patchOpencodeJson()
+
+    const config = readConfig()
+    expect(config.permission.skill['ob-*']).toBe('allow')
+    expect(config.permission.skill['openspec-*']).toBe('allow')
   })
 
   it('preserves comments in JSONC files', async () => {

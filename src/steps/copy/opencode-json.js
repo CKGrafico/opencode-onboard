@@ -3,6 +3,20 @@ import { applyEdits, modify, parse } from 'jsonc-parser'
 import path from 'node:path'
 import { success } from '../../utils/exec.js'
 
+// Skill loads must never hit an "ask" prompt: /plan-goal and the userstory
+// flows load ob-* / openspec-* skills unattended (loop-engineering).
+const SKILL_PERMISSIONS = [
+  ['ob-*', 'allow'],
+  ['openspec-*', 'allow'],
+]
+
+function applyModify(text, jsonPath, value) {
+  const edits = modify(text, jsonPath, value, {
+    formattingOptions: { insertSpaces: true, tabSize: 2 },
+  })
+  return applyEdits(text, edits)
+}
+
 export async function patchOpencodeJson(cwd = process.cwd()) {
   const opencodeDir = path.join(cwd, '.opencode')
   const opencodePath = path.join(opencodeDir, 'opencode.json')
@@ -20,28 +34,35 @@ export async function patchOpencodeJson(cwd = process.cwd()) {
     return { patched: false, reason: 'parse error' }
   }
 
-  const alreadyDisabled =
+  const needsAgentDisable = !(
     parsed?.agent?.build?.disable === true &&
     parsed?.agent?.plan?.disable === true
+  )
+  const missingSkillPermissions = SKILL_PERMISSIONS.filter(
+    ([pattern, value]) => parsed?.permission?.skill?.[pattern] !== value,
+  )
 
-  if (alreadyDisabled) {
+  if (!needsAgentDisable && missingSkillPermissions.length === 0) {
     return { patched: false }
   }
 
   // Apply edits sequentially so offsets stay correct
-  const edits1 = modify(text, ['agent', 'build', 'disable'], true, {
-    formattingOptions: { insertSpaces: true, tabSize: 2 },
-  })
-  const text2 = applyEdits(text, edits1)
-
-  const edits2 = modify(text2, ['agent', 'plan', 'disable'], true, {
-    formattingOptions: { insertSpaces: true, tabSize: 2 },
-  })
-  const text3 = applyEdits(text2, edits2)
+  if (needsAgentDisable) {
+    text = applyModify(text, ['agent', 'build', 'disable'], true)
+    text = applyModify(text, ['agent', 'plan', 'disable'], true)
+  }
+  for (const [pattern, value] of missingSkillPermissions) {
+    text = applyModify(text, ['permission', 'skill', pattern], value)
+  }
 
   await fse.ensureDir(opencodeDir)
-  await fse.writeFile(opencodePath, text3, 'utf-8')
-  success('Disabled built-in build/plan agents in .opencode/opencode.json')
+  await fse.writeFile(opencodePath, text, 'utf-8')
+  if (needsAgentDisable) {
+    success('Disabled built-in build/plan agents in .opencode/opencode.json')
+  }
+  if (missingSkillPermissions.length > 0) {
+    success('Allowed ob-*/openspec-* skill loading in .opencode/opencode.json')
+  }
 
   return { patched: true }
 }

@@ -76,7 +76,7 @@ Generate API token at: https://id.atlassian.com/manage-profile/security/api-toke
    - OpenSpec change created: {change-name}
    - Work item transition: {done / skipped}
 
-After reporting, the lead MUST run `/plan-propose` to generate the proposal, specs, and tasks. After `/plan-propose` completes, STOP and ask the user: **"Ready to implement? (yes/no)"**: do NOT proceed to `/plan-apply` until confirmed.
+After reporting, the lead MUST load the `ob-plan-propose` skill (interactive mode) to generate the proposal, specs, and tasks. After it completes, STOP and ask the user: **"Ready to implement? (yes/no)"**: do NOT load `ob-plan-apply` until confirmed.
 
 ---
 
