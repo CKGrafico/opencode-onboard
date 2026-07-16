@@ -110,10 +110,10 @@ Signals still needing skills:
 Check if `.agents/skills/find-skills/SKILL.md` exists. If not, install it:
 
 ```bash
-npx skills add vercel-labs/skills@find-skills
+npx skills add -y vercel-labs/skills@find-skills
 ```
 
-This is a **hard prerequisite**. If it can't be installed, stop and tell the user: "find-skills is required for skill discovery. Install it manually with `npx skills add vercel-labs/skills@find-skills` and re-run."
+This is a **hard prerequisite**. If it can't be installed, stop and tell the user: "find-skills is required for skill discovery. Install it manually with `npx skills add -y vercel-labs/skills@find-skills` and re-run."
 
 ### 4c. Signal-to-query mapping (deterministic, no skipping)
 
@@ -157,22 +157,26 @@ From each search result, select the best candidate using these rules in order:
 
 ### 4f. Install selected skills
 
-Install each selected skill using explicit `@skill-name` syntax (project-local, never global):
+Install each selected skill using explicit `@skill-name` syntax (project-local, never global). **Always pass `-y`** to skip the interactive confirmation prompt:
 
 ```bash
-npx skills add <owner/repo@skill-name>
+npx skills add -y <owner/repo@skill-name>
 ```
 
 Do NOT use the `-g` flag — skills must be project-local so they land in `.agents/skills/` and are tracked in `skills-lock.json`.
 
 ### 4g. Post-install verification
 
-After each `npx skills add`, verify the skill actually landed:
+After each `npx skills add`, verify the skill actually landed **and** tracked itself in the lockfile:
 
 1. Check `.agents/skills/<skill-name>/SKILL.md` exists
-2. Check `skills-lock.json` now contains the skill entry
+2. Check `skills-lock.json` now contains the skill entry (read it back — do not assume the entry was written)
 
-If either check fails (network glitch, wrong repo name, auth issue):
+If `.agents/skills/<skill-name>/SKILL.md` exists but `skills-lock.json` does NOT contain the entry:
+- **Manually patch the lockfile** using the Edit tool: open `skills-lock.json`, add a new entry inside the `"skills"` object using the `owner/repo` from the install command and the structure `"source": "<owner/repo>", "sourceType": "github", "skillPath": "skills/<skill-name>/SKILL.md", "computedHash": "<skill-name>-placeholder"`. Match the existing entries' key naming.
+- Re-read `skills-lock.json` to confirm the entry is valid JSON.
+
+If `.agents/skills/<skill-name>/SKILL.md` is missing (network glitch, wrong repo name, auth issue):
 - Retry the install once
 - If still failing, drop the skill from the selection and note it in the summary as "install failed"
 
@@ -301,10 +305,13 @@ If ANY check fails: rewrite the file to match the template exactly. Do not proce
 1. Parse every `@skill-name` from the `## Abilities` section (excluding `@ob-guardrails-generic` and `@ob-guardrails-project` which are installed at init)
 2. For each: check `.agents/skills/<skill-name>/SKILL.md` exists
 3. For each: check `skills-lock.json` contains the skill
-4. If any reference is missing:
-   - Try to install it: `npx skills add <owner/repo@skill-name>` (search `skills-lock.json` or `npx skills find` for the owner/repo)
+4. If `.agents/skills/<skill-name>/SKILL.md` exists but `skills-lock.json` is missing the entry:
+   - **Manually patch `skills-lock.json`** using the Edit tool (same procedure as Step 4g): add the entry inside `"skills"` with the `owner/repo` and `skillPath` structure matching existing entries
+   - Re-read `skills-lock.json` to confirm it is valid JSON
+5. If `.agents/skills/<skill-name>/SKILL.md` is missing:
+   - Try to install it: `npx skills add -y <owner/repo@skill-name>` (search `skills-lock.json` or `npx skills find` for the owner/repo)
    - If install fails or the skill can't be found on skills.sh → **remove the reference from the file**, warn the user, and note it in the summary
-5. Re-read the file to confirm all remaining `@skill-name` references are valid
+6. Re-read the file to confirm all remaining `@skill-name` references are valid
 
 ---
 
