@@ -31,7 +31,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
-  fs.rmSync(tmpDir, { recursive: true, force: true })
+  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
 })
 
 describe('patchAgentsMd against the real repo-initialize.md', () => {
@@ -106,9 +106,14 @@ describe('installSkills platform gating (real content/.agents/skills)', () => {
   })
 })
 
-describe('ops command patching (real presets + real command templates)', () => {
+describe('ops command patching (real presets + real templates)', () => {
   async function patchedCommand(name) {
     const p = path.join(tmpDir, '.opencode', 'commands', name)
+    return fs.existsSync(p) ? fs.readFileSync(p, 'utf-8') : null
+  }
+
+  async function patchedSkill(name) {
+    const p = path.join(tmpDir, '.agents', 'skills', name, 'SKILL.md')
     return fs.existsSync(p) ? fs.readFileSync(p, 'utf-8') : null
   }
 
@@ -117,19 +122,24 @@ describe('ops command patching (real presets + real command templates)', () => {
     ['jira', 'github'],
     ['browser', 'azure'],
     ['github', 'gitlab'],
-  ])('backlog=%s repo=%s patches all ops commands', async (backlog, repo) => {
-    // Copy command files to tmpDir
+  ])('backlog=%s repo=%s patches all ops targets', async (backlog, repo) => {
+    // review/backlog stay commands; ship's procedure lives in the ob-ops-ship skill
     fs.mkdirSync(path.join(tmpDir, '.opencode', 'commands'), { recursive: true })
-    for (const cmd of ['ops-ship.md', 'ops-review.md', 'ops-backlog.md']) {
+    for (const cmd of ['ops-review.md', 'ops-backlog.md']) {
       const src = path.join(CONTENT_DIR, '.opencode', 'commands', cmd)
       fs.copyFileSync(src, path.join(tmpDir, '.opencode', 'commands', cmd))
     }
+    fs.mkdirSync(path.join(tmpDir, '.agents', 'skills', 'ob-ops-ship'), { recursive: true })
+    fs.copyFileSync(
+      path.join(CONTENT_DIR, '.agents', 'skills', 'ob-ops-ship', 'SKILL.md'),
+      path.join(tmpDir, '.agents', 'skills', 'ob-ops-ship', 'SKILL.md'),
+    )
 
     await patchOpsShip({ backlogPlatform: backlog, repoPlatform: repo }, tmpDir)
     await patchOpsReview({ backlogPlatform: backlog, repoPlatform: repo }, tmpDir)
     await patchOpsBacklog({ backlogPlatform: backlog, repoPlatform: repo }, tmpDir)
 
-    const ship = await patchedCommand('ops-ship.md')
+    const ship = await patchedSkill('ob-ops-ship')
     const review = await patchedCommand('ops-review.md')
     const backlogCmd = await patchedCommand('ops-backlog.md')
 

@@ -73,21 +73,21 @@ openspec archive "project-history"
 
 ### Generate ARCHITECTURE.md (if Yes)
 
-Run `/make-architecture` now. Follow every step defined in that command.
+Load the `ob-make-architecture` skill now. Follow every step defined in it.
 
 ### Generate DESIGN.md (if Yes)
 
-Run `/make-design` now. Follow every step defined in that command.
+Load the `ob-make-design` skill now. Follow every step defined in it.
 
 ### Generate guardrails (always)
 
-Run `/make-guardrails` now. Follow every step defined in that command.
+Load the `ob-make-guardrails` skill now. Follow every step defined in it.
 
 ---
 
 ## Step 3, Show help
 
-Run `/repo-help` to display the full command reference.
+Load the `ob-repo-help` skill and display the full command reference exactly as written.
 
 ---
 

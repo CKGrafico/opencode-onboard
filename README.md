@@ -99,6 +99,8 @@ OpenCode asks if this is a greenfield or brownfield project. For brownfield proj
 
 Custom slash commands are installed into `.opencode/commands/` and are available directly in OpenCode.
 
+Commands that other commands (or agents) need to execute are thin wrappers around `ob-*` skills in `.agents/skills/` — the command handles user invocation and arguments, the skill holds the procedure. OpenCode has no mechanism for a command to run another command, but any agent can load a skill mid-conversation, which is what makes pipelines like `/plan-goal` composable.
+
 | Command | Description |
 | ------- | ----------- |
 | `/repo-help` | Show all commands and when to use each one. Start here if you are unsure. |
@@ -175,8 +177,17 @@ Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 | `ob-userstory-jira` | Parse a Jira issue URL via `acli` CLI |
 | `ob-userstory-browser` | Parse work item from any URL via browser automation (Linear, Trello, and so on) |
 | `browser-automation` | Browser control via `@different-ai/opencode-browser` (localhost and browser backlog exception) |
+| `ob-plan-explore` | Read-only exploration procedure behind `/plan-explore`; autonomous mode used by `/plan-goal` |
+| `ob-plan-propose` | Proposal + task-enrichment procedure behind `/plan-propose`; autonomous mode used by `/plan-goal` |
+| `ob-plan-apply` | Wave-implementation procedure behind `/plan-apply`; autonomous mode used by `/plan-goal` |
+| `ob-plan-archive` | Archive procedure behind `/plan-archive` (platform flow injected at onboarding); autonomous mode used by `/plan-goal` |
+| `ob-ops-ship` | PR-creation procedure behind `/ops-ship` (platform flow injected at onboarding); used by `/plan-goal` pr mode |
+| `ob-make-architecture` | ARCHITECTURE.md generation behind `/make-architecture`; used by `/repo-initialize` |
+| `ob-make-design` | DESIGN.md generation behind `/make-design`; used by `/repo-initialize` |
+| `ob-make-guardrails` | Guardrails generation behind `/make-guardrails`; used by `/repo-initialize` |
+| `ob-repo-help` | The command reference displayed by `/repo-help`; used by `/repo-initialize` |
 
-Platform operations (pull request creation, pull request review, issue creation) are injected directly into `/ops-ship`, `/ops-review`, and `/ops-backlog` command files during onboarding. No separate skills needed.
+Platform operations are injected during onboarding: pull request creation into the `ob-ops-ship` skill (loaded by `/ops-ship` and `/plan-goal`), archive PR flow into the `ob-plan-archive` skill, and pull request review / issue creation directly into the `/ops-review` and `/ops-backlog` command files.
 
 Skills live in `.agents/skills/`. Any `SKILL.md` file in a subdirectory is automatically discoverable. Write your own and agents will pick them up.
 

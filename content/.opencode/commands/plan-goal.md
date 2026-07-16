@@ -4,13 +4,15 @@ description: Autonomous pipeline: explore, propose, apply, archive, then merge/P
 
 Run the **full OpenSpec lifecycle** end to end with **no human interaction**: explore the codebase, propose a plan, implement via subagent waves, archive, and merge back. Built for **loop-engineering / unattended runs**.
 
-> **Hard rule: never ask the user to confirm anything.** Skip every checkpoint, confirmation, and "stop and ask" in the underlying commands. The only time you halt is a hard failure (see **Failure policy**). Each phase produces its own commit; the branch merges to `$DEFAULT_BRANCH` only after verification passes.
+Each phase executes an `ob-*` skill in **autonomous mode**: load the named skill with the `skill` tool and follow it. Autonomous mode is defined inside each skill: every user checkpoint auto-resolves and nothing is ever asked.
+
+> **Hard rule: never ask the user to confirm anything.** Every skill below runs in autonomous mode. The only time you halt is a hard failure (see **Failure policy**). Each phase produces its own commit; the branch merges to `$DEFAULT_BRANCH` only after verification passes.
 >
 > **Guardrails note:** the user explicitly invoked this autonomous command, so its final local merge into `$DEFAULT_BRANCH` is sanctioned and overrides the `@ob-guardrails-generic` git rules **for that one merge only**. Every other guardrail (no force push, no pushing the default branch, secrets, retries) still applies.
 
 **Output mode**: determined ONLY by the **first whitespace-delimited token** of `$ARGUMENTS`. The words `pr` or `push` anywhere else (e.g. "add push notifications", "create a pr template") are part of the feature description and MUST NOT change the mode:
 - **Default (first token is neither `pr` nor `push`):** merge to the default branch locally, delete the feature branch. No push, no PR.
-- **First token `pr`** (e.g. `/plan-goal pr <description>`): push the branch to remote, then create a PR via `/ops-ship`. Do NOT merge: leave the PR open for human review.
+- **First token `pr`** (e.g. `/plan-goal pr <description>`): push the branch to remote, then create a PR via the `ob-ops-ship` skill. Do NOT merge: leave the PR open for human review.
 - **First token `push`** (e.g. `/plan-goal push <description>`): push the branch to remote only. No PR, no merge.
 
 If the first token is `pr` or `push`, strip it from `$ARGUMENTS` before resolving the input in Phase 0.
@@ -54,28 +56,26 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
 - Everything below happens on `$BRANCH`. `$DEFAULT_BRANCH` is never modified until the final merge.
 
 **Phase 2: Explore (read-only, autonomous).**
-- Run `/plan-explore` with the resolved input. **Skip every user-interaction checkpoint** in that command (Step 0.a unarchived-changes check → treat as `continue`; Step 2 save-to-memory → only save if findings are significant; Step 3 ask-what's-next → do not ask, proceed to Phase 3). There is no user. You are exploring solo.
+- Load the `ob-plan-explore` skill and execute it in **autonomous mode** with the resolved input. There is no user: you are exploring solo.
 - The exploration must be a **Socratic internal debate**: formulate 3-5 probing questions about the problem space, investigate each one by reading code and tracing call paths (use CodeGraph MCP tools if available, otherwise grep/read), then **answer your own questions** with evidence from the codebase. Where an answer opens a new question, follow it (one level of follow-up per question, max). This is an engineer thinking aloud, not a checklist, weigh alternatives, consider risks, and reason through tradeoffs before settling on an approach.
 - The exploration feeds directly into Phase 3. No commit yet (exploration is read-only).
 
 **Phase 3: Propose (no confirmation).**
-- Run `/plan-propose` with the resolved input. **Skip every user-interaction checkpoint** in that command (Step 0.a unarchived-changes check → treat as `continue`; Step 3 show-and-ask-for-confirmation → do not ask, write files immediately). Incorporate the exploration findings from Phase 2 into the proposal.
-- `/plan-propose` writes the proposal files to `openspec/changes/{change-slug}/` and the agentmemory notes.
+- Load the `ob-plan-propose` skill and execute it in **autonomous mode** with the resolved input. Incorporate the exploration findings from Phase 2 into the proposal.
+- The skill writes the proposal files to `openspec/changes/{change-slug}/` and the agentmemory notes.
 - If the canonical change slug differs from `{slug}`, rename the branch to match: `git branch -m feature/{change-slug}` and refresh `BRANCH="$(git branch --show-current)"`.
 - Commit: `git add -A && git commit -m "propose: {title} ({change-id})"`.
 
 **Phase 4: Apply (no confirmation).**
-- Run `/plan-apply`. You are already on `$BRANCH`, so **skip its branch-creation step**; start from "Load the plan". The wave protocol inside `/plan-apply` handles codegraph and agentmemory integration via `@ob-guardrails-generic`: no extra wiring needed here.
-- `/plan-apply` spawns subagent waves by `depends_on` / `touches`, committing each group `"{ids}: {summary}"` as its protocol dictates. Honour `agents.maxConcurrent`.
+- Load the `ob-plan-apply` skill and execute it in **autonomous mode** with `start_from: load-plan` (you are already on `$BRANCH`, so its branch-creation step is skipped). The wave protocol inside the skill handles codegraph and agentmemory integration via `@ob-guardrails-generic`: no extra wiring needed here.
+- The skill spawns subagent waves by `depends_on` / `touches`, committing each group `"{ids}: {summary}"` as its protocol dictates. Honour `agents.maxConcurrent`.
 - Do **not** return control to the user between waves: keep looping until every task is DONE, or the progress guard / one-retry limit trips (→ **Failure policy**).
-- `/plan-apply` runs the verify step (tests / lint / build) from this lead session. Reopen and re-wave failing tasks as the protocol allows.
+- The skill runs the verify step (tests / lint / build) from this lead session. Reopen and re-wave failing tasks as the protocol allows.
 - Ensure `tasks.md` is fully checked and any residual changes are committed.
 
 **Phase 5: Archive (forced, same branch, no PR).**
 - Do **not** run the platform PR archive flow and do **not** create an `archive/` branch. Archive in place on `$BRANCH`.
-- Run `/plan-archive` but **skip every user-interaction checkpoint**: skip the "find oldest merged PR" step (you already know which change you just implemented), skip the "confirm the candidate" prompt, skip the "create archive PR" step. Instead, archive the change you just implemented, by its id, directly on `$BRANCH`.
-- Compare the archived change's specs against `ARCHITECTURE.md` and `DESIGN.md`; apply any needed doc updates directly (no approval prompt).
-- If you were implementing a bug or new functionality and had an important impact, check if `@ob-guardrails-project` exists and update it.
+- Load the `ob-plan-archive` skill and execute it in **autonomous mode**, passing the change id you just implemented. Autonomous mode archives that change directly on `$BRANCH`: no PR lookup, no confirmation, no archive PR; doc updates (`ARCHITECTURE.md`, `DESIGN.md`) are applied directly, and `@ob-guardrails-project` is updated when the change had important impact.
 - Commit: `git add -A && git commit -m "archive: {title} ({change-id})"`.
 
 **Phase 6: Output (mode-dependent).**
@@ -104,10 +104,10 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
 - ```bash
   git push -u origin "$BRANCH"
   ```
-- Create a PR using `/ops-ship` from `$BRANCH` to `$DEFAULT_BRANCH` with:
+- Load the `ob-ops-ship` skill and execute it to create a PR from `$BRANCH` to `$DEFAULT_BRANCH` with:
   - Title: `{title}`
   - Body: summary of the change (change id, tasks N/N, commit list)
-- If `/ops-ship` is not available or PR creation fails: leave the branch pushed and report the error. Do NOT merge.
+- If the `ob-ops-ship` skill is not available or PR creation fails: leave the branch pushed and report the error. Do NOT merge.
 - Restore stash.
 
 **Phase 7: Report.** One summary block: change id, branch, tasks N/N done, the commits made (explore / propose / apply group commits / archive), verification result, output mode (default/push/pr), and final state (merged to main / pushed branch / PR URL).

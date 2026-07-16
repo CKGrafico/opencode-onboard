@@ -58,8 +58,6 @@ export async function copyContentStep(platform, ctx = {}) {
     )
 
     await patchAgentGuidance(backlogPlatform, repoPlatform)
-    await patchArchiveCommand({ backlogPlatform, repoPlatform })
-    await patchOpsShip({ backlogPlatform, repoPlatform })
     await patchOpsReview({ backlogPlatform, repoPlatform })
     await patchOpsBacklog({ backlogPlatform, repoPlatform })
     await patchOpencodeJson()
@@ -68,6 +66,10 @@ export async function copyContentStep(platform, ctx = {}) {
     if (!ctx.skipSkills) {
       await installSkills(backlogPlatform, repoPlatform)
     }
+    // These two patch SKILL.md files (ob-plan-archive, ob-ops-ship), so they
+    // must run after installSkills has copied the skills into the project.
+    await patchArchiveCommand({ backlogPlatform, repoPlatform })
+    await patchOpsShip({ backlogPlatform, repoPlatform })
     await generateFullstackEngineer()
     success("Files copied to project root")
   } catch (err) {

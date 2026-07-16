@@ -5,6 +5,11 @@ import os from 'node:os'
 import fse from 'fs-extra'
 import { patchArchiveCommand } from './commands.js'
 
+// The archive procedure lives in the ob-plan-archive skill (the /plan-archive
+// command is a thin wrapper that loads it), so platform content is injected
+// into the installed SKILL.md.
+const SKILL_REL_PATH = path.join('.agents', 'skills', 'ob-plan-archive', 'SKILL.md')
+
 describe('platform patching', () => {
   let tmpDir
 
@@ -13,14 +18,19 @@ describe('platform patching', () => {
   })
 
   afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true })
+    fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
   })
 
-  it('patches plan-archive for azure platform', async () => {
-    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'plan-archive.md')
-    const dest = path.join(tmpDir, '.opencode', 'commands', 'plan-archive.md')
+  async function copySkillTemplate() {
+    const source = path.join(process.cwd(), 'content', SKILL_REL_PATH)
+    const dest = path.join(tmpDir, SKILL_REL_PATH)
     await fse.ensureDir(path.dirname(dest))
     await fse.copyFile(source, dest)
+    return dest
+  }
+
+  it('patches ob-plan-archive skill for azure platform', async () => {
+    const dest = await copySkillTemplate()
 
     await patchArchiveCommand('azure', tmpDir)
 
@@ -29,11 +39,8 @@ describe('platform patching', () => {
     expect(content).not.toContain('gh pr list --repo {owner}/{repo} --state merged')
   })
 
-  it('patches plan-archive for github platform', async () => {
-    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'plan-archive.md')
-    const dest = path.join(tmpDir, '.opencode', 'commands', 'plan-archive.md')
-    await fse.ensureDir(path.dirname(dest))
-    await fse.copyFile(source, dest)
+  it('patches ob-plan-archive skill for github platform', async () => {
+    const dest = await copySkillTemplate()
 
     await patchArchiveCommand('github', tmpDir)
 
@@ -42,11 +49,8 @@ describe('platform patching', () => {
     expect(content).not.toContain('az repos pr list --repository {repo} --status completed')
   })
 
-  it('patches plan-archive for none platform without throwing', async () => {
-    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'plan-archive.md')
-    const dest = path.join(tmpDir, '.opencode', 'commands', 'plan-archive.md')
-    await fse.ensureDir(path.dirname(dest))
-    await fse.copyFile(source, dest)
+  it('patches ob-plan-archive skill for none platform without throwing', async () => {
+    const dest = await copySkillTemplate()
 
     await patchArchiveCommand('none', tmpDir)
 
@@ -56,11 +60,8 @@ describe('platform patching', () => {
     expect(content).not.toContain('az repos pr list --repository {repo} --status completed')
   })
 
-  it('patches plan-archive for gitlab platform', async () => {
-    const source = path.join(process.cwd(), 'content', '.opencode', 'commands', 'plan-archive.md')
-    const dest = path.join(tmpDir, '.opencode', 'commands', 'plan-archive.md')
-    await fse.ensureDir(path.dirname(dest))
-    await fse.copyFile(source, dest)
+  it('patches ob-plan-archive skill for gitlab platform', async () => {
+    const dest = await copySkillTemplate()
 
     await patchArchiveCommand('gitlab', tmpDir)
 
