@@ -8,7 +8,7 @@ description: Create a custom engineer agent via persona-driven interactive desig
 2. **File content = template only**: YAML frontmatter + one identity paragraph (2-3 sentences) + the fixed **startup directive** line (verbatim, see Step 5b) + `## Abilities` section. No other `##` headings. No expertise notes. No architecture details. No conventions. No file maps. No workflow steps. Those belong in skills, not the agent file.
 3. **NEVER write `model:`** in the agent file. The `ob-subagent-tiers` plugin injects it.
 4. **ALWAYS `mode: primary`** for template files — the `ob-subagent-tiers` plugin creates variants with `mode: subagent` at startup.
-5. **Skills FIRST**: You MUST complete Step 4 (run `npx skills find` for every detected signal, install 5-10 skills from skills.sh) BEFORE writing any file. If you have not run `npx skills find` at least once, you are not ready to write the file.
+5. **Skills FIRST**: You MUST complete Step 4 (present the Step 3 form, discover skills for every detected signal + architecture, let the user confirm the set, then install 5-10 skills) BEFORE writing any file. If you have not run skill discovery and shown the confirmation form, you are not ready to write the file.
 6. **No global skills**: Only skills installed in the project's `.agents/skills/` directory can be referenced. Skills from global locations such as `~/.agents/skills/` are FORBIDDEN.
 7. **No `@ob-default`** in any ability category — all abilities must reference real installed skills.
 
@@ -70,21 +70,34 @@ Signal inventory:
 
 ---
 
-## Step 3: Ask persona-specific questions (dynamic, 2-4 questions)
+## Step 3: Persona-specific form (recommend + confirm)
 
-Based on the detected signals, ask 2-4 relevant questions using the `question` tool. Each question is a simple closed choice or yes-no.
+Present a short **form** using the `question` tool. Each question is a closed choice or yes-no. Every option that matches a **detected signal from Step 2** must be marked **(Recommended)** and pre-selected — the user just confirms or overrides. This is the moment the user shapes the engineer, so make it feel like the standard opencode selection form.
 
-- Only ask about things where multiple options were detected or where the user's choice matters
-- Skip anything where only one option was detected: just use it
-- Don't ask more than 4 questions
+Ask **2-5 questions total**:
+
+1. **Architecture / patterns (ALWAYS ask for `frontend`, `backend`, `layout`, `api` personas; optional otherwise).** Use `multiple: true`. Pre-select the architecture detected in Step 2 and mark it **(Recommended)**; offer common alternatives so the user can opt in even when the codebase does not signal one yet. Options map to the known sources in Step 4d:
+   - **Feature-Sliced Design (FSD)** — layered frontend architecture
+   - **Design patterns** — singleton, observer, factory, hooks, HOC, compound, render-props, provider…
+   - **Rendering patterns** — SSR, RSC, streaming, static, islands, progressive hydration
+   - **Performance patterns** — bundle splitting, tree-shaking, dynamic import, route-based
+   - **Microservices**
+   - **Monolith / layered**
+2. **Up to 4 more questions**, only where Step 2 detected multiple options or where the user's choice genuinely matters (e.g. which test runner, which styling approach, which cloud). Skip anything with a single detected option — just use it silently.
+
+Rules:
+- Options matching a detected signal are **(Recommended)** and pre-selected.
+- Never ask about things where only one option was detected.
+- Keep the whole form to **5 questions max**.
+- The user's selections here (plus Step 2 signals) become the **recommended skill set** that Step 4 resolves, confirms, and installs.
 
 ---
 
-## Step 4: Deterministic skill discovery
+## Step 4: Skill discovery, confirmation, and install
 
 ### STOP — DO NOT WRITE ANY FILE YET
 
-You must complete this step fully before writing anything in Step 5. The agent file is worthless without real skills from skills.sh. If you skip this step, the engineer will have no abilities and will fail at every task.
+You must complete this step fully before writing anything in Step 5. The agent file is worthless without real skills. The flow is: **discover candidates (4a-4f) → confirm with the user (4g) → install the confirmed set (4h) → verify (4i)**. If you skip discovery or install, the engineer will have no abilities and will fail at every task.
 
 ### 4a. Pre-check already-installed skills
 
@@ -123,7 +136,7 @@ For each **uncovered** signal from 4a, run a mandatory `npx skills find` with a 
 |---|---|
 | Language | `npx skills find "<language-name>"` (e.g. `typescript`, `csharp`, `python`) |
 | Framework | `npx skills find "<framework-name>"` (e.g. `react`, `ink`, `angular`, `django`) |
-| Architecture | `npx skills find "<pattern-name>"` (e.g. `feature sliced design`, `microservices`) |
+| Architecture | **Use the 4d known sources** (FSD, patterns.dev). Optionally also `npx skills find "<pattern-name>"` |
 | Testing | `npx skills find "<test-framework> testing"` (e.g. `vitest testing`, `jest testing`) |
 | Styling | `npx skills find "<css-framework>"` (e.g. `tailwind`, `css modules`, `design tokens`) |
 | Linting | `npx skills find "eslint prettier"` or `"lint format"` |
@@ -138,7 +151,27 @@ For each **uncovered** signal from 4a, run a mandatory `npx skills find` with a 
 
 If a signal doesn't fit any table row, derive a query from the signal value itself: `npx skills find "<signal-value>"`.
 
-### 4d. Quality filter (structured, not vibes)
+> **Architecture & pattern signals are the exception:** the best ones are NOT in the `npx skills find` index. Resolve them via the known direct sources in **4d** instead of (or in addition to) a find query.
+
+### 4d. Known direct sources (architecture & patterns)
+
+Some high-value skills live in dedicated repos and install by **direct `owner/repo` reference**, so `npx skills find` never surfaces them. When the persona is `frontend` / `backend` / `layout` / `api`, OR the user selected an architecture/pattern in Step 3, pull from this table:
+
+| Selection (Step 3) | Install command | Skill(s) to pick |
+|---|---|---|
+| Feature-Sliced Design (FSD) | `npx skills add -y feature-sliced/skills` | `feature-sliced-design` |
+| Design patterns | `npx skills add -y PatternsDev/skills --skill <name>` | `hooks-pattern`, `hoc-pattern`, `compound-pattern`, `render-props-pattern`, `provider-pattern`, `observer-pattern`, `factory-pattern`, `module-pattern` |
+| Rendering patterns | `npx skills add -y PatternsDev/skills --skill <name>` | `server-side-rendering`, `client-side-rendering`, `static-rendering`, `streaming-ssr`, `react-server-components`, `progressive-hydration`, `islands-architecture` |
+| Performance patterns | `npx skills add -y PatternsDev/skills --skill <name>` | `bundle-splitting`, `tree-shaking`, `dynamic-import`, `route-based`, `js-performance-patterns`, `react-render-optimization` |
+| Modern React (2026 stack) | `npx skills add -y PatternsDev/skills --skill <name>` | `react-2026`, `react-composition-2026`, `react-data-fetching` |
+
+Rules for this table:
+- Pick **only** skills relevant to the persona and the user's Step 3 selections.
+- **Cap patterns.dev picks at 2-3** of the most relevant — never install the whole catalog. Full catalog: https://www.patterns.dev/ai/skills/catalog/
+- These sources are curated/canonical, so they are **exempt from the install-count filter** in 4e.
+- Add the resolved skills to the recommended set (4f) — they are installed only after the user confirms (4g).
+
+### 4e. Quality filter (structured, not vibes)
 
 From each search result, select the best candidate using these rules in order:
 
@@ -147,25 +180,44 @@ From each search result, select the best candidate using these rules in order:
 3. **Topical match** — the skill description must clearly match the signal. A React skill with 500K installs doesn't cover TypeScript if its description is only about React components.
 4. If the top result is < 100 installs → record "no quality skill found on skills.sh for \<signal\>" and move on.
 
-### 4e. Coverage requirement: 5-10 skills
+### 4f. Assemble the recommended set (5-10 skills)
 
-- **Minimum = number of detected persona-relevant signals** (if 6 signals detected, need ≥ 6 skills — one per signal minimum)
+Combine the winners from the `npx skills find` searches (4e) and the known direct sources (4d) into a single **recommended set**:
+
+- **Minimum = number of detected persona-relevant signals** (if 6 signals detected, aim for ≥ 6 skills — one per signal minimum)
 - **Ideal range: 5-8** for most engineers
 - **Hard cap: 10** — if more candidates found, rank by install count + source reputation and keep the top 10
 - **No redundant skills** — if an already-selected skill covers the same scope as a new candidate (e.g. `vercel-react-best-practices` already covers TypeScript basics), skip the new candidate unless it provides genuinely deeper coverage for a different concern (e.g. `typescript-advanced-types` is deeper than React general guidance, so both are fine)
-- If fewer than 5 skills are found after all searches → tell the user how many were found and ask whether to proceed with fewer or cancel
+- If fewer than 5 skills are found after all searches → note it; the user can still add more in the confirmation form (4g)
 
-### 4f. Install selected skills
+### 4g. Confirm the skill set (the form)
 
-Install each selected skill using explicit `@skill-name` syntax (project-local, never global). **Always pass `-y`** to skip the interactive confirmation prompt:
+**Do NOT install anything yet.** Present the recommended set to the user as a **multi-select form** using the `question` tool with `multiple: true`, and **pre-select every recommended skill**. This is the confirmation gate the user asked for.
+
+- Group the options by category: **Architecture**, **Development**, **Testing**, **Infrastructure**.
+- For each skill show: name, one-line description, source (`owner/repo`), and install count (or "curated source" for 4d entries).
+- Every recommended skill is **checked by default**; the user unchecks anything unwanted.
+- Include a short note that they can request additional skills by name.
+- Nothing installs until the user submits this form.
+
+The submitted selection is the **confirmed set**. Install only the confirmed set in 4h.
+
+### 4h. Install the confirmed set
+
+Install each **confirmed** skill (project-local, never global). **Always pass `-y`** to skip the skills CLI's own prompt. Use the syntax that matches the source:
 
 ```bash
+# skills.sh index entries (from npx skills find):
 npx skills add -y <owner/repo@skill-name>
+
+# known direct sources (Step 4d):
+npx skills add -y feature-sliced/skills
+npx skills add -y PatternsDev/skills --skill <skill-name>
 ```
 
 Do NOT use the `-g` flag — skills must be project-local so they land in `.agents/skills/` and are tracked in `skills-lock.json`.
 
-### 4g. Post-install verification
+### 4i. Post-install verification
 
 After each `npx skills add`, verify the skill actually landed **and** tracked itself in the lockfile:
 
@@ -180,14 +232,15 @@ If `.agents/skills/<skill-name>/SKILL.md` is missing (network glitch, wrong repo
 - Retry the install once
 - If still failing, drop the skill from the selection and note it in the summary as "install failed"
 
-### 4h. GATE — Verify you are ready to write the file
+### 4j. GATE — Verify you are ready to write the file
 
 Before proceeding to Step 5, answer these questions. If any answer is "no", you are NOT ready.
 
-1. Did you run `npx skills find` for every uncovered signal? (yes/no)
-2. Did you install at least 5 skills from skills.sh into `.agents/skills/`? (yes/no)
-3. Did you verify each installed skill exists in `.agents/skills/<name>/SKILL.md`? (yes/no)
-4. Are you about to write ONE file only (no `.build.md` variant)? (yes/no)
+1. Did you present the Step 3 form (including the architecture/patterns question) and the 4g confirmation form? (yes/no)
+2. Did you run `npx skills find` for every uncovered signal and resolve architecture/patterns via the 4d known sources? (yes/no)
+3. Did you install the user's **confirmed** skill set into `.agents/skills/` (aim for 5-10; respect what the user unchecked)? (yes/no)
+4. Did you verify each installed skill exists in `.agents/skills/<name>/SKILL.md` and in `skills-lock.json`? (yes/no)
+5. Are you about to write ONE file only (no `.build.md` variant)? (yes/no)
 
 If any answer is "no", go back and fix it. Do not proceed to Step 5.
 
@@ -310,7 +363,7 @@ If ANY check fails: rewrite the file to match the template exactly. Do not proce
 2. For each: check `.agents/skills/<skill-name>/SKILL.md` exists
 3. For each: check `skills-lock.json` contains the skill
 4. If `.agents/skills/<skill-name>/SKILL.md` exists but `skills-lock.json` is missing the entry:
-   - **Manually patch `skills-lock.json`** using the Edit tool (same procedure as Step 4g): add the entry inside `"skills"` with the `owner/repo` and `skillPath` structure matching existing entries
+   - **Manually patch `skills-lock.json`** using the Edit tool (same procedure as Step 4i): add the entry inside `"skills"` with the `owner/repo` and `skillPath` structure matching existing entries
    - Re-read `skills-lock.json` to confirm it is valid JSON
 5. If `.agents/skills/<skill-name>/SKILL.md` is missing:
    - Try to install it: `npx skills add -y <owner/repo@skill-name>` (search `skills-lock.json` or `npx skills find` for the owner/repo)

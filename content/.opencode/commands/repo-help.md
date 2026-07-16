@@ -40,7 +40,7 @@ Display the following reference to the user exactly as written. Do not summarize
 
 ### Maintaining the project?
 
-**`/make-engineer`**: Add a custom specialist engineer to the team. Interactive persona-driven flow: pick a persona, answer a few questions about your stack, and the command installs the right skills and generates the agent file. Future `/plan-apply` runs will prefer it when its domain matches.
+**`/make-engineer`**: Add a custom specialist engineer to the team. Interactive persona-driven form: pick a persona, then confirm an inspected-and-recommended set of skills (architecture/patterns like FSD or design patterns, framework, testing, infra) before anything installs. Future `/plan-apply` runs will prefer it when its domain matches.
 
 **`/make-architecture`**: Regenerate `ARCHITECTURE.md` from the current codebase. Safe to rerun any time the architecture evolves.
 
