@@ -5,11 +5,11 @@ description: Create a custom engineer agent via persona-driven interactive desig
 ## CRITICAL RULES — READ BEFORE DOING ANYTHING
 
 1. **ONE file only**: `.opencode/agents/{persona}-engineer.md`. NEVER create `.build.md`, `.fast.md`, `.plan.md`, or any variant file. The `ob-subagent-tiers` plugin creates those at startup.
-2. **File content = template only**: YAML frontmatter + one identity paragraph (2-3 sentences) + `## Abilities` section. No other `##` headings. No expertise notes. No architecture details. No conventions. No file maps. No workflow steps. Those belong in skills, not the agent file.
+2. **File content = template only**: YAML frontmatter + one identity paragraph (2-3 sentences) + the fixed **startup directive** line (verbatim, see Step 5b) + `## Abilities` section. No other `##` headings. No expertise notes. No architecture details. No conventions. No file maps. No workflow steps. Those belong in skills, not the agent file.
 3. **NEVER write `model:`** in the agent file. The `ob-subagent-tiers` plugin injects it.
 4. **ALWAYS `mode: primary`** for template files — the `ob-subagent-tiers` plugin creates variants with `mode: subagent` at startup.
 5. **Skills FIRST**: You MUST complete Step 4 (run `npx skills find` for every detected signal, install 5-10 skills from skills.sh) BEFORE writing any file. If you have not run `npx skills find` at least once, you are not ready to write the file.
-6. **No global skills**: Only skills installed in the project's `.agents/skills/` directory can be referenced. Skills from `~/.claude/skills/` or `~/.agents/skills/` are FORBIDDEN.
+6. **No global skills**: Only skills installed in the project's `.agents/skills/` directory can be referenced. Skills from global locations such as `~/.agents/skills/` are FORBIDDEN.
 7. **No `@ob-default`** in any ability category — all abilities must reference real installed skills.
 
 If the finished file has any `##` heading other than `## Abilities`, or has a `model:` field, or has `mode: subagent`, or is missing skills from `.agents/skills/` — you have failed. Rewrite it.
@@ -206,7 +206,7 @@ Before creating the file, check if `.opencode/agents/{persona}-engineer.md` alre
 
 ### 5b. Fill the template
 
-The agent file is **exactly** this structure — frontmatter + one identity paragraph + `## Abilities` section. No other sections. No other content.
+The agent file is **exactly** this structure — frontmatter + one identity paragraph + the fixed startup directive + `## Abilities` section. No other sections. No other content.
 
 ```markdown
 ---
@@ -223,6 +223,8 @@ permission:
 
 <One paragraph: "You are a {persona} engineer specializing in {top technologies}. You own all work in {scope/files}." Keep it to 2-3 sentences max.>
 
+**Startup — before doing anything else:** load every skill listed under `## Abilities` by calling the `skill` tool once per `@skill-name` (Guardrails first). These are mandatory instructions to read and apply, not passive references.
+
 ## Abilities
 - Guardrails: @ob-guardrails-generic, @ob-guardrails-project
 - Development: <@installed-skill-1>, <@installed-skill-2>, ...
@@ -230,7 +232,7 @@ permission:
 - Infrastructure: <@installed-skill-for-devops>, ...
 ```
 
-That is the **entire file**: frontmatter, one identity paragraph, and the `## Abilities` section. Replace every `<...>` placeholder with real values from your research. Remove any ability category line that has no skills assigned (besides Guardrails which is always present).
+That is the **entire file**: frontmatter, one identity paragraph, the fixed startup directive (copy it **verbatim**), and the `## Abilities` section. Replace every `<...>` placeholder with real values from your research. Remove any ability category line that has no skills assigned (besides Guardrails which is always present).
 
 ### 5c. Description quality bar
 
@@ -255,6 +257,7 @@ Rules:
 - State the persona + specialization in one sentence
 - State what files/layers the engineer owns in one sentence
 - Never exceed 3 sentences
+- Immediately after the identity paragraph, include the fixed **startup directive** line verbatim (see Step 5b). It is the ONLY paragraph allowed besides the identity paragraph, and it must not be reworded.
 
 ### 5e. Category rules
 
@@ -274,11 +277,11 @@ The following MUST NOT appear in the agent file. If you are about to write any o
 - **No `## File Responsibilities` or file maps** — the engineer discovers files at spawn time via codegraph and grep
 - **No `## Domain Expertise` or `## FSD Layer Rules` or `## Project Patterns` section**
 - **No `## Gate Order` or `## i18n` or `## What You Do NOT Touch` section**
-- **No free-text paragraphs beyond the identity paragraph** — the file is frontmatter + one identity paragraph + categorized abilities, period
+- **No free-text paragraphs beyond the identity paragraph and the fixed startup directive** — the file is frontmatter + one identity paragraph + the startup directive line + categorized abilities, period
 - **No `mode: subagent` or `mode: all`** — persona engineer templates are always `mode: primary`; the `ob-subagent-tiers` plugin creates `mode: subagent` variants at startup
 - **No custom `bash:` permission Allowlist** — use `bash: allow`, not a per-command Allowlist
 
-The ONLY permitted content in the file body (after frontmatter) is: one identity paragraph (2-3 sentences) + `## Abilities` section. If the finished file has any `##` heading other than `## Abilities`, or has more than one paragraph before `## Abilities`, **you have failed**. Rewrite it.
+The ONLY permitted content in the file body (after frontmatter) is: one identity paragraph (2-3 sentences) + the fixed startup directive line + `## Abilities` section. If the finished file has any `##` heading other than `## Abilities`, or is missing the startup directive, or adds any paragraph beyond the identity + directive, **you have failed**. Rewrite it.
 
 ---
 
@@ -293,10 +296,11 @@ Re-read the file you just wrote and verify:
 1. **Frontmatter exists** — starts with `---`, has `description`, `mode: primary`, `color`, `permission` block
 2. **No `model:` field** in the frontmatter
 3. **`## Abilities` is the ONLY `##` heading** — no other `##` sections exist in the file
-4. **One identity paragraph** before `## Abilities` — 2-3 sentences max, not multiple paragraphs
-5. **Abilities are categorized** — each line starts with `- Guardrails:`, `- Development:`, `- Testing:`, or `- Infrastructure:`. No bare `@skill-name` lines.
-6. **No forbidden content** — no expertise notes, no workflow steps, no file maps, no conventions, no extra sections
-7. **One file only** — no `.build.md`, `.fast.md`, or `.plan.md` variant was created
+4. **One identity paragraph** before the startup directive — 2-3 sentences max, not multiple paragraphs
+5. **Startup directive present** — the fixed `**Startup — before doing anything else:** ...` line appears verbatim between the identity paragraph and `## Abilities`
+6. **Abilities are categorized** — each line starts with `- Guardrails:`, `- Development:`, `- Testing:`, or `- Infrastructure:`. No bare `@skill-name` lines.
+7. **No forbidden content** — no expertise notes, no workflow steps, no file maps, no conventions, no extra sections
+8. **One file only** — no `.build.md`, `.fast.md`, or `.plan.md` variant was created
 
 If ANY check fails: rewrite the file to match the template exactly. Do not proceed with a broken file.
 
@@ -317,7 +321,7 @@ If ANY check fails: rewrite the file to match the template exactly. Do not proce
 
 ## Step 7: Update fullstack-engineer.md abilities
 
-The `fullstack-engineer.md` is `mode: primary` — it's the planning session agent, not a spawned worker. Having all skills here is fine since it does planning, not parallel implementation. Its file follows the same template: frontmatter + identity paragraph + `## Abilities`, nothing else.
+The `fullstack-engineer.md` is `mode: primary` — it's the planning session agent, not a spawned worker. Having all skills here is fine since it does planning, not parallel implementation. Its file follows the same template: frontmatter + identity paragraph + startup directive + `## Abilities`, nothing else.
 
 After creating the persona engineer and validating its references (Step 6), **additively merge** new skills into fullstack:
 
@@ -326,8 +330,9 @@ After creating the persona engineer and validating its references (Step 6), **ad
 3. Read the current `fullstack-engineer.md`
 4. Parse its existing `## Abilities` section to find which skills are already listed
 5. **Append-only**: add only skills that are not already in the file (dedup by skill name)
-6. Preserve the frontmatter (mode, color, permissions, model if stamped) and all existing ability lines
-7. Write the file back
+6. Preserve the frontmatter (mode, color, permissions, model if stamped), the startup directive line, the identity paragraph, and all existing ability lines
+7. If the startup directive line is missing (older file), add it verbatim between the identity paragraph and `## Abilities`
+8. Write the file back
 
 **Do NOT overwrite the Abilities section** — merge new skills into existing categories. If a new skill belongs to "Development" and that line already exists, append to it. If a new category is needed, add it.
 

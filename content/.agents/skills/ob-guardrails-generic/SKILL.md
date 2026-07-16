@@ -53,7 +53,7 @@ license: MIT
 
 When the lead spawns you via the task tool, your assigned task IDs and text are already in your prompt:
 
-1. Load the skills listed under your own `## Abilities` for the task domain.
+1. Load ALL skills listed under your own `## Abilities` now (if you have not already done so from the startup directive in your agent prompt), by calling the `skill` tool once per `@skill-name`. These are mandatory instructions, not passive references — Guardrails first, then the rest.
 2. Gather context using available tools (see sections above): search agentmemory for `change-<slug>-context` and any `task-<id>-result` notes from dependencies; use codegraph to locate relevant symbols.
 3. Implement your assigned tasks in dependency order. Edit only files within your assigned scope.
 4. Run the project's tests/lint before marking done (see **Code** above).

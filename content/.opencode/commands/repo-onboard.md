@@ -58,7 +58,7 @@ Group them by workflow phase if possible:
 
 ## Step 4, Skills
 
-Inspect `.agents/skills/` and `.claude/skills/` (if present). List installed skills with a one-line description each. Note which are platform-specific (userstory, pullrequest) vs general-purpose.
+Inspect `.agents/skills/` (if present). List installed skills with a one-line description each. Note which are platform-specific (userstory, pullrequest) vs general-purpose.
 
 ---
 
