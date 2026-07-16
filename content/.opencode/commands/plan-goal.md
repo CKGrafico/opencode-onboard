@@ -2,7 +2,7 @@
 description: Autonomous pipeline: explore, propose, apply, archive, then merge/PR/push. For loop-engineering.
 ---
 
-Run the **full OpenSpec lifecycle** end to end with **no human interaction**: explore the codebase, propose a plan, implement via subagent waves, archive, and merge back. Built for **loop-engineering / unattended runs**.
+Run the **full OpenSpec lifecycle** end to end with **no human interaction**: explore the goal to clarify the requirement, propose a plan, implement via subagent waves, archive, and merge back. Built for **loop-engineering / unattended runs**.
 
 Each phase executes an `ob-*` skill in **autonomous mode**: load the named skill with the `skill` tool and follow it. Autonomous mode is defined inside each skill: every user checkpoint auto-resolves and nothing is ever asked.
 
@@ -57,8 +57,9 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
 
 **Phase 2: Explore (read-only, autonomous).**
 - Load the `ob-plan-explore` skill and execute it in **autonomous mode** with the resolved input. There is no user: you are exploring solo.
-- The exploration must be a **Socratic internal debate**: formulate 3-5 probing questions about the problem space, investigate each one by reading code and tracing call paths (use CodeGraph MCP tools if available, otherwise grep/read), then **answer your own questions** with evidence from the codebase. Where an answer opens a new question, follow it (one level of follow-up per question, max). This is an engineer thinking aloud, not a checklist, weigh alternatives, consider risks, and reason through tradeoffs before settling on an approach.
-- The exploration feeds directly into Phase 3. No commit yet (exploration is read-only).
+- **The subject of the exploration is the requirement, not the codebase.** Given `/plan-goal create an auth page`, you are exploring what "an auth page" must be: the user need behind it, the scope, the acceptance criteria, the edge cases, the alternatives, the risks. The codebase is supporting evidence (what already exists, which patterns to follow, where the feature fits), never the topic itself. Do not produce a code audit.
+- The exploration must be a **Socratic internal debate about the requirement**: formulate 3-5 probing questions a good product engineer would ask about it (Who uses this and for what? What is in and out of scope? What are the acceptance criteria? What could go wrong or be ambiguous? What are the alternative approaches and their tradeoffs?), then **answer your own questions**, grounding each answer in the resolved input and, where relevant, in evidence from the codebase (use CodeGraph MCP tools if available, otherwise grep/read). Where an answer opens a new question, follow it (one level of follow-up per question, max). This is an engineer thinking aloud, not a checklist: weigh alternatives, consider risks, and reason through tradeoffs before settling on what to build.
+- The output is a sharpened functional understanding: the clarified requirement, scope decisions, acceptance criteria, and a recommended approach. It feeds directly into Phase 3. No commit yet (exploration is read-only).
 
 **Phase 3: Propose (no confirmation).**
 - Load the `ob-plan-propose` skill and execute it in **autonomous mode** with the resolved input. Incorporate the exploration findings from Phase 2 into the proposal.

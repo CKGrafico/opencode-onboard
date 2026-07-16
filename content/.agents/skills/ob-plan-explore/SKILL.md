@@ -1,6 +1,6 @@
 ---
 name: ob-plan-explore
-description: Read-only exploration of an idea, problem, or requirement before creating a change. Investigates the codebase, weighs tradeoffs, and recommends next steps. Load when exploring or clarifying a task before planning. Invoked by the /plan-explore command (interactive) and the plan-goal pipeline (autonomous).
+description: Read-only exploration of an idea, problem, or requirement before creating a change. Clarifies what is being asked for (scope, acceptance criteria, edge cases, alternatives), using the codebase as grounding evidence, and recommends an approach. Load when exploring or clarifying a task before planning. Invoked by the /plan-explore command (interactive) and the plan-goal pipeline (autonomous).
 license: MIT
 ---
 
@@ -57,7 +57,7 @@ Load `@openspec-explore` skill and follow its instructions.
 
 Work through the exploration with the user. Discuss findings, tradeoffs, constraints, and recommended next steps. This is a thinking conversation: no files are created.
 
-**Autonomous mode:** there is no user to discuss with. Investigate solo: read code, trace call paths (use CodeGraph MCP tools if available, otherwise grep/read), weigh alternatives and risks, and settle on a recommended approach. Produce a structured findings summary for the caller.
+**Autonomous mode:** there is no user to discuss with. Investigate solo, and keep the requirement as the subject: clarify what is being asked for, its scope, acceptance criteria, edge cases, alternatives, and risks. Read code (use CodeGraph MCP tools if available, otherwise grep/read) only to ground those answers in what already exists — do not turn the exploration into a code audit. Settle on a recommended approach and produce a structured findings summary for the caller: clarified requirement, scope decisions, acceptance criteria, recommended approach.
 
 **Step 2 - Offer to save (only if useful)** ⛔
 
