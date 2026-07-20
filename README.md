@@ -113,6 +113,7 @@ Commands that other commands (or agents) need to execute are thin wrappers aroun
 | `/ops-ship` | Create a pull request for the current branch with screenshots if the user interface changed. |
 | `/ops-review` | Read and triage pull request review feedback. Reports what needs fixing. |
 | `/ops-backlog` | Create an issue in the backlog platform (GitHub, Azure DevOps, or Jira) from a description. |
+| `/ops-evidence` | Capture a screenshot (or text summary) of a completed change and comment it on the originating issue or work item. Best-effort. |
 | `/plan-archive` | Archive a completed OpenSpec change. |
 | `/plan-goal <feature or URL>` | Autonomous, no-confirmation pipeline: branch off main, then explore, propose, apply, archive (one commit per phase). Default mode: merge to main and delete the feature branch. Add `branch` keyword to keep the feature branch without merging. Never pushes. For loop-engineering. |
 | `/make-engineer` | Interactive persona-driven form to add a custom specialist engineer. Pick a persona, then confirm an inspected-and-recommended skill set (architecture/patterns like FSD or design patterns, framework, testing, infra) before it installs. |
@@ -182,12 +183,13 @@ Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 | `ob-plan-apply` | Wave-implementation procedure behind `/plan-apply`; autonomous mode used by `/plan-goal` |
 | `ob-plan-archive` | Archive procedure behind `/plan-archive` (platform flow injected at onboarding); autonomous mode used by `/plan-goal` |
 | `ob-ops-ship` | PR-creation procedure behind `/ops-ship` (platform flow injected at onboarding); used by `/plan-goal` pr mode |
+| `ob-ops-evidence` | Screenshot/text evidence of a change, posted as an issue/work-item comment (platform flow injected at onboarding); best-effort, used by `/ops-evidence` and `/plan-goal` pr/push modes |
 | `ob-make-architecture` | ARCHITECTURE.md generation behind `/make-architecture`; used by `/repo-initialize` |
 | `ob-make-design` | DESIGN.md generation behind `/make-design`; used by `/repo-initialize` |
 | `ob-make-guardrails` | Guardrails generation behind `/make-guardrails`; used by `/repo-initialize` |
 | `ob-repo-help` | The command reference displayed by `/repo-help`; used by `/repo-initialize` |
 
-Platform operations are injected during onboarding: pull request creation into the `ob-ops-ship` skill (loaded by `/ops-ship` and `/plan-goal`), archive PR flow into the `ob-plan-archive` skill, and pull request review / issue creation directly into the `/ops-review` and `/ops-backlog` command files.
+Platform operations are injected during onboarding: pull request creation into the `ob-ops-ship` skill (loaded by `/ops-ship` and `/plan-goal`), archive PR flow into the `ob-plan-archive` skill, issue/work-item evidence comments into the `ob-ops-evidence` skill (backlog platform), and pull request review / issue creation directly into the `/ops-review` and `/ops-backlog` command files.
 
 Skills live in `.agents/skills/`. Any `SKILL.md` file in a subdirectory is automatically discoverable. Write your own and agents will pick them up.
 

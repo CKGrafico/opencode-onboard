@@ -14,7 +14,7 @@ vi.mock('../../utils/exec.js')
 
 import { patchAgentsMd, patchAgentGuidance } from './agents.js'
 import { installSkills } from './skills.js'
-import { patchOpsShip, patchOpsReview, patchOpsBacklog } from './commands.js'
+import { patchOpsShip, patchOpsReview, patchOpsBacklog, patchOpsEvidence } from './commands.js'
 import { resolvePlatform } from '../../commands/single.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -129,19 +129,23 @@ describe('ops command patching (real presets + real templates)', () => {
       const src = path.join(CONTENT_DIR, '.opencode', 'commands', cmd)
       fs.copyFileSync(src, path.join(tmpDir, '.opencode', 'commands', cmd))
     }
-    fs.mkdirSync(path.join(tmpDir, '.agents', 'skills', 'ob-ops-ship'), { recursive: true })
-    fs.copyFileSync(
-      path.join(CONTENT_DIR, '.agents', 'skills', 'ob-ops-ship', 'SKILL.md'),
-      path.join(tmpDir, '.agents', 'skills', 'ob-ops-ship', 'SKILL.md'),
-    )
+    for (const skill of ['ob-ops-ship', 'ob-ops-evidence']) {
+      fs.mkdirSync(path.join(tmpDir, '.agents', 'skills', skill), { recursive: true })
+      fs.copyFileSync(
+        path.join(CONTENT_DIR, '.agents', 'skills', skill, 'SKILL.md'),
+        path.join(tmpDir, '.agents', 'skills', skill, 'SKILL.md'),
+      )
+    }
 
     await patchOpsShip({ backlogPlatform: backlog, repoPlatform: repo }, tmpDir)
     await patchOpsReview({ backlogPlatform: backlog, repoPlatform: repo }, tmpDir)
     await patchOpsBacklog({ backlogPlatform: backlog, repoPlatform: repo }, tmpDir)
+    await patchOpsEvidence({ backlogPlatform: backlog, repoPlatform: repo }, tmpDir)
 
     const ship = await patchedSkill('ob-ops-ship')
     const review = await patchedCommand('ops-review.md')
     const backlogCmd = await patchedCommand('ops-backlog.md')
+    const evidence = await patchedSkill('ob-ops-evidence')
 
     // Markers must survive
     expect(ship).toContain('OB-PLATFORM-SHIP-START')
@@ -150,6 +154,19 @@ describe('ops command patching (real presets + real templates)', () => {
     expect(review).toContain('OB-PLATFORM-REVIEW-END')
     expect(backlogCmd).toContain('OB-PLATFORM-BACKLOG-START')
     expect(backlogCmd).toContain('OB-PLATFORM-BACKLOG-END')
+    expect(evidence).toContain('OB-PLATFORM-EVIDENCE-START')
+    expect(evidence).toContain('OB-PLATFORM-EVIDENCE-END')
+    // Evidence targets the backlog platform; browser has no CLI so nothing is
+    // injected (markers stay adjacent), while gh/az/jira inject a comment step.
+    if (backlog === 'browser') {
+      expect(evidence).toContain('OB-PLATFORM-EVIDENCE-START -->\n<!-- OB-PLATFORM-EVIDENCE-END')
+    } else {
+      expect(evidence).not.toContain('OB-PLATFORM-EVIDENCE-START -->\n<!-- OB-PLATFORM-EVIDENCE-END')
+    }
+    const evidenceCli = { github: 'gh issue comment', azure: 'az boards work-item update', jira: 'acli jira issue comment' }
+    if (evidenceCli[backlog]) {
+      expect(evidence).toContain(evidenceCli[backlog])
+    }
   })
 })
 

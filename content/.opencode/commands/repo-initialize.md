@@ -65,10 +65,10 @@ Write a `proposal.md` inside that change summarizing:
 - Known tech debt or constraints visible in the codebase
 - Current state of the project
 
-Then archive it immediately:
+Then archive it immediately (`-y` skips the confirmation prompt so this never blocks):
 
 ```bash
-openspec archive "project-history"
+openspec archive "project-history" -y
 ```
 
 ### Generate ARCHITECTURE.md (if Yes)

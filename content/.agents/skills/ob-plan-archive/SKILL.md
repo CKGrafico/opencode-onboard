@@ -16,10 +16,26 @@ The caller provides (all optional):
 
 - **interactive** (default): full flow below — find the oldest unarchived change with a completed PR, confirm with the user, archive it, update docs with approval, and open an archive PR. No input required.
 - **autonomous**: the caller names the change to archive. Skip the working-tree prep, the PR lookup, the confirmation prompt, and the archive-PR step. Instead, archive in place on the current branch:
-  1. Load `@openspec-archive-change` skill and follow it to archive the given change by its id.
-  2. Compare the archived change's specs against `ARCHITECTURE.md` and `DESIGN.md`; apply any needed doc updates directly (no approval prompt).
-  3. If the change was a bug fix or new functionality with important impact, check if `@ob-guardrails-project` exists and update it.
-  4. Do not commit or push: the caller owns the git operations.
+  1. Archive the change by its id. Prefer the `@openspec-archive-change` skill if it is available; **if it is not available, run the CLI directly** — and it MUST be non-interactive, because there is no user to answer prompts:
+
+     ```bash
+     openspec archive "<change-id>" -y
+     ```
+
+     `-y` skips the confirmation prompt (without it the command blocks forever in an unattended run). Add `--skip-specs` only for infra/tooling/doc-only changes that produced no spec deltas. If the command reports the change is already archived, treat that as success.
+  2. **Verify the archive actually moved.** The change folder must no longer exist at `openspec/changes/<change-id>/`, and a dated copy must now exist under `openspec/changes/archive/` (the CLI renames it to `archive/YYYY-MM-DD-<change-id>/`):
+
+     ```bash
+     REPO_ROOT="$(git rev-parse --show-toplevel)"
+     test ! -d "$REPO_ROOT/openspec/changes/<change-id>" \
+       && ls -d "$REPO_ROOT/openspec/changes/archive/"*"<change-id>" >/dev/null 2>&1 \
+       && echo ARCHIVED_OK || echo ARCHIVE_FAILED
+     ```
+
+     If this prints `ARCHIVE_FAILED`, the archive did not happen — report it to the caller as a failure; do not pretend it succeeded.
+  3. Compare the archived change's specs against `ARCHITECTURE.md` and `DESIGN.md`; apply any needed doc updates directly (no approval prompt).
+  4. If the change was a bug fix or new functionality with important impact, check if `@ob-guardrails-project` exists and update it.
+  5. Do not commit or push: the caller owns the git operations.
 
 ---
 

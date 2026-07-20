@@ -38,6 +38,8 @@ Display the following reference to the user exactly as written. Do not summarize
 
 **`/ops-backlog`**: Create an issue in the backlog platform (GitHub, Azure DevOps, Jira) from a description.
 
+**`/ops-evidence`**: Capture a screenshot (or a text summary for non-UI work) of a completed change and post it as a comment on the originating issue or work item. Best-effort: never blocks. `/plan-goal` runs it automatically in pr/push modes.
+
 **`/plan-archive`**: Mark a completed change as archived in OpenSpec. Run this after the PR is merged.
 
 ---

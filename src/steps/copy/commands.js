@@ -30,6 +30,13 @@ const _backlog = {
   jira: await fse.readFile(path.resolve(__dirname, '../../presets/ops-backlog/jira.md'), 'utf-8'),
 }
 
+// Evidence comments target the backlog platform (where the issue/work-item lives).
+const _evidence = {
+  github: await fse.readFile(path.resolve(__dirname, '../../presets/ops-evidence/gh.md'), 'utf-8'),
+  azure: await fse.readFile(path.resolve(__dirname, '../../presets/ops-evidence/az.md'), 'utf-8'),
+  jira: await fse.readFile(path.resolve(__dirname, '../../presets/ops-evidence/jira.md'), 'utf-8'),
+}
+
 // relativePath is POSIX-style relative to the project root; commands live in
 // .opencode/commands/, skill-backed procedures (plan-archive, ops-ship) in
 // .agents/skills/<name>/SKILL.md.
@@ -72,5 +79,13 @@ export async function patchOpsBacklog(platform, cwd = process.cwd()) {
   const replacement = _backlog[backlogPlatform]
   if (!replacement) return
   patchFile('.opencode/commands/ops-backlog.md', '<!-- OB-PLATFORM-BACKLOG-START -->', '<!-- OB-PLATFORM-BACKLOG-END -->', replacement, backlogPlatform, cwd)
+}
+
+export async function patchOpsEvidence(platform, cwd = process.cwd()) {
+  const backlogPlatform = typeof platform === 'object' ? (platform.backlogPlatform ?? 'github') : platform
+  const replacement = _evidence[backlogPlatform]
+  // browser/none have no CLI to post with: leave the markers empty (the skill skips commenting).
+  if (!replacement) return
+  patchFile('.agents/skills/ob-ops-evidence/SKILL.md', '<!-- OB-PLATFORM-EVIDENCE-START -->', '<!-- OB-PLATFORM-EVIDENCE-END -->', replacement, backlogPlatform, cwd)
 }
 

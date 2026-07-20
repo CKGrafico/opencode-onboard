@@ -5,7 +5,7 @@ import { copyContent } from "../../utils/copy.js"
 import { error, header, success } from "../../utils/exec.js"
 import { exit } from "../../utils/process.js"
 import { patchAgentGuidance, patchAgentsMd } from "./agents.js"
-import { patchArchiveCommand, patchOpsShip, patchOpsReview, patchOpsBacklog } from "./commands.js"
+import { patchArchiveCommand, patchOpsShip, patchOpsReview, patchOpsBacklog, patchOpsEvidence } from "./commands.js"
 import { installSkills } from "./skills.js"
 import { generateFullstackEngineer } from "./fullstack-engineer.js"
 import { patchOpencodeJson } from "./opencode-json.js"
@@ -66,10 +66,11 @@ export async function copyContentStep(platform, ctx = {}) {
     if (!ctx.skipSkills) {
       await installSkills(backlogPlatform, repoPlatform)
     }
-    // These two patch SKILL.md files (ob-plan-archive, ob-ops-ship), so they
-    // must run after installSkills has copied the skills into the project.
+    // These patch SKILL.md files (ob-plan-archive, ob-ops-ship, ob-ops-evidence),
+    // so they must run after installSkills has copied the skills into the project.
     await patchArchiveCommand({ backlogPlatform, repoPlatform })
     await patchOpsShip({ backlogPlatform, repoPlatform })
+    await patchOpsEvidence({ backlogPlatform, repoPlatform })
     await generateFullstackEngineer()
     success("Files copied to project root")
   } catch (err) {

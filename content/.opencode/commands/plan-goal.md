@@ -74,13 +74,28 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
 - The skill runs the verify step (tests / lint / build) from this lead session. Reopen and re-wave failing tasks as the protocol allows.
 - Ensure `tasks.md` is fully checked and any residual changes are committed.
 
-**Phase 5: Archive (forced, same branch, no PR).**
+**Phase 5: Archive (forced, same branch, no PR). This phase is mandatory — a goal run that merges/pushes without archiving is a failed run.**
 - Do **not** run the platform PR archive flow and do **not** create an `archive/` branch. Archive in place on `$BRANCH`.
 - Load the `ob-plan-archive` skill and execute it in **autonomous mode**, passing the change id you just implemented. Autonomous mode archives that change directly on `$BRANCH`: no PR lookup, no confirmation, no archive PR; doc updates (`ARCHITECTURE.md`, `DESIGN.md`) are applied directly, and `@ob-guardrails-project` is updated when the change had important impact.
+- **Postcondition check (do not skip).** Verify the archive actually moved the change out of the active set:
+
+  ```bash
+  REPO_ROOT="$(git rev-parse --show-toplevel)"
+  test ! -d "$REPO_ROOT/openspec/changes/{change-id}" \
+    && ls -d "$REPO_ROOT/openspec/changes/archive/"*"{change-id}" >/dev/null 2>&1 \
+    && echo ARCHIVED_OK || echo ARCHIVE_FAILED
+  ```
+
+  If this prints `ARCHIVE_FAILED`: re-run the `ob-plan-archive` skill once. Still failing → **Failure policy** (do NOT proceed to Phase 6). The most common cause is an interactive `openspec archive` prompt in an unattended run — the skill must call it with `-y`.
 - Commit: `git add -A && git commit -m "archive: {title} ({change-id})"`.
 
+**Phase 5.5: Capture evidence into the archived folder (best-effort, never fatal).**
+- The change now lives at `openspec/changes/archive/<dated>-{change-id}/` (Phase 5 moved it there). Load the `ob-ops-evidence` skill and run its **Capture** part only (Part 1), passing the change id. It writes the screenshot (or text evidence for non-UI work) **into that archived change's `images/` folder**, so the evidence is stored alongside the archived artifacts rather than relying on the archive step to carry it. The app from Phase 4 is still the thing being screenshotted — archiving only moved markdown, its build state is unchanged.
+- Commit (only if something was captured): `git add -A && git commit -m "evidence: {title} ({change-id})"` so the image exists on the branch for a later push URL.
+- This phase is **strictly best-effort**: if the app won't start, the browser fails, or the time budget is exceeded, log it and continue. **Evidence capture must NEVER trigger the Failure policy.** Do not comment yet — the comment needs a pushed SHA and happens in Phase 6.
+
 **Phase 6: Output (mode-dependent).**
-- Proceed only if Phase 4 verification passed and the tree is clean. Otherwise → **Failure policy**.
+- **Entry gate — proceed only if ALL of these hold, otherwise → Failure policy:** Phase 4 verification passed; **the change is archived** (the Phase 5 postcondition printed `ARCHIVED_OK` — a change folder still sitting in `openspec/changes/{change-id}/` means Phase 5 did not run or did not complete, so STOP and return to Phase 5); the tree is clean.
 
 **Restore stash (used by every mode and the Failure policy):** if Phase 1 created the `goal-wip` stash, switch back to `$START_BRANCH` (if it still exists; otherwise stay where you are and say so) and `git stash pop`. If the pop conflicts, abort the pop, leave the stash intact, and tell the user its `git stash list` reference. Never silently drop user WIP.
 
@@ -93,12 +108,14 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
 - On a merge conflict you cannot resolve cleanly and automatically: `git merge --abort`, stay on `$DEFAULT_BRANCH`, and report (→ **Failure policy**). Never commit a conflicted or broken merge.
 - **Never push `$DEFAULT_BRANCH`.** The merge stays local; tell the user to review and push it themselves. (Unattended pushes to the default branch are not goal's call to make.)
 - Delete the feature branch: `git branch -d "$BRANCH"`
+- **No evidence comment in default mode:** nothing was pushed, so an image URL cannot resolve. Any evidence captured in Phase 5.5 is merged into `$DEFAULT_BRANCH` at `openspec/changes/archive/.../images/`; mention its path in the Phase 7 report instead of commenting.
 - Restore stash.
 
 **`push` mode (push branch only, no PR, no merge):**
 - ```bash
   git push -u origin "$BRANCH"
   ```
+- **Evidence comment (best-effort):** if Phase 0 resolved a work-item URL / issue key, load the `ob-ops-evidence` skill and run its **Comment** part (Part 2), passing the change id, that issue/work-item ref, and mode `push`. The branch is now pushed, so image URLs can resolve. If no issue was provided, or the comment fails, skip it and continue — never fatal.
 - Restore stash. Leave the branch open for manual review or future PR creation.
 
 **`pr` mode (push branch + create PR, no merge):**
@@ -109,9 +126,10 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
   - Title: `{title}`
   - Body: summary of the change (change id, tasks N/N, commit list)
 - If the `ob-ops-ship` skill is not available or PR creation fails: leave the branch pushed and report the error. Do NOT merge.
+- **Evidence comment (best-effort):** if Phase 0 resolved a work-item URL / issue key, load the `ob-ops-evidence` skill and run its **Comment** part (Part 2), passing the change id, that issue/work-item ref, and mode `pr`. The branch is pushed, so image URLs resolve. If no issue was provided, or the comment fails, skip it and continue — never fatal.
 - Restore stash.
 
-**Phase 7: Report.** One summary block: change id, branch, tasks N/N done, the commits made (explore / propose / apply group commits / archive), verification result, output mode (default/push/pr), and final state (merged to main / pushed branch / PR URL).
+**Phase 7: Report.** One summary block: change id, branch, tasks N/N done, the commits made (explore / propose / apply group commits / archive), verification result, **archived: yes/no (archive path)** — this line must be present so a skipped archive is visible in loop logs, never silent — **evidence: screenshot path and/or comment location, or why it was skipped**, output mode (default/push/pr), and final state (merged to main / pushed branch / PR URL).
 
 ---
 
