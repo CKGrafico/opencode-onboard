@@ -1,0 +1,62 @@
+---
+description: Scaffold a project-specific visual-evidence harness (deterministic capture + assertions + manifest + publisher) that /ops-evidence and /plan-goal delegate to.
+---
+
+Generate a **stack-adapted visual-evidence harness** in this project so evidence capture is deterministic and asserted, not a naive one-off screenshot. Once it exists, the `ob-ops-evidence` skill auto-detects and delegates to it. This scaffolds a starting point that follows the contracts below — the user then registers per-feature scenarios over time.
+
+Input (optional): `$ARGUMENTS` may name the app entrypoint, dev command, or framework to target.
+
+---
+
+## Step 1 — Detect the stack
+
+Read `package.json` (scripts, deps), and look for the app shell:
+- **Electron** (`electron` dep, `src/main` + `src/renderer`) → Playwright `_electron` launcher.
+- **Web SPA** (Vite/CRA/Next/SvelteKit dev server) → Playwright Chromium against the dev server (headless-friendly, no GUI libs).
+- **Component workbench** (Storybook/Ladle) → drive stories directly.
+- Neither → generate the Web SPA variant and leave a `TODO` for the launch step.
+
+Pick the package manager from the lockfile (`pnpm-lock.yaml`→pnpm, `package-lock.json`→npm, `yarn.lock`→yarn). Prefer TypeScript (`tsx`) when the repo is TS, else plain `.mjs` (runs on `node` with no extra tooling).
+
+## Step 2 — Scaffold the harness
+
+Create `src/visual-evidence/` (or the repo's conventional location) implementing these modules. Each is small and stack-agnostic except the launcher + scenarios:
+
+1. **`evidence-required`** — a pure decision function over `{ changedFiles, proposal }` returning `{ required, reason }`. Required when files touch user-visible UI (components, pages/views/routes, `*.css/scss/less`, `*.tsx/jsx/vue/svelte`, layout, navigation, dialogs/forms, loading/empty/error/success states) or the proposal describes a UI/interaction/styling change; skipped for docs-only / internal-refactor / deps-only / test-only / logging-only / backend-only; **mixed → required**. Make the path patterns a top-of-file constant the user can tune.
+2. **`openspec-resolver`** — locate the change at `openspec/changes/<id>/` (active) or `openspec/changes/archive/*<id>/` (archived, prefer newest); refuse to guess between multiple active changes; read `proposal.md`/`tasks.md` for acceptance criteria + affected files.
+3. **`manifest`** — write `openspec/changes/<id>/evidence/evidence.json` in the **version-1 schema** (see Contract below). Types/validation included when TS.
+4. **`launch`** (stack-specific) — start the app deterministically: fresh temp profile/user-data, mock/fixture adapter (no real credentials or network), fixed viewport. Web variant: boot the dev server + headless Chromium. Electron variant: Playwright `_electron.launch` (documented `xvfb-run` + GUI libs note for headless Linux).
+5. **`capture`** — screenshot (and optional GIF via ffmpeg, dropped if it exceeds a byte budget); a size-limit ladder that reduces dimensions/quality to a readability floor; strip metadata.
+6. **`scenario-registry`** + one **sample scenario** for a real route in this app — assertions via accessible selectors (`getByRole`/`getByText`/`getByLabel`, auto-waiting, no fixed sleeps) and named capture checkpoints. Include an **evidence contract** mapping each acceptance criterion → assertion(s) → checkpoint(s); a run missing any fails. The registry returns `blocked` for unknown change-ids rather than fabricating selectors.
+7. **`run`** — the orchestrator: resolve change → decide required (skip if not) → derive/lookup scenario (blocked if none) → launch → run scenario + assertions → capture → enforce size limits → write final assets + `evidence.json` → return a structured result. On failure after launch: keep temp `failure.png`/video/trace under a gitignored `.tmp/`, promote **nothing** to `evidence/`, return `failed`.
+8. **`cli`** — `--change <id>` / `--input <path.json>`; **exit codes: `0` passed|skipped, `1` failed, `2` blocked, `3` invalid input.** Capture NEVER commits/pushes.
+9. **`publish` (separate CLI)** — after the branch is pushed: verify each asset exists on the remote (GitHub: `gh api repos/{o}/{r}/contents/<path>?ref=<sha>`), then upsert ONE marked, idempotent comment (`<!-- ob-visual-evidence:<id> -->`) on **both the issue and the PR** (PATCH if the marker exists, else POST). Publish failure blocks shipping.
+
+Add `package.json` scripts: `"visual-evidence"` → the capture CLI, `"visual-evidence:publish"` → the publish CLI. Ensure `.tmp/` is gitignored.
+
+## Step 3 — The evidence contract (what the harness must emit)
+
+Evidence lives at **`openspec/changes/<id>/evidence/`** (travels with the change on archive). `evidence.json` (version 1):
+
+```jsonc
+{
+  "version": 1,
+  "changeId": "…",
+  "required": true,
+  "status": "passed",            // passed | skipped | failed | blocked
+  "assets": [ { "type": "screenshot", "path": "openspec/changes/<id>/evidence/01-final.png", "caption": "…", "bytes": 0, "format": "png" } ],
+  "reason": "…",                 // skipped | blocked
+  "failedStep": "…",             // failed
+  "prMarkdown": "## Evidence …"
+}
+```
+
+`blocked` (required but unrunnable) is **never** treated as a skip.
+
+## Step 4 — Wire and report
+
+- Confirm `ob-ops-evidence` will detect it (the `visual-evidence` package script now exists).
+- If the project has system deps for the chosen stack (ffmpeg for GIF, GUI libs + `xvfb` for Electron on Linux), list them.
+- Tell the user: register a scenario per feature in the registry; run `<pm> run visual-evidence --change <id>` to capture, `<pm> run visual-evidence:publish --change <id> --pr <n>` to publish. Point out that a matching **`visual-evidence` skill** describing this harness helps agents drive it — offer to generate one.
+
+Do NOT implement scenarios for every existing change — scaffold the framework plus one working sample, and stop.

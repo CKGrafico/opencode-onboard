@@ -163,7 +163,7 @@ describe('ops command patching (real presets + real templates)', () => {
     } else {
       expect(evidence).not.toContain('OB-PLATFORM-EVIDENCE-START -->\n<!-- OB-PLATFORM-EVIDENCE-END')
     }
-    const evidenceCli = { github: 'gh issue comment', azure: 'az boards work-item update', jira: 'acli jira issue comment' }
+    const evidenceCli = { github: 'issues/{number}/comments', azure: 'az boards work-item update', jira: 'acli jira issue comment' }
     if (evidenceCli[backlog]) {
       expect(evidence).toContain(evidenceCli[backlog])
     }

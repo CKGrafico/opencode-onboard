@@ -90,9 +90,9 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
 - Commit: `git add -A && git commit -m "archive: {title} ({change-id})"`.
 
 **Phase 5.5: Capture evidence into the archived folder (best-effort, never fatal).**
-- The change now lives at `openspec/changes/archive/<dated>-{change-id}/` (Phase 5 moved it there). Load the `ob-ops-evidence` skill and run its **Capture** part only (Part 1), passing the change id. It writes the screenshot (or text evidence for non-UI work) **into that archived change's `images/` folder**, so the evidence is stored alongside the archived artifacts rather than relying on the archive step to carry it. The app from Phase 4 is still the thing being screenshotted — archiving only moved markdown, its build state is unchanged.
-- Commit (only if something was captured): `git add -A && git commit -m "evidence: {title} ({change-id})"` so the image exists on the branch for a later push URL.
-- This phase is **strictly best-effort**: if the app won't start, the browser fails, or the time budget is exceeded, log it and continue. **Evidence capture must NEVER trigger the Failure policy.** Do not comment yet — the comment needs a pushed SHA and happens in Phase 6.
+- The change now lives at `openspec/changes/archive/<dated>-{change-id}/` (Phase 5 moved it there). Load the `ob-ops-evidence` skill with `operation: capture`, passing the change id. It decides whether evidence is required, **delegates to a project-provided evidence harness if one exists** (e.g. a `visual-evidence` package script — richer and asserted), else captures a screenshot generically, and writes the results plus an `evidence.json` manifest **into that archived change's `evidence/` folder**. The app from Phase 4 is still the thing being screenshotted — archiving only moved markdown, its build state is unchanged.
+- Commit (only if something was written): `git add -A && git commit -m "evidence: {title} ({change-id})"` so the assets exist on the branch for a later push URL.
+- This phase is **strictly best-effort**: a `skipped` (not required) or `blocked` (couldn't run — e.g. no harness, app won't start, budget exceeded) manifest is fine; **evidence capture must NEVER trigger the Failure policy.** Note the manifest `status` for the Phase 7 report. Do not publish yet — publishing needs a pushed SHA and happens in Phase 6.
 
 **Phase 6: Output (mode-dependent).**
 - **Entry gate — proceed only if ALL of these hold, otherwise → Failure policy:** Phase 4 verification passed; **the change is archived** (the Phase 5 postcondition printed `ARCHIVED_OK` — a change folder still sitting in `openspec/changes/{change-id}/` means Phase 5 did not run or did not complete, so STOP and return to Phase 5); the tree is clean.
@@ -108,14 +108,14 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
 - On a merge conflict you cannot resolve cleanly and automatically: `git merge --abort`, stay on `$DEFAULT_BRANCH`, and report (→ **Failure policy**). Never commit a conflicted or broken merge.
 - **Never push `$DEFAULT_BRANCH`.** The merge stays local; tell the user to review and push it themselves. (Unattended pushes to the default branch are not goal's call to make.)
 - Delete the feature branch: `git branch -d "$BRANCH"`
-- **No evidence comment in default mode:** nothing was pushed, so an image URL cannot resolve. Any evidence captured in Phase 5.5 is merged into `$DEFAULT_BRANCH` at `openspec/changes/archive/.../images/`; mention its path in the Phase 7 report instead of commenting.
+- **No evidence comment in default mode:** nothing was pushed, so an image URL cannot resolve. Any evidence captured in Phase 5.5 is merged into `$DEFAULT_BRANCH` at `openspec/changes/archive/.../evidence/`; mention its path and manifest `status` in the Phase 7 report instead of commenting.
 - Restore stash.
 
 **`push` mode (push branch only, no PR, no merge):**
 - ```bash
   git push -u origin "$BRANCH"
   ```
-- **Evidence comment (best-effort):** if Phase 0 resolved a work-item URL / issue key, load the `ob-ops-evidence` skill and run its **Comment** part (Part 2), passing the change id, that issue/work-item ref, and mode `push`. The branch is now pushed, so image URLs can resolve. If no issue was provided, or the comment fails, skip it and continue — never fatal.
+- **Publish evidence (best-effort):** if Phase 0 resolved a work-item URL / issue key, load the `ob-ops-evidence` skill with `operation: publish`, passing the change id, that issue/work-item ref, and mode `push`. The branch is now pushed, so image URLs can resolve. It reads the Phase 5.5 `evidence.json` and upserts an idempotent marked comment. If no issue was provided, the manifest is `skipped`/`blocked`, or publishing fails, skip it and continue — never fatal.
 - Restore stash. Leave the branch open for manual review or future PR creation.
 
 **`pr` mode (push branch + create PR, no merge):**
@@ -126,10 +126,10 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
   - Title: `{title}`
   - Body: summary of the change (change id, tasks N/N, commit list)
 - If the `ob-ops-ship` skill is not available or PR creation fails: leave the branch pushed and report the error. Do NOT merge.
-- **Evidence comment (best-effort):** if Phase 0 resolved a work-item URL / issue key, load the `ob-ops-evidence` skill and run its **Comment** part (Part 2), passing the change id, that issue/work-item ref, and mode `pr`. The branch is pushed, so image URLs resolve. If no issue was provided, or the comment fails, skip it and continue — never fatal.
+- **Publish evidence (best-effort):** if Phase 0 resolved a work-item URL / issue key, load the `ob-ops-evidence` skill with `operation: publish`, passing the change id, that issue/work-item ref, the PR number, and mode `pr`. The branch is pushed, so image URLs resolve; it upserts one marked comment on both the issue and the PR. If no issue was provided, the manifest is `skipped`/`blocked`, or publishing fails, skip it and continue — never fatal.
 - Restore stash.
 
-**Phase 7: Report.** One summary block: change id, branch, tasks N/N done, the commits made (explore / propose / apply group commits / archive), verification result, **archived: yes/no (archive path)** — this line must be present so a skipped archive is visible in loop logs, never silent — **evidence: screenshot path and/or comment location, or why it was skipped**, output mode (default/push/pr), and final state (merged to main / pushed branch / PR URL).
+**Phase 7: Report.** One summary block: change id, branch, tasks N/N done, the commits made (explore / propose / apply group commits / archive), verification result, **archived: yes/no (archive path)** — this line must be present so a skipped archive is visible in loop logs, never silent — **evidence: manifest status (passed/skipped/failed/blocked) + asset path and/or comment location**, output mode (default/push/pr), and final state (merged to main / pushed branch / PR URL).
 
 ---
 
