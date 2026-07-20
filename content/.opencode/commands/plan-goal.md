@@ -6,6 +6,12 @@ Run the **full OpenSpec lifecycle** end to end with **no human interaction**: ex
 
 Each phase executes an `ob-*` skill in **autonomous mode**: load the named skill with the `skill` tool and follow it. Autonomous mode is defined inside each skill: every user checkpoint auto-resolves and nothing is ever asked.
 
+> **YOU are the orchestrator; the sub-skills are stages, not the finish line.** Every skill you load below (`ob-plan-explore`, `ob-plan-propose`, `ob-plan-apply`, `ob-plan-archive`, `ob-ops-evidence`, `ob-ops-ship`) ends with its own "report / stop / return to caller." That boundary means **that stage is done — it does NOT mean the run is done.** When a sub-skill hands control back, you IMMEDIATELY continue with the next phase of THIS command. Never treat a sub-skill's stopping point as the end of `/plan-goal`.
+>
+> **Definition of done — the run is complete ONLY when Phase 7 has printed its report AND all of these are true:** propose committed · apply verified · **archive verified (`ARCHIVED_OK`)** · **evidence attempted (manifest written)** · output step done for the mode. If you are about to end the turn and any of these is missing, you are NOT done: return to the earliest missing phase and continue. Implementing the feature is roughly the halfway point of a goal run, not the end.
+>
+> **Track the phases so you cannot lose your place.** At the start, create a checklist (todo list if the tool works, otherwise an explicit written list you re-print between phases): `explore · propose · apply · verify · archive · evidence · output · report`. Tick each only when its postcondition holds. Re-read this checklist after every sub-skill returns.
+
 > **Hard rule: never ask the user to confirm anything.** Every skill below runs in autonomous mode. The only time you halt is a hard failure (see **Failure policy**). Each phase produces its own commit; the branch merges to `$DEFAULT_BRANCH` only after verification passes.
 >
 > **Guardrails note:** the user explicitly invoked this autonomous command, so its final local merge into `$DEFAULT_BRANCH` is sanctioned and overrides the `@ob-guardrails-generic` git rules **for that one merge only**. Every other guardrail (no force push, no pushing the default branch, secrets, retries) still applies.
@@ -73,6 +79,7 @@ Wait 3 seconds. If the user says "stop", end the command. Otherwise proceed. If 
 - Do **not** return control to the user between waves: keep looping until every task is DONE, or the progress guard / one-retry limit trips (→ **Failure policy**).
 - The skill runs the verify step (tests / lint / build) from this lead session. Reopen and re-wave failing tasks as the protocol allows.
 - Ensure `tasks.md` is fully checked and any residual changes are committed.
+- **⚠ Do NOT stop here.** `ob-plan-apply` ends by reporting "N/N tasks done" — that is the end of the APPLY stage, not the run. The feature being implemented is the most common place goal wrongly stops. Immediately continue to Phase 5 (archive), then 5.5 (evidence), then 6 (output). The run is not done until Phase 7.
 
 **Phase 5: Archive (forced, same branch, no PR). This phase is mandatory — a goal run that merges/pushes without archiving is a failed run.**
 - Do **not** run the platform PR archive flow and do **not** create an `archive/` branch. Archive in place on `$BRANCH`.

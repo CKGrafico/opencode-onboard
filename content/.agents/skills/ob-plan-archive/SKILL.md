@@ -36,6 +36,7 @@ The caller provides (all optional):
   3. Compare the archived change's specs against `ARCHITECTURE.md` and `DESIGN.md`; apply any needed doc updates directly (no approval prompt).
   4. If the change was a bug fix or new functionality with important impact, check if `@ob-guardrails-project` exists and update it.
   5. Do not commit or push: the caller owns the git operations.
+  6. The ARCHIVE stage is complete — hand control back to the caller (the `/plan-goal` pipeline) so it continues with evidence and output. Do NOT stop or end the turn here; archiving is not the end of the run.
 
 ---
 

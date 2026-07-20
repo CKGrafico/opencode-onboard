@@ -88,4 +88,4 @@ What next? Options:
 
 Do NOT create any files. Do NOT load any of those flows automatically. The ONLY output is the discussion and the optional agentmemory note.
 
-**Autonomous mode:** skip this step entirely. Return the findings summary to the caller; the caller decides what happens next.
+**Autonomous mode:** skip this step entirely. The EXPLORE stage is complete — hand the findings summary back to the caller (the `/plan-goal` pipeline) so it immediately continues to the propose phase. Do NOT stop or end the turn here; this is a stage boundary, not the end of the run.

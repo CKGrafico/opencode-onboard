@@ -15,7 +15,7 @@ The caller provides (all optional):
 ## Modes
 
 - **interactive** (default): report progress to the user and surface failures for their decision.
-- **autonomous**: do not return control between waves; keep looping until every task is DONE or the progress guard / retry limit trips. On a stall or exhausted retry, stop and report to the caller (whose failure policy governs what happens next).
+- **autonomous**: do not return control between waves; keep looping until every task is DONE or the progress guard / retry limit trips. On a stall or exhausted retry, stop the wave loop and report to the caller (whose failure policy governs). **When all tasks are DONE, the APPLY stage is complete — this is NOT the end of the run.** Hand control back to the caller (the `/plan-goal` pipeline) so it continues with the next phase (archive → evidence → output). Do not end the turn here; "report N/N tasks" is a stage boundary, not a finish line.
 
 ## Plan source detection
 

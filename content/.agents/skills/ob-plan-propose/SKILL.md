@@ -124,4 +124,4 @@ Write the proposal files to `openspec/changes/{change-slug}/`:
 
 **Stop.** Ask the user: "Ready to implement? Run `/plan-apply` to start." Do NOT start implementing automatically.
 
-**Autonomous mode:** skip the ask. Report the change slug and task count to the caller and return; the caller decides when implementation starts.
+**Autonomous mode:** skip the ask entirely. The PROPOSE stage is complete — hand the change slug and task count back to the caller (the `/plan-goal` pipeline) so it immediately continues to the apply phase. Do NOT stop or end the turn here; this is a stage boundary, not the end of the run.
