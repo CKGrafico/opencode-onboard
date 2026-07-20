@@ -4,6 +4,10 @@ description: Generic guardrails, foundational rules that all agents follow. User
 license: MIT
 ---
 
+## Transitive loads (optimization skills)
+
+The marker sections below may contain instructions directing you to load additional optimization skills (caveman, humanizer, codegraph, memory, etc.). These are MANDATORY — if a section says "call `skill("xxx")`", you MUST call the skill tool with that exact name before doing any work. Do not skip these calls. Do not treat them as suggestions. Failure to load an optimization skill means you are operating without rules that the user has explicitly enabled.
+
 ## Secrets
 
 - NEVER read or output .env files

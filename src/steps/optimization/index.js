@@ -11,7 +11,6 @@ import { installMemory } from './memory.js'
 import { installHumanizer } from './humanizer.js'
 import { enableCavemanGuidance } from './caveman-guidance.js'
 import { patchGuardrails } from './patch-guardrails.js'
-import { patchAgentAbilities } from './patch-agent-abilities.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const OPTIMIZATION_PRESET_PATH = path.resolve(__dirname, '../../presets/optimization.json')
@@ -131,13 +130,6 @@ export async function tokenOptimizationStep(options = {}) {
     rtk: rtk.available,
     codegraph: codegraph.optedIn,
     memory: memory.optedIn,
-    caveman: caveman.installed,
-    humanizer: humanizer.optedIn,
-  })
-
-  // Patch agent ## Abilities to add @caveman/@humanizer to the Guardrails line
-  // so the startup directive loads them via the skill tool.
-  await patchAgentAbilities({
     caveman: caveman.installed,
     humanizer: humanizer.optedIn,
   })
