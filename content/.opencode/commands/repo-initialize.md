@@ -41,6 +41,13 @@ Use the **question** tool to present a multi-question form:
   - `Yes`: Analyze Tailwind, CSS vars, tokens and generate design documentation.
   - `No`: Skip, leave as placeholder.
 
+**Question 5** (single-select):
+- Header: `"Evidence"`
+- Question: `"Set up a visual-evidence harness for this project? (recommended for UI apps; /plan-goal uses it to prove changes work)"`
+- Options:
+  - `Yes`: I want deterministic screenshot/GIF evidence for pull requests. (Scaffolded after restart via `/make-evidence-scaffold`, not during init.)
+  - `No`: Skip. You can run `/make-evidence-scaffold` any time later.
+
 Wait for ALL answers before proceeding.
 
 ---
@@ -83,6 +90,10 @@ Load the `ob-make-design` skill now. Follow every step defined in it.
 
 Load the `ob-make-guardrails` skill now. Follow every step defined in it.
 
+### Visual evidence (if Yes)
+
+Do **not** scaffold the harness during init — it writes `src/` source code, which is outside init's scope, and it needs the app to build under a restarted, fully-wired session. Just remember the user opted in: the completion message in Step 4 will instruct them to run `/make-evidence-scaffold` after restarting.
+
 ---
 
 ## Step 3, Show help
@@ -103,6 +114,12 @@ Tell the user:
 Restart OpenCode now.
 Nothing will work correctly until you do.
 After restarting you are ready to work.
+```
+
+If the user answered **Yes** to Question 5 (Evidence), append this line to the message so the opted-in next step is not lost:
+
+```
+Next: run /make-evidence-scaffold to scaffold your visual-evidence harness.
 ```
 
 ---

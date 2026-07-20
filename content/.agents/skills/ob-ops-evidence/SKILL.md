@@ -61,7 +61,7 @@ If skipped: write `evidence.json` with `status: "skipped"` + reason, no assets, 
 - a `visual-evidence` skill in `.agents/skills/` → load and follow it.
 - a documented evidence entrypoint in `AGENTS.md` / `README.md`.
 
-A project harness writes `evidence/` + `evidence.json` itself; consume its manifest and `prMarkdown` and skip to Part 2. **If no harness exists, tell the user once that `/make-evidence` can scaffold one**, then fall back to Step 3.
+A project harness writes `evidence/` + `evidence.json` itself; consume its manifest and `prMarkdown` and skip to Part 2. **If no harness exists, tell the user once that `/make-evidence-scaffold` can scaffold one**, then fall back to Step 3.
 
 **Step 3 — Generic fallback capture (time-boxed, best-effort).** Only via `@browser-automation` (`localhost` only; navigating to github.com/dev.azure.com with browser tools is FORBIDDEN):
 - Start/detect the app's dev server, navigate to the relevant route, wait for the UI to settle, screenshot.

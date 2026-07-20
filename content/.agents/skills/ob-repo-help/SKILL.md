@@ -38,7 +38,7 @@ Display the following reference to the user exactly as written. Do not summarize
 
 **`/ops-backlog`**: Create an issue in the backlog platform (GitHub, Azure DevOps, Jira) from a description.
 
-**`/ops-evidence`**: Produce evidence a completed change works and publish it to the originating issue/PR. Decides if evidence is required, delegates to a project harness (`/make-evidence`) when present else screenshots, writes `evidence/evidence.json` (passed/skipped/failed/blocked), and upserts an idempotent verified comment. Best-effort; `/plan-goal` runs it automatically.
+**`/ops-evidence`**: Produce evidence a completed change works and publish it to the originating issue/PR. Decides if evidence is required, delegates to a project harness (`/make-evidence-scaffold`) when present else screenshots, writes `evidence/evidence.json` (passed/skipped/failed/blocked), and upserts an idempotent verified comment. Best-effort; `/plan-goal` runs it automatically.
 
 **`/plan-archive`**: Mark a completed change as archived in OpenSpec. Run this after the PR is merged.
 
@@ -52,7 +52,7 @@ Display the following reference to the user exactly as written. Do not summarize
 
 **`/make-design`**: Regenerate `DESIGN.md` from the design system (Tailwind, CSS vars, tokens, etc.).
 
-**`/make-evidence`**: Scaffold a project-specific visual-evidence harness (deterministic capture, assertions, `evidence.json` manifest, and a verified issue/PR publisher) adapted to your stack. Afterwards `/ops-evidence` and `/plan-goal` delegate to it automatically.
+**`/make-evidence-scaffold`**: Scaffold a project-specific visual-evidence harness (deterministic capture, assertions, `evidence.json` manifest, and a verified issue/PR publisher) adapted to your stack. Afterwards `/ops-evidence` and `/plan-goal` delegate to it automatically.
 
 **`/make-guardrails`**: Generate a `ob-guardrails-project` skill from `ARCHITECTURE.md` and project config files. Extracts concrete rules (architecture boundaries, naming, code style, testing, git workflow) that all agents must follow. Updates every `*-engineer.md` to load the skill.
 

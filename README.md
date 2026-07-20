@@ -114,7 +114,7 @@ Commands that other commands (or agents) need to execute are thin wrappers aroun
 | `/ops-review` | Read and triage pull request review feedback. Reports what needs fixing. |
 | `/ops-backlog` | Create an issue in the backlog platform (GitHub, Azure DevOps, or Jira) from a description. |
 | `/ops-evidence` | Produce evidence a change works (delegating to a project harness if present, else a screenshot), write `evidence/evidence.json`, and publish an idempotent comment on the issue/PR. Best-effort. |
-| `/make-evidence` | Scaffold a project-specific visual-evidence harness (deterministic capture + assertions + manifest + publisher) that `/ops-evidence` and `/plan-goal` then delegate to. |
+| `/make-evidence-scaffold` | One-time scaffold of a project-specific visual-evidence harness (deterministic capture + assertions + manifest + publisher) that `/ops-evidence` and `/plan-goal` then delegate to. |
 | `/plan-archive` | Archive a completed OpenSpec change. |
 | `/plan-goal <feature or URL>` | Autonomous, no-confirmation pipeline: branch off main, then explore, propose, apply, archive (one commit per phase). Default mode: merge to main and delete the feature branch. Add `branch` keyword to keep the feature branch without merging. Never pushes. For loop-engineering. |
 | `/make-engineer` | Interactive persona-driven form to add a custom specialist engineer. Pick a persona, then confirm an inspected-and-recommended skill set (architecture/patterns like FSD or design patterns, framework, testing, infra) before it installs. |

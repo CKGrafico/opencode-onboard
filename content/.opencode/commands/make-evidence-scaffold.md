@@ -1,10 +1,18 @@
 ---
-description: Scaffold a project-specific visual-evidence harness (deterministic capture + assertions + manifest + publisher) that /ops-evidence and /plan-goal delegate to.
+description: One-time scaffold of a project-specific visual-evidence harness (deterministic capture + assertions + manifest + publisher) that /ops-evidence and /plan-goal delegate to.
 ---
 
 Generate a **stack-adapted visual-evidence harness** in this project so evidence capture is deterministic and asserted, not a naive one-off screenshot. Once it exists, the `ob-ops-evidence` skill auto-detects and delegates to it. This scaffolds a starting point that follows the contracts below — the user then registers per-feature scenarios over time.
 
+This is a **one-time setup command.** It creates the harness scaffold, not per-change evidence. To capture evidence for a specific change, use `/ops-evidence` (or `/plan-goal`, which calls it). Do not re-run this to "refresh" a change.
+
 Input (optional): `$ARGUMENTS` may name the app entrypoint, dev command, or framework to target.
+
+---
+
+## Step 0 — Refuse to overwrite an existing harness (run-once guard)
+
+Check whether a visual-evidence harness already exists: a `visual-evidence` (and/or `visual-evidence:publish`) script in `package.json`, a `visual-evidence` skill in `.agents/skills/`, or a `src/visual-evidence/` (or equivalent) directory. **If any is present, STOP** and tell the user the harness already exists, where it lives, and that they should extend it (register a new scenario in the registry) rather than re-scaffold. Only proceed past this step when no harness exists. Never overwrite or regenerate an existing harness.
 
 ---
 
