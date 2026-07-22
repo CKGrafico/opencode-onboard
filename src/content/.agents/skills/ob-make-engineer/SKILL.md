@@ -150,10 +150,25 @@ Then run the [post-install verification](signal-mapping.md) procedure for each i
 
 ## Step 5: Fill the template
 
-Before creating the file, check if `.opencode/agents/{persona}-engineer.md` already exists. If it does:
-- Ask the user: "An engineer named `{persona}-engineer` already exists. Overwrite or cancel?"
-- If overwrite: proceed, but preserve the existing `color:` frontmatter value unless the user chose a new one.
-- If cancel: stop.
+Before creating the file, check if `.opencode/agents/{persona}-engineer.md` already exists. If it does, call the `question` tool:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Overwrite engineer",
+      "question": "An engineer named \"{persona}-engineer\" already exists. Overwrite or cancel?",
+      "options": [
+        { "label": "Overwrite", "description": "Proceed, preserving the existing color frontmatter value unless a new one is chosen." },
+        { "label": "Cancel", "description": "Stop. Do not modify the existing file." }
+      ]
+    }
+  ]
+}
+```
+
+- If `Overwrite`: proceed, but preserve the existing `color:` frontmatter value unless the user chose a new one.
+- If `Cancel`: stop.
 
 Fill the [template](template.md). All the research from Steps 2-4 (signal detection, project analysis, tech stack knowledge) was for selecting the right skills. The agent file itself is just the template. Do not write project knowledge, architecture notes, coding conventions, file maps, testing patterns, or workflow instructions into the file. Those belong in skills and guardrails.
 

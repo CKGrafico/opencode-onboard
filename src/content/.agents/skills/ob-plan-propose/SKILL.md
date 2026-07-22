@@ -22,22 +22,27 @@ The caller provides:
 ## Step 0.a: Check for unarchived changes (stop)
 
 Before proposing a new change, inspect `openspec/changes/` (ignore `openspec/changes/archive`).
-If any change folder exists in `openspec/changes/` (names vary by platform: `gh-*`, `us-*`, or a plain slug), list them and warn the user with this exact prompt:
+If any change folder exists in `openspec/changes/` (names vary by platform: `gh-*`, `us-*`, or a plain slug), list them in the question text, then call the `question` tool:
 
-```text
-There are unarchived changes pending to be archived:
-  Name: {change-name}
-  Name: {change-name}
-  ...
-
-Do you want to continue with the proposal or stop to archive the change first? [continue/stop]
+```json
+{
+  "questions": [
+    {
+      "header": "Unarchived changes",
+      "question": "There are unarchived changes pending:\n{change-name}\n{change-name}\n...\n\nContinue with the proposal or stop to archive first?",
+      "options": [
+        { "label": "continue", "description": "Proceed with the proposal." },
+        { "label": "stop", "description": "End without generating a proposal. Archive the pending change first." }
+      ]
+    }
+  ]
+}
 ```
 
-Wait for the user to respond:
 - If the user answers `stop`, end without generating a proposal.
 - If the user answers `continue`, proceed to the next step.
 
-Autonomous mode: do not ask; treat the answer as `continue` and proceed.
+Autonomous mode: do not call the `question` tool; treat the answer as `continue` and proceed.
 
 ## Step 0.b: Load proposal skill
 
@@ -63,10 +68,22 @@ Display the complete proposal to the user:
 - Total task count
 - Full task list with agent (including tier suffix) and dependency annotations
 
-Then ask:
+Then call the `question` tool:
 
-```text
-Save this proposal? [yes/edit/stop]
+```json
+{
+  "questions": [
+    {
+      "header": "Save proposal",
+      "question": "Save this proposal?",
+      "options": [
+        { "label": "yes", "description": "Write all files to disk and proceed." },
+        { "label": "edit", "description": "Provide feedback, revise in memory, show again." },
+        { "label": "stop", "description": "End without writing anything." }
+      ]
+    }
+  ]
+}
 ```
 
 - `yes` -> proceed to Step 4 and write all files
@@ -75,7 +92,7 @@ Save this proposal? [yes/edit/stop]
 
 Wait for the user's response. Do not proceed without a response.
 
-Autonomous mode: do not ask; treat the answer as `yes` and write the files immediately.
+Autonomous mode: do not call the `question` tool; treat the answer as `yes` and write the files immediately.
 
 ## Step 4: Write (only after the Step 3 checkpoint resolves)
 
@@ -88,6 +105,23 @@ Write the proposal files to `openspec/changes/{change-slug}/`:
 
 ## Step 5: Stop (stop)
 
-Ask the user: "Ready to implement? Run `/plan-apply` to start." Loading `ob-plan-apply` requires explicit user confirmation.
+Call the `question` tool:
 
-Autonomous mode: skip the ask entirely. The PROPOSE stage is complete. Hand the change slug and task count back to the caller (the `/plan-goal` pipeline) so it immediately continues to the apply phase. This is a stage boundary, not the end of the run.
+```json
+{
+  "questions": [
+    {
+      "header": "Ready to implement",
+      "question": "Ready to implement?",
+      "options": [
+        { "label": "yes", "description": "Load the ob-plan-apply skill to start implementation." },
+        { "label": "no", "description": "Stop here. You can run /plan-apply later." }
+      ]
+    }
+  ]
+}
+```
+
+Loading `ob-plan-apply` requires explicit user confirmation.
+
+Autonomous mode: do not call the `question` tool. The PROPOSE stage is complete. Hand the change slug and task count back to the caller (the `/plan-goal` pipeline) so it immediately continues to the apply phase. This is a stage boundary, not the end of the run.

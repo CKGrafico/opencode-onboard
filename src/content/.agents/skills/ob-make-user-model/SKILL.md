@@ -28,7 +28,24 @@ Steps
 
 2. **Resolve `<model>`:**
    - If it is the literal `current`: use the model id visible in the opencode status line for this session. Use only the model id shown there, not a guessed value.
-   - Otherwise use the value verbatim. It must look like `provider/model-id`. If it contains no `/`, warn that it looks malformed and ask the user to confirm before writing.
+   - Otherwise use the value verbatim. It must look like `provider/model-id`. If it contains no `/`, warn that it looks malformed and call the `question` tool to confirm before writing:
+
+     ```json
+     {
+       "questions": [
+         {
+           "header": "Malformed model id",
+           "question": "\"<model>\" doesn't look like a valid model id (expected provider/model-id). Write it anyway?",
+           "options": [
+             { "label": "yes", "description": "Write the value as-is to the config file." },
+             { "label": "no", "description": "Cancel. Do not write anything." }
+           ]
+         }
+       ]
+     }
+     ```
+
+     Only proceed to write if the user answers `yes`.
 
 3. Determine target file.
    - `isUser = false` -> `.opencode/opencode-onboard.json` (team). If it does not exist, stop and tell the user onboarding has not generated it yet.

@@ -49,7 +49,24 @@ Generate API token at: https://id.atlassian.com/manage-profile/security/api-toke
 
 3. **Offer to transition the Work Item to In Progress**
 
-   This writes to Jira, so ask first: "Move {KEY} to In Progress? [yes/no]". Only if the user confirms AND the status is currently "To Do" or "Backlog":
+   This writes to Jira, so ask first using the `question` tool:
+
+   ```json
+   {
+     "questions": [
+       {
+         "header": "Transition work item",
+         "question": "Move {KEY} to In Progress?",
+         "options": [
+           { "label": "yes", "description": "Transition the work item to In Progress." },
+           { "label": "no", "description": "Skip the transition." }
+         ]
+       }
+     ]
+   }
+   ```
+
+   Only if the user answers `yes` AND the status is currently "To Do" or "Backlog":
    ```bash
    acli jira workitem transition --key "PROJ-123" --status "In Progress"
    ```
@@ -66,7 +83,24 @@ Generate API token at: https://id.atlassian.com/manage-profile/security/api-toke
    - Requirements: extracted from description and acceptance criteria
    - Scope: what's in/out based on the issue
 
-5. **Hand off to proposal.** Load the `ob-plan-propose` skill (interactive mode) to generate the proposal, specs, and tasks. After it completes, ask the user: "Ready to implement? (yes/no)". Wait for confirmation before loading `ob-plan-apply`.
+5. **Hand off to proposal.** Load the `ob-plan-propose` skill (interactive mode) to generate the proposal, specs, and tasks. After it completes, call the `question` tool:
+
+   ```json
+   {
+     "questions": [
+       {
+         "header": "Ready to implement",
+         "question": "Ready to implement?",
+         "options": [
+           { "label": "yes", "description": "Load the ob-plan-apply skill to start implementation." },
+           { "label": "no", "description": "Stop here. You can run /plan-apply later." }
+         ]
+       }
+     ]
+   }
+   ```
+
+   Wait for confirmation before loading `ob-plan-apply`.
 
 ## Jira URL Patterns
 

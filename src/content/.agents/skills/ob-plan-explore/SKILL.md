@@ -22,22 +22,27 @@ The caller provides:
 ## Step 0.a: Check for unarchived changes (stop)
 
 Before exploring a new idea, inspect `openspec/changes/` (ignore `openspec/changes/archive`).
-If any change folder exists in `openspec/changes/` (names vary by platform: `gh-*`, `us-*`, or a plain slug), list them and warn the user with this exact prompt:
+If any change folder exists in `openspec/changes/` (names vary by platform: `gh-*`, `us-*`, or a plain slug), list them in the question text, then call the `question` tool:
 
-```text
-There are unarchived changes pending to be archived:
-  Name: {change-name}
-  Name: {change-name}
-  ...
-
-Do you want to continue with the exploration or stop to archive the change first? [continue/stop]
+```json
+{
+  "questions": [
+    {
+      "header": "Unarchived changes",
+      "question": "There are unarchived changes pending:\n{change-name}\n{change-name}\n...\n\nContinue with the exploration or stop to archive first?",
+      "options": [
+        { "label": "continue", "description": "Proceed with the exploration." },
+        { "label": "stop", "description": "End without exploring. Archive the pending change first." }
+      ]
+    }
+  ]
+}
 ```
 
-Wait for the user to respond:
 - If the user answers `stop`, end without exploring.
 - If the user answers `continue`, proceed to the next step.
 
-Autonomous mode: do not ask; treat the answer as `continue` and proceed.
+Autonomous mode: do not call the `question` tool; treat the answer as `continue` and proceed.
 
 ## Step 0.b: Load exploration skill
 
@@ -51,10 +56,21 @@ Autonomous mode: there is no user to discuss with. Investigate solo, and keep th
 
 ## Step 2: Offer to save (only if useful) (stop)
 
-After the exploration is complete, if the findings are significant and worth preserving, ask the user:
+After the exploration is complete, if the findings are significant and worth preserving, call the `question` tool:
 
-```text
-Save this exploration to agentmemory for future reference? [yes/no]
+```json
+{
+  "questions": [
+    {
+      "header": "Save exploration",
+      "question": "Save this exploration to agentmemory for future reference?",
+      "options": [
+        { "label": "yes", "description": "Save a memory note summarizing key findings, constraints, and recommended next steps." },
+        { "label": "no", "description": "Skip saving. Proceed to the next step." }
+      ]
+    }
+  ]
+}
 ```
 
 - `yes` -> `memory_save` with title `exploration-{topic}` summarizing the key findings, constraints, and recommended next steps.
@@ -62,20 +78,29 @@ Save this exploration to agentmemory for future reference? [yes/no]
 
 Write a memory note only when the user explicitly asks.
 
-Autonomous mode: do not ask; save the note only if the findings are significant, otherwise skip.
+Autonomous mode: do not call the `question` tool; save the note only if the findings are significant, otherwise skip.
 
 ## Step 3: Ask what's next (stop)
 
-Ask the user:
+Call the `question` tool:
 
-```text
-What next? Options:
-  /plan-propose: turn this into a full OpenSpec proposal with design, specs, and tasks
-  /plan-quick  : lightweight task checklist (skip design/specs)
-  /plan-apply  : dive straight into implementation (if the path is clear)
-  (or just tell me to keep exploring)
+```json
+{
+  "questions": [
+    {
+      "header": "What next",
+      "question": "What next?",
+      "options": [
+        { "label": "/plan-propose", "description": "Turn this into a full OpenSpec proposal with design, specs, and tasks." },
+        { "label": "/plan-quick", "description": "Lightweight task checklist (skip design/specs)." },
+        { "label": "/plan-apply", "description": "Dive straight into implementation (if the path is clear)." },
+        { "label": "Keep exploring", "description": "Continue the discussion without creating files." }
+      ]
+    }
+  ]
+}
 ```
 
 Do not create any files. Do not load any of those flows automatically. The only output is the discussion and the optional agentmemory note.
 
-Autonomous mode: skip this step entirely. The EXPLORE stage is complete. Hand the findings summary back to the caller (the `/plan-goal` pipeline) so it immediately continues to the propose phase. This is a stage boundary, not the end of the run.
+Autonomous mode: do not call the `question` tool. The EXPLORE stage is complete. Hand the findings summary back to the caller (the `/plan-goal` pipeline) so it immediately continues to the propose phase. This is a stage boundary, not the end of the run.

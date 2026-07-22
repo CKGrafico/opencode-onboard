@@ -10,42 +10,54 @@ Check if `AGENTS.md` contains the `<!-- OB-NOT-INITIALIZED -->` marker.
 
 ## Step 1: Ask everything at once
 
-Use the question tool to present a multi-question form:
+Call the `question` tool with all five questions in a single batch (do not ask them one at a time). Use exactly these fields:
 
-**Question 1** (single-select):
-- Header: `"Type"`
-- Question: `"What type of project is this?"`
-- Options:
-  - `brownfield`: Existing codebase. Generate docs from your code.
-  - `greenfield`: Starting from scratch, little or no existing code.
-
-**Question 2** (single-select):
-- Header: `"History"`
-- Question: `"Archive project history into OpenSpec?"`
-- Options:
-  - `Yes`: Scan codebase for existing docs, changelogs, decisions and archive them.
-  - `No`: Skip history archival.
-
-**Question 3** (single-select):
-- Header: `"Architecture"`
-- Question: `"Generate ARCHITECTURE.md from the codebase?"`
-- Options:
-  - `Yes`: Analyze project structure and generate architecture documentation.
-  - `No`: Skip, leave as placeholder.
-
-**Question 4** (single-select):
-- Header: `"Design"`
-- Question: `"Generate DESIGN.md from the design system?"`
-- Options:
-  - `Yes`: Analyze Tailwind, CSS vars, tokens and generate design documentation.
-  - `No`: Skip, leave as placeholder.
-
-**Question 5** (single-select):
-- Header: `"Evidence"`
-- Question: `"Set up a visual-evidence harness for this project? (recommended for UI apps; /plan-goal uses it to prove changes work)"`
-- Options:
-  - `Yes`: I want deterministic screenshot/GIF evidence for pull requests. (Scaffolded after restart via `/make-evidence-scaffold`, not during init.)
-  - `No`: Skip. You can run `/make-evidence-scaffold` any time later.
+```json
+{
+  "questions": [
+    {
+      "header": "Type",
+      "question": "What type of project is this?",
+      "options": [
+        { "label": "brownfield", "description": "Existing codebase. Generate docs from your code." },
+        { "label": "greenfield", "description": "Starting from scratch, little or no existing code." }
+      ]
+    },
+    {
+      "header": "History",
+      "question": "Archive project history into OpenSpec?",
+      "options": [
+        { "label": "Yes", "description": "Scan codebase for existing docs, changelogs, decisions and archive them." },
+        { "label": "No", "description": "Skip history archival." }
+      ]
+    },
+    {
+      "header": "Architecture",
+      "question": "Generate ARCHITECTURE.md from the codebase?",
+      "options": [
+        { "label": "Yes", "description": "Analyze project structure and generate architecture documentation." },
+        { "label": "No", "description": "Skip, leave as placeholder." }
+      ]
+    },
+    {
+      "header": "Design",
+      "question": "Generate DESIGN.md from the design system?",
+      "options": [
+        { "label": "Yes", "description": "Analyze Tailwind, CSS vars, tokens and generate design documentation." },
+        { "label": "No", "description": "Skip, leave as placeholder." }
+      ]
+    },
+    {
+      "header": "Evidence",
+      "question": "Set up a visual-evidence harness for this project? (recommended for UI apps; /plan-goal uses it to prove changes work)",
+      "options": [
+        { "label": "Yes", "description": "I want deterministic screenshot/GIF evidence for pull requests. (Scaffolded after restart via /make-evidence-scaffold, not during init.)" },
+        { "label": "No", "description": "Skip. You can run /make-evidence-scaffold any time later." }
+      ]
+    }
+  ]
+}
+```
 
 ## Step 2: Execute selected steps
 

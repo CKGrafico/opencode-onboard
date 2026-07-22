@@ -39,13 +39,22 @@ Example `todowrite` call:
 
 ## Step 3: Ask what's next
 
-Ask the user:
+Call the `question` tool:
 
-```text
-What next? Options:
-  /plan-apply : implement these tasks now (creates a feature branch and works through them)
-  /plan-propose: turn this into a full OpenSpec proposal with agent assignments
-  (or just tell me to start on specific tasks)
+```json
+{
+  "questions": [
+    {
+      "header": "What next",
+      "question": "What next?",
+      "options": [
+        { "label": "/plan-apply", "description": "Implement these tasks now (creates a feature branch and works through them)." },
+        { "label": "/plan-propose", "description": "Turn this into a full OpenSpec proposal with agent assignments." },
+        { "label": "Start on specific tasks", "description": "Tell me which tasks to start on." }
+      ]
+    }
+  ]
+}
 ```
 
 Do not create any files. Do not run `/plan-apply` or `/plan-propose` automatically. The only output is the Todo pane checklist.

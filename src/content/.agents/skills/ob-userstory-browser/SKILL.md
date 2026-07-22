@@ -71,7 +71,24 @@ This skill overrides the `browser-automation` skill's external navigation restri
    - Requirements: extracted from description and acceptance criteria
    - Scope: what's in/out based on the ticket
 
-7. **Hand off to proposal.** Load the `ob-plan-propose` skill (interactive mode) to generate the proposal, specs, and tasks. After it completes, ask the user: "Ready to implement? (yes/no)". Wait for confirmation before loading `ob-plan-apply`.
+7. **Hand off to proposal.** Load the `ob-plan-propose` skill (interactive mode) to generate the proposal, specs, and tasks. After it completes, call the `question` tool:
+
+   ```json
+   {
+     "questions": [
+       {
+         "header": "Ready to implement",
+         "question": "Ready to implement?",
+         "options": [
+           { "label": "yes", "description": "Load the ob-plan-apply skill to start implementation." },
+           { "label": "no", "description": "Stop here. You can run /plan-apply later." }
+         ]
+       }
+     ]
+   }
+   ```
+
+   Wait for confirmation before loading `ob-plan-apply`.
 
 ## Working with common backlog tools
 
