@@ -44,7 +44,7 @@ Read every `.md` file in `.opencode/commands/`. List each command with its name 
 | ... | ... |
 
 Group them by workflow phase if possible:
-- Planning: plan-explore, plan-propose, plan-quick, plan-goal
+- Planning: plan-explore, plan-story, plan-propose, plan-quick, plan-goal
 - Implementation: plan-apply, plan-archive
 - Maintenance: make-architecture, make-design, make-engineer, make-guardrails, make-evidence-scaffold
 - Shipping: ops-ship, ops-review, ops-backlog, ops-evidence
