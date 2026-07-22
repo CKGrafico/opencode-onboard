@@ -48,7 +48,7 @@ Group them by workflow phase if possible:
 - Implementation: plan-apply, plan-archive
 - Maintenance: make-architecture, make-design, make-engineer, make-guardrails, make-evidence-scaffold
 - Shipping: ops-ship, ops-review, ops-backlog, ops-evidence
-- Setup: repo-initialize, make-user-model, repo-help
+- Setup: init, make-user-model, repo-help
 
 ## Step 4: Skills
 

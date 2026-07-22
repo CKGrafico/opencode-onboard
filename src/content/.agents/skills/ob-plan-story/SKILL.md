@@ -120,7 +120,7 @@ Display the complete user story to the user:
 - Use Case (As a / I want to / so that)
 - Acceptance Criteria (all scenarios with full Given/When/Then)
 - Edge Cases
-- Diagram (if produced in Step 4)
+- Diagram (if produced in Step 5)
 - Codebase artifacts the story is grounded in (file paths, component names, types)
 
 ## Step 8: Ask what's next

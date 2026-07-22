@@ -1,6 +1,6 @@
 ---
 name: ob-repo-initialize
-description: Initialize the project. Presents a single form with all setup questions, then executes selected steps. Invoked by the /repo-initialize command.
+description: Initialize the project. Presents a single form with all setup questions, then executes selected steps. Invoked by the /init command (alias: /repo-initialize).
 license: MIT
 ---
 Check if `AGENTS.md` contains the `<!-- OB-NOT-INITIALIZED -->` marker.
@@ -62,6 +62,10 @@ Call the `question` tool with all five questions in a single batch (do not ask t
 ## Step 2: Execute selected steps
 
 Based on the user's answers, run the selected steps in order:
+
+### Sync skills (always)
+
+Ensure all skills listed in `skills-lock.json` are installed. Run `npx skills experimental_install --yes` in the project root. This picks up `find-skills`, `user-story`, and any opt-in skills (agentmemory, humanizer, caveman) that the onboarding CLI queued. If the command fails or is unavailable, warn the user but continue — the skills are optional and can be installed manually later.
 
 ### Archive project history (if Yes)
 
