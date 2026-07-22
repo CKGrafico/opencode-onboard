@@ -16,6 +16,7 @@
       "openspec-*": "allow"
     }
   },
+  "default_agent": "fullstack-engineer",
   "agent": {
     "build": { "disable": true },
     "plan": { "disable": true }
