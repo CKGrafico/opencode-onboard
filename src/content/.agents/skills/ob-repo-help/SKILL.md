@@ -12,6 +12,8 @@ Display the following reference to the user exactly as written. Do not summarize
 
 ### Not sure where to start?
 
+**`/init`** (alias: `/repo-initialize`): Initialize the project. Presents a single form with all setup questions (project type, history, architecture, design, evidence), then executes the selected steps.
+
 **`/repo-onboard`**: Guided tour of the project and its agentic infrastructure. Explains agents, commands, skills, OpenSpec workflow, and configuration. Read-only: no files modified.
 
 **`/plan-explore`**: Your backlog is unclear, you have a half-formed idea, or you need to think through a problem before committing to a plan. This is a thinking partner, not an executor.
