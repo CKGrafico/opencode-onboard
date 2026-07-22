@@ -5,6 +5,11 @@ import { success } from '../../utils/exec.js'
 
 // Skill loads must never hit an "ask" prompt: /plan-goal and the userstory
 // flows load ob-* / openspec-* skills unattended (loop-engineering).
+const SHARED_PERMISSIONS = [
+  ['question', 'allow'],
+  ['todowrite', 'allow'],
+]
+
 const SKILL_PERMISSIONS = [
   ['ob-*', 'allow'],
   ['openspec-*', 'allow'],
@@ -41,8 +46,11 @@ export async function patchOpencodeJson(cwd = process.cwd()) {
   const missingSkillPermissions = SKILL_PERMISSIONS.filter(
     ([pattern, value]) => parsed?.permission?.skill?.[pattern] !== value,
   )
+  const missingSharedPermissions = SHARED_PERMISSIONS.filter(
+    ([key, value]) => parsed?.permission?.[key] !== value,
+  )
 
-  if (!needsAgentDisable && missingSkillPermissions.length === 0) {
+  if (!needsAgentDisable && missingSkillPermissions.length === 0 && missingSharedPermissions.length === 0) {
     return { patched: false }
   }
 
@@ -54,6 +62,9 @@ export async function patchOpencodeJson(cwd = process.cwd()) {
   for (const [pattern, value] of missingSkillPermissions) {
     text = applyModify(text, ['permission', 'skill', pattern], value)
   }
+  for (const [key, value] of missingSharedPermissions) {
+    text = applyModify(text, ['permission', key], value)
+  }
 
   await fse.ensureDir(opencodeDir)
   await fse.writeFile(opencodePath, text, 'utf-8')
@@ -62,6 +73,9 @@ export async function patchOpencodeJson(cwd = process.cwd()) {
   }
   if (missingSkillPermissions.length > 0) {
     success('Allowed ob-*/openspec-* skill loading in .opencode/opencode.json')
+  }
+  if (missingSharedPermissions.length > 0) {
+    success('Allowed question/todowrite tools in .opencode/opencode.json')
   }
 
   return { patched: true }

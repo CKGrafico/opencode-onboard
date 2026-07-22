@@ -4,7 +4,7 @@ import { header, success, info } from '../../utils/exec.js'
 const SKILL_ENTRY = {
   source: 'juliusbrussee/caveman',
   sourceType: 'github',
-  skillPath: 'caveman/SKILL.md',
+  skillPath: 'skills/caveman/SKILL.md',
 }
 
 export async function installCaveman(options = {}) {

@@ -29,6 +29,8 @@ describe('generateFullstackEngineer()', () => {
     const content = fs.readFileSync(path.join(tmpDir, '.opencode', 'agents', 'fullstack-engineer.md'), 'utf-8')
     expect(content).toContain('mode: primary')
     expect(content).toContain('color: success')
+    expect(content).toContain('  question: allow')
+    expect(content).toContain('  todowrite: allow')
     expect(content).toContain('**Startup — before doing anything else:**')
     expect(content).toContain('- Guardrails: @ob-guardrails-generic, @ob-guardrails-project')
     expect(content).toContain('You are the default engineer')

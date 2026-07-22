@@ -4,7 +4,7 @@ import { header, success, info } from '../../utils/exec.js'
 const SKILL_ENTRY = {
   source: 'blader/humanizer',
   sourceType: 'github',
-  skillPath: 'humanizer/SKILL.md',
+  skillPath: 'SKILL.md',
 }
 
 export async function installHumanizer(options = {}) {

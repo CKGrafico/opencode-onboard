@@ -28,13 +28,15 @@ Use `todowrite` to create one todo item per task. Each item must be:
 Example `todowrite` call:
 
 ```json
-[
-  { "content": "Add Project model to src/types.ts", "status": "pending", "priority": "high" },
-  { "content": "Add projectId field to LoopOptions in src/types.ts", "status": "pending", "priority": "high" },
-  { "content": "Create Project RPC endpoints in src/rpc/project/", "status": "pending", "priority": "medium" },
-  { "content": "Build Accept page UI in src/board/components/CreateForm.tsx", "status": "pending", "priority": "medium" },
-  { "content": "Run typecheck and fix errors", "status": "pending", "priority": "low" }
-]
+{
+  "todos": [
+    { "content": "Add Project model to src/types.ts", "status": "pending", "priority": "high" },
+    { "content": "Add projectId field to LoopOptions in src/types.ts", "status": "pending", "priority": "high" },
+    { "content": "Create Project RPC endpoints in src/rpc/project/", "status": "pending", "priority": "medium" },
+    { "content": "Build Accept page UI in src/board/components/CreateForm.tsx", "status": "pending", "priority": "medium" },
+    { "content": "Run typecheck and fix errors", "status": "pending", "priority": "low" }
+  ]
+}
 ```
 
 ## Step 3: Ask what's next

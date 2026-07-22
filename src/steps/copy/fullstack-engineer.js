@@ -51,6 +51,8 @@ export async function generateFullstackEngineer({ cwd = process.cwd() } = {}) {
     '  read: allow',
     '  glob: allow',
     '  grep: allow',
+    '  question: allow',
+    '  todowrite: allow',
   ]
   if (existingModel) frontmatter.push(`model: ${existingModel}`)
   frontmatter.push('---')

@@ -34,6 +34,8 @@ describe('patchOpencodeJson()', () => {
     expect(config.agent.build.disable).toBe(true)
     expect(config.agent.plan.disable).toBe(true)
     expect(config.$schema).toBe('https://opencode.ai/config.json')
+    expect(config.permission.question).toBe('allow')
+    expect(config.permission.todowrite).toBe('allow')
   })
 
   it('adds agent block to existing config without touching other keys', async () => {
@@ -65,7 +67,11 @@ describe('patchOpencodeJson()', () => {
       JSON.stringify({
         $schema: 'https://opencode.ai/config.json',
         agent: { build: { disable: true }, plan: { disable: true } },
-        permission: { skill: { 'ob-*': 'allow', 'openspec-*': 'allow' } },
+        permission: {
+          question: 'allow',
+          todowrite: 'allow',
+          skill: { 'ob-*': 'allow', 'openspec-*': 'allow' },
+        },
       }, null, 2),
     )
 
@@ -100,6 +106,8 @@ describe('patchOpencodeJson()', () => {
     const config = readConfig()
     expect(config.permission.skill['ob-*']).toBe('allow')
     expect(config.permission.skill['openspec-*']).toBe('allow')
+    expect(config.permission.question).toBe('allow')
+    expect(config.permission.todowrite).toBe('allow')
   })
 
   it('preserves comments in JSONC files', async () => {

@@ -12,6 +12,7 @@
   },
   "permission": {
     "question": "allow",
+    "todowrite": "allow",
     "skill": {
       "ob-*": "allow",
       "openspec-*": "allow"

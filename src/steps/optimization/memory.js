@@ -64,10 +64,10 @@ export async function installMemory(options = {}) {
   }
 
   // Add agentmemory skills to skills-lock.json for batch install
-  await addSkillToLock('agentmemory', {
+  await addSkillToLock('agentmemory-agents', {
     source: 'rohitg00/agentmemory',
     sourceType: 'github',
-    skillPath: 'skills/remember/SKILL.md',
+    skillPath: 'plugin/skills/agentmemory-agents/SKILL.md',
   })
 
   info('Memory server: run `agentmemory` to start on localhost:3111')
