@@ -18,9 +18,9 @@ import { patchOpsShip, patchOpsReview, patchOpsBacklog, patchOpsEvidence } from 
 import { resolvePlatform } from '../../commands/single.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const CONTENT_DIR = path.resolve(__dirname, '../../../content')
+const CONTENT_DIR = path.resolve(__dirname, '../../content')
 const REAL_AGENTS_MD = fs.readFileSync(path.join(CONTENT_DIR, 'AGENTS.md'), 'utf-8')
-const REAL_OB_INIT_MD = fs.readFileSync(path.join(CONTENT_DIR, '.opencode', 'commands', 'repo-initialize.md'), 'utf-8')
+const REAL_OB_INIT_MD = fs.readFileSync(path.join(CONTENT_DIR, '.agents', 'skills', 'ob-repo-initialize', 'SKILL.md'), 'utf-8')
 
 let tmpDir
 
@@ -34,12 +34,12 @@ afterEach(() => {
   fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
 })
 
-describe('patchAgentsMd against the real repo-initialize.md', () => {
+describe('patchAgentsMd against the real ob-repo-initialize SKILL.md', () => {
   it('leaves the file untouched when nothing exists yet', async () => {
-    fs.mkdirSync(path.join(tmpDir, '.opencode', 'commands'), { recursive: true })
-    fs.writeFileSync(path.join(tmpDir, '.opencode', 'commands', 'repo-initialize.md'), REAL_OB_INIT_MD)
+    fs.mkdirSync(path.join(tmpDir, '.agents', 'skills', 'ob-repo-initialize'), { recursive: true })
+    fs.writeFileSync(path.join(tmpDir, '.agents', 'skills', 'ob-repo-initialize', 'SKILL.md'), REAL_OB_INIT_MD)
     await patchAgentsMd({})
-    expect(fs.readFileSync(path.join(tmpDir, '.opencode', 'commands', 'repo-initialize.md'), 'utf-8')).toBe(REAL_OB_INIT_MD)
+    expect(fs.readFileSync(path.join(tmpDir, '.agents', 'skills', 'ob-repo-initialize', 'SKILL.md'), 'utf-8')).toBe(REAL_OB_INIT_MD)
   })
 })
 

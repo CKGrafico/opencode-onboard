@@ -30,10 +30,7 @@ describe('generateFullstackEngineer()', () => {
     expect(content).toContain('mode: primary')
     expect(content).toContain('color: success')
     expect(content).toContain('**Startup — before doing anything else:**')
-    expect(content).toContain('- Guardrails: @ob-guardrails-generic, @ob-guardrails-project, @ob-default')
-    expect(content).toContain('- Development: @ob-default')
-    expect(content).toContain('- Testing: @ob-default')
-    expect(content).toContain('- Infrastructure: @ob-default')
+    expect(content).toContain('- Guardrails: @ob-guardrails-generic, @ob-guardrails-project')
     expect(content).toContain('You are the default engineer')
     expect(content).not.toContain('@react19')
     expect(content).not.toContain('@dotnet')
@@ -45,7 +42,7 @@ describe('generateFullstackEngineer()', () => {
     fs.mkdirSync(agentsDir, { recursive: true })
     fs.writeFileSync(
       path.join(agentsDir, 'fullstack-engineer.md'),
-      '---\ndescription: Old.\nmode: primary\nmodel: custom/model\n---\n\nYou are the default engineer.\n\n## Abilities\n- Guardrails: @ob-guardrails-generic, @ob-guardrails-project, @ob-default\n',
+      '---\ndescription: Old.\nmode: primary\nmodel: custom/model\n---\n\nYou are the default engineer.\n\n## Abilities\n- Guardrails: @ob-guardrails-generic, @ob-guardrails-project\n',
       'utf-8'
     )
 
@@ -102,7 +99,7 @@ describe('generateFullstackEngineer()', () => {
       'You are the default engineer.',
       '',
       '## Abilities',
-      '- Guardrails: @ob-guardrails-generic, @ob-guardrails-project, @ob-default',
+      '- Guardrails: @ob-guardrails-generic, @ob-guardrails-project',
       '- Development: @react19-concurrent-patterns, @dotnet-best-practices',
       '- Testing: @react19-test-patterns',
       '',

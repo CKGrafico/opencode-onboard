@@ -70,10 +70,10 @@ function replaceBetween(content, start, end, replacement) {
 }
 
 export async function patchAgentsMd(ctx) {
-  const obInitPath = path.join(process.cwd(), '.opencode', 'commands', 'repo-initialize.md')
-  if (!await fse.pathExists(obInitPath)) return
+  const obInitSkillPath = path.join(process.cwd(), '.agents', 'skills', 'ob-repo-initialize', 'SKILL.md')
+  if (!await fse.pathExists(obInitSkillPath)) return
 
-  let content = await fse.readFile(obInitPath, 'utf-8')
+  let content = await fse.readFile(obInitSkillPath, 'utf-8')
   const patches = []
 
   const skips = [
@@ -87,7 +87,7 @@ export async function patchAgentsMd(ctx) {
     if (!enabled) continue
     const result = skipStepBlock(content, title, note)
     if (!result.matched) {
-      warn(`repo-initialize.md step "${title}" not found: template drift? Skipping this patch.`)
+      warn(`ob-repo-initialize SKILL.md step "${title}" not found: template drift? Skipping this patch.`)
       continue
     }
     content = result.content
@@ -96,9 +96,9 @@ export async function patchAgentsMd(ctx) {
   }
 
   if (patches.length > 0) {
-    await fse.writeFile(obInitPath, content, 'utf-8')
+    await fse.writeFile(obInitSkillPath, content, 'utf-8')
     for (const msg of patches) info(msg)
-    success('repo-initialize.md patched for existing project state')
+    success('ob-repo-initialize SKILL.md patched for existing project state')
   }
 }
 

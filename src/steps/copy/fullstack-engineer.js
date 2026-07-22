@@ -58,10 +58,7 @@ export async function generateFullstackEngineer({ cwd = process.cwd() } = {}) {
   const identity = existingIdentity ?? FULLSTACK_IDENTITY
 
   const abilities = existingAbilities ?? [
-    '- Guardrails: @ob-guardrails-generic, @ob-guardrails-project, @ob-default',
-    '- Development: @ob-default',
-    '- Testing: @ob-default',
-    '- Infrastructure: @ob-default',
+    '- Guardrails: @ob-guardrails-generic, @ob-guardrails-project',
   ].join('\n')
 
   const content = `${frontmatter.join('\n')}\n\n${identity}\n\n${STARTUP_DIRECTIVE}\n\n## Abilities\n${abilities}\n`

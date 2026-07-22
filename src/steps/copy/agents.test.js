@@ -17,7 +17,7 @@ describe('platform patching', () => {
   })
 
   it('patches AGENTS.md for none mode with raw-conversation workflow', async () => {
-    const source = path.join(process.cwd(), 'content', 'AGENTS.md')
+    const source = path.join(process.cwd(), 'src', 'content', 'AGENTS.md')
     const dest = path.join(tmpDir, 'AGENTS.md')
     await fse.copyFile(source, dest)
 

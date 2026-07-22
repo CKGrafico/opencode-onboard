@@ -22,7 +22,7 @@ describe('platform patching', () => {
   })
 
   async function copySkillTemplate() {
-    const source = path.join(process.cwd(), 'content', SKILL_REL_PATH)
+    const source = path.join(process.cwd(), 'src', 'content', SKILL_REL_PATH)
     const dest = path.join(tmpDir, SKILL_REL_PATH)
     await fse.ensureDir(path.dirname(dest))
     await fse.copyFile(source, dest)

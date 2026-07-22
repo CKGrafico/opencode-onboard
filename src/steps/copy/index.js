@@ -11,7 +11,7 @@ import { generateFullstackEngineer } from "./fullstack-engineer.js"
 import { patchOpencodeJson } from "./opencode-json.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const CONTENT_DIR = path.resolve(__dirname, "../../../content")
+const CONTENT_DIR = path.resolve(__dirname, "../../content")
 
 export async function copyContentStep(platform, ctx = {}) {
   header("Step 5, Copying opencode-onboard files")
@@ -64,7 +64,7 @@ export async function copyContentStep(platform, ctx = {}) {
     await patchAgentsMd(ctx)
 
     if (!ctx.skipSkills) {
-      await installSkills(backlogPlatform, repoPlatform)
+      await installSkills(backlogPlatform, repoPlatform, { forceOverwrite: ctx.forceOverwrite })
     }
     // These patch SKILL.md files (ob-plan-archive, ob-ops-ship, ob-ops-evidence),
     // so they must run after installSkills has copied the skills into the project.

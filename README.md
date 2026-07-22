@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/CKGrafico/opencode-onboard/refs/heads/main/logo.png" alt="opencode-onboard" width="160" />
+<img src="https://raw.githubusercontent.com/CKGrafico/opencode-onboard/refs/heads/main/docs/assets/logo.png" alt="opencode-onboard" width="160" />
 
 # 🧰 opencode-onboard
 
@@ -24,7 +24,7 @@ Most codebases have no `AGENTS.md`, no architecture documentation that agents ca
 **opencode-onboard** fixes that in a single interactive wizard. It configures OpenCode with OpenSpec for structured change management, native subagent waves for parallel agent execution, codegraph for code intelligence, and agentmemory for shared context across agent sessions. It also installs an agent team, platform skills, and slash commands: everything agents need to plan, implement, and ship.
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/CKGrafico/opencode-onboard/refs/heads/main/demo.gif" alt="opencode-onboard demo" width="700" />
+<img src="https://raw.githubusercontent.com/CKGrafico/opencode-onboard/refs/heads/main/docs/assets/demo.gif" alt="opencode-onboard demo" width="700" />
 </div>
 
 ## Quick start
@@ -152,17 +152,13 @@ If you choose backlog platform `None`, no userstory skills are injected into the
 Current loading model:
 
 - `ob-guardrails-generic` is mandatory baseline for every agent (git, secrets, quality rules, plus the engineer workflow)
-- `ob-default` is fallback when nothing else matches
 - Baseline context rules and token-optimization guidance live in `AGENTS.md` (always in context), not in a skill
 
 Default `fullstack-engineer` abilities:
 
 ```
 ## Abilities
-- Guardrails: @ob-guardrails-generic, @ob-default
-- Development: @ob-default
-- Testing: @ob-default
-- Infrastructure: @ob-default
+- Guardrails: @ob-guardrails-generic, @ob-guardrails-project
 ```
 
 Users are expected to create additional skills and map them into abilities over time.
@@ -171,7 +167,6 @@ Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 
 | Skill | Purpose |
 | ----- | ------- |
-| `ob-default` | Fallback, when no other skill matches |
 | `ob-guardrails-generic` | Foundation for user guardrails skills |
 | `ob-guardrails-project` | Project-specific guardrails, populated by `/make-guardrails` |
 | `ob-userstory-gh` | Parse a GitHub Issue URL into a structured work item |
@@ -188,6 +183,13 @@ Built-in skills (`ob-` prefix) shipped with opencode-onboard:
 | `ob-make-architecture` | ARCHITECTURE.md generation behind `/make-architecture`; used by `/repo-initialize` |
 | `ob-make-design` | DESIGN.md generation behind `/make-design`; used by `/repo-initialize` |
 | `ob-make-guardrails` | Guardrails generation behind `/make-guardrails`; used by `/repo-initialize` |
+| `ob-make-engineer` | Custom engineer creation behind `/make-engineer` |
+| `ob-make-evidence-scaffold` | Visual-evidence harness scaffold behind `/make-evidence-scaffold` |
+| `ob-make-user-model` | Tier model configuration behind `/make-user-model` |
+| `ob-plan-goal` | Autonomous full-lifecycle pipeline behind `/plan-goal` |
+| `ob-plan-quick` | Quick task checklist behind `/plan-quick` |
+| `ob-repo-initialize` | Project initialization behind `/repo-initialize` |
+| `ob-repo-onboard` | Guided project tour behind `/repo-onboard` |
 | `ob-repo-help` | The command reference displayed by `/repo-help`; used by `/repo-initialize` |
 
 Platform operations are injected during onboarding: pull request creation into the `ob-ops-ship` skill (loaded by `/ops-ship` and `/plan-goal`), archive PR flow into the `ob-plan-archive` skill, issue/work-item evidence comments into the `ob-ops-evidence` skill (backlog platform), and pull request review / issue creation directly into the `/ops-review` and `/ops-backlog` command files.
@@ -262,7 +264,6 @@ your-project/
 │       └── ob-subagent-monitor.js   ← server plugin: writes subagent state → .opencode/.ob-run.json
 └── .agents/
     └── skills/
-        ├── ob-default/             ← fallback skill
         ├── ob-guardrails-generic/  ← foundation for user guardrails
         ├── ob-guardrails-project/  ← populated by /make-guardrails
         ├── ob-userstory/           ← the variant matching your backlog platform, renamed on install
@@ -368,8 +369,6 @@ pnpm test:watch
 ```
 
 Tests are written with [Vitest](https://vitest.dev). Linting uses ESLint flat config with Node ESM defaults and stricter correctness rules.
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full development guide, pull request process, and architecture conventions.
 
 ---
 

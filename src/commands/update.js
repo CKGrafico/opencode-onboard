@@ -37,7 +37,7 @@ export async function runUpdate() {
     sourceRoots: Array.isArray(saved.source?.roots) ? saved.source.roots : [],
     maxConcurrentAgents: saved.agents?.maxConcurrent ?? 3,
     installScope: 'local',
-    skipSkills: true,
+    skipSkills: false,
     forceOverwrite: true,
   }
 

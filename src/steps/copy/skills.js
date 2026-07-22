@@ -4,8 +4,8 @@ import { fileURLToPath } from 'url'
 import { info, success } from '../../utils/exec.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const CONTENT_SKILLS_DIR = path.resolve(__dirname, '../../../content/.agents/skills')
-const CONTENT_SKILLS_LOCK = path.resolve(__dirname, '../../../content/skills-lock.json')
+const CONTENT_SKILLS_DIR = path.resolve(__dirname, '../../content/.agents/skills')
+const CONTENT_SKILLS_LOCK = path.resolve(__dirname, '../../content/skills-lock.json')
 
 // Userstory skills parse backlog work items: selected by backlogPlatform only.
 // Mixing the two axes here installs the wrong variant on mixed setups, because
@@ -32,7 +32,7 @@ function shouldInstallSkill(skill, backlogPlatform, _repoPlatform) {
   return true
 }
 
-async function installObSkills(backlogPlatform = 'github', repoPlatform) {
+async function installObSkills(backlogPlatform = 'github', repoPlatform, { forceOverwrite = false } = {}) {
   const repo = repoPlatform ?? backlogPlatform
   const destSkillsDir = path.join(process.cwd(), '.agents', 'skills')
   await fse.ensureDir(destSkillsDir)
@@ -45,30 +45,37 @@ async function installObSkills(backlogPlatform = 'github', repoPlatform) {
     const stat = await fse.stat(src)
     if (!stat.isDirectory()) continue
     if (!shouldInstallSkill(skill, backlogPlatform, repo)) {
+      if (forceOverwrite) {
+        const staleDest = path.join(destSkillsDir, skill)
+        if (skill !== destName && await fse.pathExists(staleDest)) {
+          await fse.remove(staleDest)
+          info(`Removing stale skill: ${skill}`)
+        }
+      }
       info(`Skipping skill: ${skill} (not needed for platforms: ${backlogPlatform}/${repo})`)
       continue
     }
-    if (await fse.pathExists(dest)) {
+    if (await fse.pathExists(dest) && !forceOverwrite) {
       info(`${destName} already exists, skipping`)
       continue
     }
-    await fse.copy(src, dest)
-    success(`Installed skill: ${destName}`)
+    await fse.copy(src, dest, { overwrite: true })
+    success(`${forceOverwrite ? 'Updated' : 'Installed'} skill: ${destName}`)
   }
 }
 
-export async function installSkills(backlogPlatform = 'github', repoPlatform) {
+export async function installSkills(backlogPlatform = 'github', repoPlatform, opts = {}) {
   info('Installing built-in ob-skills...')
-  await installObSkills(backlogPlatform, repoPlatform)
+  await installObSkills(backlogPlatform, repoPlatform, opts)
   console.log()
 
   if (await fse.pathExists(CONTENT_SKILLS_LOCK)) {
     const destLock = path.join(process.cwd(), 'skills-lock.json')
-    if (await fse.pathExists(destLock)) {
+    if (await fse.pathExists(destLock) && !opts.forceOverwrite) {
       info('skills-lock.json already exists, skipping')
     } else {
-      await fse.copy(CONTENT_SKILLS_LOCK, destLock)
-      success('Installed skills-lock.json')
+      await fse.copy(CONTENT_SKILLS_LOCK, destLock, { overwrite: true })
+      success(`${opts.forceOverwrite ? 'Updated' : 'Installed'} skills-lock.json`)
     }
   }
 

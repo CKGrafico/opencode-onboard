@@ -7,9 +7,9 @@ export default [
       'node_modules/**',
       'coverage/**',
       'dist/**',
-      'content/**/node_modules/**',
-      'content/.opencode/package-lock.json',
-      'content/**/*.tsx',
+      'src/content/**/node_modules/**',
+      'src/content/.opencode/package-lock.json',
+      'src/content/**/*.tsx',
     ],
   },
   js.configs.recommended,
@@ -66,7 +66,7 @@ export default [
     },
   },
   {
-    files: ['content/**/*.js'],
+    files: ['src/content/**/*.js'],
     languageOptions: {
       globals: {
         ...globals.node,
