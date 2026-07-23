@@ -9,6 +9,8 @@ Each phase executes an `ob-*` skill in autonomous mode: load the named skill wit
 
 Continuity is the rule. Every skill you load below ends with its own "report / stop / return to caller." That boundary means the stage is done. It does not mean the run is done. When a sub-skill hands control back, immediately continue with the next phase. Never treat a sub-skill's stopping point as the end of `/plan-goal`. The run is complete only when Phase 7 has printed its report AND all of these are true: proposal committed, apply verified, ARCHIVED_OK, evidence attempted and manifest written, and the output step completed. If you are about to end the turn and any of these is missing, return to the earliest missing phase and continue. Implementing the feature is roughly the halfway point, not the end.
 
+The progression rule is: forward only through verified gates. A failed verification is a hard stop, not a detour. Proceeding past a failed gate is strictly worse than halting — it ships broken work silently. If verification fails and re-waving does not clear it, apply the [failure policy](failure-policy.md) and do not continue to the next phase.
+
 Track the phases so you cannot lose your place. At the start, create a checklist using the todo tool when available, otherwise maintain an explicit written checklist:
 
 `explore · propose · apply · verify · archive · evidence · output · report`
@@ -165,11 +167,29 @@ Each implementation task must remain traceable to the proposal and exploration b
 
 The lead session runs verification: tests, lint, build, type checks, and any project-specific validation required by the proposal. Reopen and re-wave failing tasks as the protocol permits.
 
-Ensure every task in `tasks.md` is checked, no eligible task remains, verification passes, and any residual repository changes are committed.
+### Verification gate
 
-Tick `apply` when all tasks are complete. Tick `verify` only when validation succeeds. Do not stop here. Immediately continue to Phase 5, then Phase 5.5, Phase 6, and Phase 7.
+Before ticking `verify`, run each command and confirm exit code 0:
+
+1. The project's lint command (e.g. `npx eslint --max-warnings 0` or `pnpm lint`) — must exit 0
+2. The project's typecheck command (e.g. `npx tsc --noEmit` or `pnpm typecheck`) — must exit 0
+3. The project's test command (e.g. `pnpm test` or `npm test`) — must exit 0
+
+If ANY command exits non-zero: reopen the failing tasks and re-wave. If re-waving does not clear the failure, apply the [failure policy](failure-policy.md). Do NOT tick `verify`. Do NOT proceed to Phase 5 (archive), Phase 5.5, Phase 6, or Phase 7.
+
+Ensure every task in `tasks.md` is checked, no eligible task remains, all verification commands pass, and any residual repository changes are committed.
+
+Tick `apply` when all tasks are complete. Tick `verify` only when every verification command exits 0. Do not stop here. Immediately continue to Phase 5, then Phase 5.5, Phase 6, and Phase 7.
 
 ## Phase 5: Archive
+
+### Pre-archive guard
+
+Before loading `ob-plan-archive`, confirm:
+- `verify` is ticked (all verification commands exited 0)
+- The working tree is clean (no uncommitted changes from failed fixes)
+
+If `verify` is not ticked, return to Phase 4. Never archive unverified work.
 
 Archive is mandatory. A goal run that merges or pushes without successful archive verification is a failed run.
 
@@ -221,6 +241,17 @@ Valid evidence outcomes include `passed`, `skipped`, `failed`, or `blocked`. A s
 Tick `evidence` after capture was attempted and the manifest status was recorded.
 
 ## Phase 6: Output
+
+### Pre-output guard
+
+Before any merge, push, or PR creation, confirm:
+- `verify` is ticked (all verification commands exited 0)
+- `archive` is ticked (`ARCHIVED_OK` was printed, archive commit exists)
+- The archived change directory exists under `openspec/changes/archive/`
+- The active change directory no longer exists under `openspec/changes/`
+- The working tree is clean
+
+If any condition is missing, return to the earliest incomplete phase when recoverable, otherwise use the [failure policy](failure-policy.md). Never merge, push, or create a PR with unverified or unarchived work.
 
 Proceed only when all entry conditions hold: Phase 4 verification passed, every implementation task is complete, Phase 5 printed `ARCHIVED_OK`, the active change directory no longer exists, the archived change directory exists, and the working tree is clean. If any entry condition is missing, return to the earliest incomplete phase when recoverable, otherwise use the [failure policy](failure-policy.md).
 
@@ -339,3 +370,16 @@ Stash restoration: not needed | restored | preserved after conflict
 The `Archived` line is mandatory. Never hide or omit a skipped archive.
 
 Tick `report` only after this summary is printed. The run is complete only when all checklist items are ticked: `explore · propose · apply · verify · archive · evidence · output · report`
+
+## External verification
+
+When this pipeline runs unattended (CI, task runner, or any orchestration that chains this command to git operations), the caller should insert verification gates between this command's exit and any merge, push, or PR creation.
+
+The skill's internal verification gate (Phase 4) is best-effort prose — the LLM may ignore it and exit 0 anyway. The only reliable enforcement is an external exit-code gate.
+
+Recommended gates:
+
+1. `openspec list --json` must return an empty array — confirms Phase 5 archive completed and no unarchived changes remain.
+2. The project's lint and typecheck commands must exit 0 — confirms Phase 4 verification was not skipped.
+
+If either gate fails, do not proceed to git operations.

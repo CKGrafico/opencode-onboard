@@ -11,6 +11,7 @@ Use the failure policy when:
 - a task wave stalls because tasks remain but none are eligible,
 - a task exhausts its single retry,
 - tests, lint, build, type checks, or required verification fail and cannot be cleared by re-waving,
+- any verification command (lint, typecheck, test) exits non-zero after the apply phase and re-waving does not clear it,
 - archive verification still prints `ARCHIVE_FAILED` after one retry,
 - required repository state is missing or inconsistent before output,
 - or a merge conflict cannot be resolved cleanly and automatically.
