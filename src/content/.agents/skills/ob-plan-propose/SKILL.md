@@ -6,7 +6,7 @@ license: MIT
 
 # Plan Propose
 
-This skill generates the full proposal (proposal.md, specs, tasks.md) in memory first, before the confirmation checkpoint in Step 3 resolves. Write files to disk only after Step 3 resolves to `yes`. The only exception is agentmemory `memory_save` for context-sharing notes (`proposal-{slug}`, `change-{slug}-context`) in Step 4, and only after the proposal is confirmed. These are non-destructive metadata notes.
+This skill generates the full proposal (proposal.md, specs, tasks.md) in memory first, before the confirmation checkpoint in Step 3 resolves. Write files to disk only after Step 3 resolves to `yes`.
 
 ## Input
 
@@ -58,7 +58,7 @@ Load `@openspec-propose` skill and follow its instructions to generate proposal.
    - `description:` from the YAML frontmatter: the engineer's specialization summary
    - `## Abilities` section: the skills listed under Development, Testing, Infrastructure (e.g. `@nodejs-backend`, `@secure-nextjs-api-routes`)
    Build a map of `agent-name -> { description, abilities }`.
-2. For each task, compare the task text and domain against every engineer's description AND abilities. Pick the engineer whose combined profile most closely matches. `fullstack-engineer` is `mode: primary` (the user's planning agent), not a spawned worker. If no specialist matches a task, flag it in the plan: tell the user "No matching specialist for task N.M. Create one with `/make-engineer`" and leave the agent field blank (or use `basic-engineer` if it exists in `.opencode/agents/`).
+2. For each task, compare the task text and domain against every engineer's description AND abilities. Pick the engineer whose combined profile most closely matches. `fullstack-engineer` is `mode: primary` (the user's planning agent), not a spawned worker. If no specialist matches a task, leave the agent field blank and record the missing specialization in the proposal. An annotated OpenSpec task needs a real subagent; never substitute the lead or an obsolete generic agent name.
 3. Pick a tier, derive `depends_on`, derive `touches`, and annotate each task line. Follow the [task annotation](task-annotation.md) reference for the full tier selection guide, dependency derivation, touches derivation, and annotation format with examples.
 
 ## Step 3: Show the plan and ask for confirmation (stop)
@@ -100,8 +100,6 @@ Write the proposal files to `openspec/changes/{change-slug}/`:
 - `proposal.md`: the change description and rationale
 - `specs/`: any spec files generated
 - `tasks.md`: the enriched task list with agent annotations
-- `memory_save` with title `proposal-{change-slug}` containing the change id, task count, and agent+tier assignments. This lets `ob-plan-apply` verify the plan on resume.
-- `memory_save` with title `change-{slug}-context` containing the proposal context so `ob-plan-apply` can pick it up for subagent spawns.
 
 ## Step 5: Stop (stop)
 

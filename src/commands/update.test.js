@@ -1,0 +1,30 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('./shared.js', () => ({ readOnboardConfig: vi.fn() }))
+vi.mock('../steps/copy/index.js', () => ({ copyContentStep: vi.fn() }))
+vi.mock('../steps/copy/agent-models.js', () => ({ stampAgentModels: vi.fn() }))
+vi.mock('../steps/models/write.js', () => ({ writeModelsToConfigs: vi.fn() }))
+vi.mock('../steps/optimization/patch-guardrails.js', () => ({ patchGuardrails: vi.fn() }))
+vi.mock('../steps/metadata/index.js', () => ({ writeOnboardConfig: vi.fn() }))
+vi.mock('../utils/process.js', () => ({ exit: vi.fn() }))
+
+import { readOnboardConfig } from './shared.js'
+import { patchGuardrails } from '../steps/optimization/patch-guardrails.js'
+import { runUpdate } from './update.js'
+
+describe('runUpdate()', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    readOnboardConfig.mockResolvedValue({
+      platform: { backlog: 'github', repo: 'github' },
+      agents: { maxConcurrent: 3 },
+      tools: { humanizer: true },
+    })
+  })
+
+  it('restores every saved optional tool selection', async () => {
+    await runUpdate()
+
+    expect(patchGuardrails).toHaveBeenCalledWith(expect.objectContaining({ humanizer: true }))
+  })
+})

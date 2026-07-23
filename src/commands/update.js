@@ -59,6 +59,7 @@ export async function runUpdate() {
     caveman: !!tools.caveman,
     codegraph: !!tools.codegraph,
     memory: !!tools.memory,
+    humanizer: !!tools.humanizer,
   })
 
   await writeOnboardConfig({

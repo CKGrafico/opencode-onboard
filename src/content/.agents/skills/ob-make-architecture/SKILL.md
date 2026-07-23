@@ -36,7 +36,7 @@ Analyze the architecture of this codebase and generate or update `ARCHITECTURE.m
 
    Write (or update) `ARCHITECTURE.md` following the [structure template](structure-template.md) reference. That reference defines every section, the rules for writing, and the timestamp footer format.
 
-4. **Store summary in agentmemory**
+4. **Store summary in configured persistent context**
 
    `write_note` MCP tool with title `architecture-summary` containing:
    - The ISO timestamp of this run

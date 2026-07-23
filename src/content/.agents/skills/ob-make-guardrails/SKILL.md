@@ -59,7 +59,7 @@ Analyze `ARCHITECTURE.md` and other project files to generate or update a `ob-gu
 
    Exclude tier variant files (`*-engineer.build.md`, `*-engineer.fast.md`, `*-engineer.plan.md`): they are generated copies; only update the base templates.
 
-6. **Store summary in agentmemory**
+6. **Store summary in configured persistent context**
 
    `write_note` MCP tool with title `guardrails-summary` containing:
    - The ISO timestamp of this run

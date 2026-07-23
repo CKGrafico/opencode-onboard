@@ -32,7 +32,7 @@ The caller provides (all optional):
        && echo ARCHIVED_OK || echo ARCHIVE_FAILED
      ```
 
-     If this prints `ARCHIVE_FAILED`, the archive did not happen. Report it to the caller as a failure; do not pretend it succeeded.
+      If this prints `ARCHIVE_FAILED`, run the archive once more and repeat the check. If it still fails, report it to the caller as a failure; do not pretend it succeeded.
   3. Compare the archived change's specs against `ARCHITECTURE.md` and `DESIGN.md`; apply any needed doc updates directly (no approval prompt).
   4. If the change was a bug fix or new functionality with important impact, check if `@ob-guardrails-project` exists and update it.
   5. Do not commit or push: the caller owns the git operations.

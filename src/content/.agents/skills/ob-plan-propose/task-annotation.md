@@ -36,4 +36,4 @@ Example result (note same-file tasks like 1.1/1.2 share `touches`, so `ob-plan-a
 - [ ] 4.1 Run typecheck and fix errors <!-- agent: backend-engineer.fast, depends_on: [2.1,3.1], touches: [] -->
 ```
 
-`ob-plan-apply` reads these annotations to build conflict-free waves: `depends_on` gates ordering, `touches` keeps concurrent agents file-disjoint, and the tier suffix in `agent` determines the model (resolved at startup by the `ob-subagent-tiers` plugin). `depends_on` is mandatory; `touches` is a best-effort hint that codegraph MCP tools refine at apply time.
+`ob-plan-apply` reads these annotations to build conflict-free waves: `depends_on` gates ordering, `touches` keeps concurrent agents file-disjoint, and the tier suffix in `agent` determines the model (resolved at startup by the `ob-subagent-tiers` plugin). `depends_on` is mandatory; `touches` is a best-effort hint.

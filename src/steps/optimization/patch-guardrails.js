@@ -14,38 +14,82 @@ const MARKER_SECTIONS = {
   humanizer: 'HUMANIZER',
 }
 
-export async function patchGuardrails(selections = {}) {
-  const destSkillsDir = path.join(process.cwd(), '.agents', 'skills')
-  const guardrailsPath = path.join(destSkillsDir, 'ob-guardrails-generic', 'SKILL.md')
+const OPTIONAL_TOOL_GUIDANCE = {
+  codegraph: 'Use `codegraph_explore` to refine relevant symbols and file-disjointness for the current wave.',
+  memory: 'Use Agentmemory MCP tools for cross-session context and task-result notes.',
+}
 
-  if (!await fse.pathExists(guardrailsPath)) {
-    info('ob-guardrails-generic not found, skipping guardrails patching')
-    return { patched: false }
+function replaceMarkerSection(content, startMarker, endMarker, replacement) {
+  if (!content.includes(startMarker) || !content.includes(endMarker)) return content
+  const escape = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const pattern = new RegExp(`${escape(startMarker)}[\\s\\S]*?${escape(endMarker)}`)
+  return content.replace(pattern, `${startMarker}\n${replacement}\n${endMarker}`)
+}
+
+async function patchOptionalToolGuidance(destSkillsDir, selections) {
+  const files = []
+
+  async function collect(dir) {
+    for (const entry of await fse.readdir(dir, { withFileTypes: true })) {
+      const entryPath = path.join(dir, entry.name)
+      if (entry.isDirectory()) await collect(entryPath)
+      else if (entry.name.endsWith('.md')) files.push(entryPath)
+    }
   }
 
-  let content = await fse.readFile(guardrailsPath, 'utf-8')
+  if (!await fse.pathExists(destSkillsDir)) return 0
+  await collect(destSkillsDir)
+
+  let patched = 0
+  for (const filePath of files) {
+    let content = await fse.readFile(filePath, 'utf-8')
+    const original = content
+    for (const [key, guidance] of Object.entries(OPTIONAL_TOOL_GUIDANCE)) {
+      const suffix = key.toUpperCase()
+      content = replaceMarkerSection(
+        content,
+        `<!-- OB-OPTIMIZATION-${suffix}-START -->`,
+        `<!-- OB-OPTIMIZATION-${suffix}-END -->`,
+        selections[key] ? guidance : '',
+      )
+    }
+    if (content !== original) {
+      await fse.writeFile(filePath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
+      patched++
+    }
+  }
+  return patched
+}
+
+export async function patchGuardrails(selections = {}, { cwd = process.cwd() } = {}) {
+  const destSkillsDir = path.join(cwd, '.agents', 'skills')
+  const guardrailsPath = path.join(destSkillsDir, 'ob-guardrails-generic', 'SKILL.md')
   let patchedCount = 0
 
-  for (const [key, markerSuffix] of Object.entries(MARKER_SECTIONS)) {
-    const startMarker = `<!-- OB-GUARDRAILS-${markerSuffix}-START -->`
-    const endMarker = `<!-- OB-GUARDRAILS-${markerSuffix}-END -->`
-
-    if (!content.includes(startMarker) || !content.includes(endMarker)) continue
-
-    let sectionContent = ''
-    if (selections[key]) {
-      const presetPath = path.join(GUARDRAILS_PRESET_DIR, `${key}.md`)
-      if (await fse.pathExists(presetPath)) {
-        sectionContent = (await fse.readFile(presetPath, 'utf-8')).trim()
+  if (await fse.pathExists(guardrailsPath)) {
+    let content = await fse.readFile(guardrailsPath, 'utf-8')
+    for (const [key, markerSuffix] of Object.entries(MARKER_SECTIONS)) {
+      let sectionContent = ''
+      if (selections[key]) {
+        const presetPath = path.join(GUARDRAILS_PRESET_DIR, `${key}.md`)
+        if (await fse.pathExists(presetPath)) {
+          sectionContent = (await fse.readFile(presetPath, 'utf-8')).trim()
+        }
       }
+      content = replaceMarkerSection(
+        content,
+        `<!-- OB-GUARDRAILS-${markerSuffix}-START -->`,
+        `<!-- OB-GUARDRAILS-${markerSuffix}-END -->`,
+        sectionContent,
+      )
+      if (selections[key]) patchedCount++
     }
-
-    const pattern = new RegExp(`${startMarker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?${endMarker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
-    content = content.replace(pattern, `${startMarker}\n${sectionContent}\n${endMarker}`)
-    if (selections[key]) patchedCount++
+    await fse.writeFile(guardrailsPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
+  } else {
+    info('ob-guardrails-generic not found, skipping guardrails patching')
   }
 
-  await fse.writeFile(guardrailsPath, `${content.replace(/\s*$/, '')}\n`, 'utf-8')
-  success(`Guardrails patched: ${patchedCount} sections injected`)
-  return { patched: true, count: patchedCount }
+  const optionalPatched = await patchOptionalToolGuidance(destSkillsDir, selections)
+  success(`Guardrails patched: ${patchedCount} sections injected; ${optionalPatched} optional tool file(s) updated`)
+  return { patched: true, count: patchedCount, optionalPatched }
 }

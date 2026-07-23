@@ -65,7 +65,7 @@ Based on the user's answers, run the selected steps in order:
 
 ### Sync skills (always)
 
-Ensure all skills listed in `skills-lock.json` are installed. Run `npx skills experimental_install --yes` in the project root. This picks up `find-skills`, `user-story`, and any opt-in skills (agentmemory-agents, humanizer, caveman) that the onboarding CLI queued. If the command fails or is unavailable, warn the user but continue — the skills are optional and can be installed manually later.
+Ensure all skills listed in `skills-lock.json` are installed. Run `npx skills experimental_install --yes` in the project root. This installs the core and selected optional skills queued by onboarding. If the command fails or is unavailable, warn the user but continue because optional skills can be installed manually later.
 
 ### Archive project history (if Yes)
 

@@ -2,7 +2,7 @@
 
 From the documents and code graph analysis, extract concrete, actionable rules in these categories. Only include a category if you found real evidence for it.
 
-- Architecture constraints: layer boundaries, module dependencies, forbidden imports, directory ownership rules (e.g. "src/api/ must not import from src/ui/"). Use codegraph MCP tools to verify actual import boundaries.
+- Architecture constraints: layer boundaries, module dependencies, forbidden imports, directory ownership rules (e.g. "src/api/ must not import from src/ui/"). Verify actual import boundaries with the project-selected analysis tools.
 - File organization: avoid god-files and dumping-ground constants. Each file should have one clear responsibility. Split by domain or feature instead (e.g. `user-constants.ts`, `order-types.ts`, `auth-config.ts`). A file that imports from 5+ unrelated modules is a sign it should be split.
 - Naming conventions: file naming, component naming, API route conventions, branch naming
 - Code style: formatter config, lint rules, import ordering, max line length. Derive from actual config files.

@@ -1,0 +1,70 @@
+import fs from "node:fs"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+import { describe, expect, it } from "vitest"
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+function skill(name, file = "SKILL.md") {
+  return fs.readFileSync(path.join(__dirname, ".agents", "skills", name, file), "utf-8")
+}
+
+describe("planning skill templates", () => {
+  it("keeps plan-explore as an openspec-explore facade", () => {
+    const explore = skill("ob-plan-explore")
+
+    expect(explore).toContain("Load `@openspec-explore` and follow every step defined in it.")
+    expect(explore).not.toContain("requirement-model.md")
+    expect(explore).not.toContain("exploration-brief.md")
+  })
+
+  it("makes plan-goal exploration think before it validates code", () => {
+    const goal = skill("ob-plan-goal")
+
+    expect(goal).toContain("Load `ob-plan-explore`")
+    expect(goal).toContain("Require an in-memory `EXPLORATION_BRIEF`")
+    expect(goal).not.toContain("ob-goal-explore")
+  })
+
+  it("requires workers for annotated OpenSpec tasks", () => {
+    const apply = skill("ob-plan-apply")
+    const propose = skill("ob-plan-propose")
+
+    expect(apply).toContain("never become sequential lead work")
+    expect(apply).toContain("resolve every task's annotated worker")
+    expect(apply).toContain("missing worker stops the stage before spawning")
+    expect(propose).toContain("never substitute the lead or an obsolete generic agent name")
+    expect(propose).not.toContain("or use `fullstack-engineer`")
+    expect(propose).not.toContain("basic-engineer")
+  })
+
+  it("keeps optional optimization guidance behind markers", () => {
+    const apply = skill("ob-plan-apply")
+
+    expect(apply).toContain("<!-- OB-OPTIMIZATION-CODEGRAPH-START -->")
+    expect(apply).toContain("<!-- OB-OPTIMIZATION-MEMORY-START -->")
+    expect(apply).not.toContain("codegraph_explore")
+    expect(apply).not.toContain("Agentmemory")
+  })
+
+  it("keeps phase procedures with their owning skills", () => {
+    const goal = skill("ob-plan-goal")
+    const apply = skill("ob-plan-apply")
+    const archive = skill("ob-plan-archive")
+
+    expect(goal).toContain("every task complete and `VERIFIED`")
+    expect(goal).toContain("Require `ARCHIVED_OK` and the archive path")
+    expect(apply).toContain("Every command must exit 0")
+    expect(archive).toContain("run the archive once more and repeat the check")
+  })
+
+  it("keeps plan-goal as a compact orchestrator", () => {
+    const goal = skill("ob-plan-goal")
+    const output = skill("ob-plan-goal", "output.md")
+
+    expect(goal.split("\n").length).toBeLessThan(120)
+    expect(goal).toContain("Follow the [branching procedure](branching.md)")
+    expect(goal).toContain("Follow the [output procedure](output.md)")
+    expect(output).toContain("## Final report")
+  })
+})

@@ -37,6 +37,14 @@ async function installObSkills(backlogPlatform = 'github', repoPlatform, { force
   const destSkillsDir = path.join(process.cwd(), '.agents', 'skills')
   await fse.ensureDir(destSkillsDir)
 
+  if (forceOverwrite) {
+    for (const entry of await fse.readdir(destSkillsDir)) {
+      if (!entry.startsWith('ob-')) continue
+      await fse.remove(path.join(destSkillsDir, entry))
+      info(`Removing shipped skill: ${entry}`)
+    }
+  }
+
   const skills = await fse.readdir(CONTENT_SKILLS_DIR)
   for (const skill of skills) {
     const src = path.join(CONTENT_SKILLS_DIR, skill)

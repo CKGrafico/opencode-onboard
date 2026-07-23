@@ -104,6 +104,22 @@ describe('installSkills platform gating (real content/.agents/skills)', () => {
     expect(await installedSkill('ob-review')).toBeNull()
     expect(await installedSkill('ob-backlog')).toBeNull()
   })
+
+  it('update mode replaces shipped ob skills and preserves user skills', async () => {
+    const skillsDir = path.join(tmpDir, '.agents', 'skills')
+    const retiredSkill = path.join(skillsDir, 'ob-retired-skill')
+    const userSkill = path.join(skillsDir, 'project-workflow')
+    fs.mkdirSync(retiredSkill, { recursive: true })
+    fs.mkdirSync(userSkill, { recursive: true })
+    fs.writeFileSync(path.join(retiredSkill, 'SKILL.md'), 'retired')
+    fs.writeFileSync(path.join(userSkill, 'SKILL.md'), 'user-owned')
+
+    await installSkills('github', 'github', { forceOverwrite: true })
+
+    expect(fs.existsSync(retiredSkill)).toBe(false)
+    expect(fs.readFileSync(path.join(userSkill, 'SKILL.md'), 'utf-8')).toBe('user-owned')
+    expect(fs.existsSync(path.join(skillsDir, 'ob-plan-goal', 'SKILL.md'))).toBe(true)
+  })
 })
 
 describe('ops command patching (real presets + real templates)', () => {

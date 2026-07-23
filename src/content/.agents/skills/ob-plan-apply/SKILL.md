@@ -20,7 +20,7 @@ The caller provides (all optional):
 ## Plan source detection
 
 1. Check if an OpenSpec change exists: inspect `openspec/changes/` for an active change folder with a `tasks.md`.
-2. If found and tasks have `<!-- agent` annotations (written by `ob-plan-propose`): OpenSpec mode. Follow the protocol below.
+2. If found and tasks have `<!-- agent` annotations (written by `ob-plan-propose`): OpenSpec mode. Follow the protocol below. Annotated tasks run in subagent waves. They never become sequential lead work because the task count seems small, the lead prefers direct implementation, or a worker has not yet been inspected.
 3. If no OpenSpec change exists, but there are `pending` items in the Todo pane (from `/plan-quick`): Simple mode. Follow the [simple mode](simple-mode.md) reference.
 
 ## OpenSpec mode: parallel subagent waves
@@ -35,14 +35,19 @@ Core rule: push, don't pull. A worker is born with its work: every `task()` spaw
 
 **1. Branch.** Create `feature/{change-slug}` if not already on one. (Skip this step when the caller passed `start_from: load-plan`.)
 
-**2. Load the plan.** Parse `tasks.md`. Each task carries `<!-- agent, depends_on, touches -->` (from `ob-plan-propose`). The agent name includes a tier suffix (e.g. `backend-engineer.build`, `frontend-engineer.fast`): the `ob-subagent-tiers` plugin resolved the model at startup from `models[<tier>]` and injected these tier-suffixed agents into the config. You do not worry about models. Read `.opencode/opencode-onboard.json` -> `agents.maxConcurrent` (the wave cap, 1 to 5).
+**2. Load the plan and workers.** Parse `tasks.md`. Each task carries `<!-- agent, depends_on, touches -->` (from `ob-plan-propose`). Inspect `.opencode/agents/` for each base engineer and its generated `.<tier>.md` variants. The tier-suffixed name in an annotation (for example, `backend-engineer.build`) is the worker to spawn: `ob-subagent-tiers` resolves its model at startup and registers it as `mode: subagent`. Read `.opencode/opencode-onboard.json` -> `agents.maxConcurrent` (the wave cap, 1 to 5).
+
+Before hydrating the Todo board, resolve every task's annotated worker. If any task has a blank agent annotation, its base template is missing, or its tier variant is unavailable, stop the APPLY stage and report the task ID, expected worker, and missing file. Do not replace the worker with `fullstack-engineer`, `general`, or the lead session.
 
 **3. Hydrate the Todo board.** `todowrite` one item per task: `pending`. The Todo pane is the visible subagent board (opencode plugins cannot draw a custom pane, so the native Todo widget is the live UI). While a task is in flight, its label must carry the worker: `<agent> · <model>`: so the pane shows which agent on which model is doing what. The Todo list is a projection only: never read it for recovery; rebuild it from `tasks.md` and git and `.opencode/.ob-run.json`.
 
-**4. MCP health and degradation.** Before each wave, confirm codegraph and agentmemory MCP tools respond. Degrade automatically:
-- codegraph MCP down/slow: compute file-disjointness from `touches:` globs and `git diff` instead of `codegraph_explore` MCP tool.
-- agentmemory MCP down: pass results inline through your context and read `.opencode/.ob-run.json`; skip note writes.
-Tell the user when you degrade.
+**4. Worker context.** Before each wave, derive file-disjointness from `touches:` globs and `git diff`.
+
+<!-- OB-OPTIMIZATION-CODEGRAPH-START -->
+<!-- OB-OPTIMIZATION-CODEGRAPH-END -->
+
+<!-- OB-OPTIMIZATION-MEMORY-START -->
+<!-- OB-OPTIMIZATION-MEMORY-END -->
 
 **5. The wave loop.** Repeat until no tasks remain:
 
@@ -50,31 +55,29 @@ Tell the user when you degrade.
 eligible = unchecked tasks whose every depends_on is DONE (committed/checked)
 if eligible is empty but tasks remain  -> STALL: report blocked tasks + the failed
                                            dependency causing it, then STOP.
-groups   = pack eligible tasks that share a file (touches / codegraph_explore)
+groups   = pack eligible tasks that share a file (touches and gathered context)
             into ONE worker each, to run sequentially (the worker uses the task's `agent`)
 wave     = pick groups whose file-sets are pairwise DISJOINT, capped at maxConcurrentAgents
             (you enforce the cap: opencode runs every task() you emit at once)
 ```
 
-**6. Context per group.** For each group, gather (when MCPs are healthy):
-- `codegraph_explore` MCP tool for the relevant symbols/files.
-- agentmemory `memory_smart_search` MCP tool for prior decisions and the `change-<slug>-context` note (write that context note once before wave 1).
+**6. Context per group.** For each group, gather the task text, relevant plan decisions, and source context needed to implement it.
 
 **7. Spawn the wave: one assistant turn, multiple `task()` calls (they run in parallel).** For each group:
-- `subagent_type` = the task's `agent` exactly as written in `tasks.md` (e.g. `frontend-engineer.build`, `backend-engineer.fast`). This is a tier-suffixed agent injected at startup by the `ob-subagent-tiers` plugin: it carries the model from `models[<tier>]`. If that agent is missing (plugin not loaded or tier model unset), fall back to the base template agent (strip the `.<tier>` suffix, e.g. `frontend-engineer`) which inherits the lead's model. The built-in `general` agent has the wrong model for implementation work. `fullstack-engineer` is `mode: primary` (the user's planning agent), not a worker.
+- `subagent_type` = the task's `agent` exactly as written in `tasks.md` (e.g. `frontend-engineer.build`, `backend-engineer.fast`). It is the tier-suffixed `mode: subagent` worker created by `ob-subagent-tiers`. Worker resolution happened in step 2; a missing worker stops the stage before spawning. `fullstack-engineer`, `general`, and the lead session are not fallbacks for annotated implementation work.
 - `description` = `"<task-ids>: <short label>"` (e.g. `"2.1,2.2: RPC endpoints"`) so the subagent is legible in the left/right list and the monitor.
-- `prompt` must contain: the exact task IDs and text, and the gathered context (codegraph MCP results and relevant agentmemory MCP notes). The worker follows the Engineer workflow defined once in `@ob-guardrails-generic` (load abilities, implement in dependency order, write a `task-<id>-result` note, return a summary): do not restate it in the prompt.
+- `prompt` must contain the exact task IDs and text plus the gathered context. The worker follows the Engineer workflow defined in `@ob-guardrails-generic`; do not restate it in the prompt.
 - Flip each spawned task's Todo item to `in_progress` and prefix its label with `<agent>: ` (e.g. `frontend-engineer.build: 2.1 Consolidate logic`) so the running worker is visible in the Todo pane. On completion, drop the prefix and mark `completed`.
 
 **8. Collect the wave.** Each foreground `task()` returns its result to you. For each group:
 - success: `git add` the group's `touches` paths and commit `"{ids}: {summary}"`; mark its Todo items `completed`; check `[x]` in `tasks.md`.
-- error / empty: revert that group's impact: `git checkout -- <tracked paths>` for modified files AND `git clean -f -- <paths>` for net-new files the group created (checkout alone leaves them behind, poisoning the retry). Mark `failed` and record the reason in an agentmemory note (or a comment in `tasks.md` if memory is down: `.ob-run.json` is owned by the monitor plugin, never write it). Then retry once (fresh spawn, shorter prompt). Still failing: leave failed and surface it; do not loop.
+- error / empty: revert that group's impact: `git checkout -- <tracked paths>` for modified files AND `git clean -f -- <paths>` for net-new files the group created (checkout alone leaves them behind, poisoning the retry). Mark `failed` and record the reason in `tasks.md`; `.opencode/.ob-run.json` is owned by the monitor plugin. Then retry once with a shorter prompt. Still failing: leave failed and surface it; do not loop.
 - A failed group only blocks its dependents; unrelated tasks keep flowing.
 
 **9. Progress guard.** If a full wave moved zero tasks to DONE: STOP (do not re-spawn the identical failing set). Otherwise recompute `eligible` and loop to step 5.
 
-**10. Verify.** In this (lead) session, run the change's tests/lint/build. On failure, reopen the offending tasks (uncheck, mark failed) so they re-enter `eligible` and run another wave.
+**10. Verify.** In this (lead) session, run the project's lint, typecheck, test, build, and proposal-required validation commands. Every command must exit 0. On failure, reopen the offending tasks (uncheck, mark failed) so they re-enter `eligible` and run another wave. When every task is checked, no eligible task remains, and every command passes, report `VERIFIED` to the caller.
 
-**11. Close.** Mark all `tasks.md` checkboxes, run `openspec status --change "<name>" --json`, report progress (N/M tasks). The wave state in `.opencode/.ob-run.json` and agentmemory MCP persists for resume.
+**11. Close.** Mark all `tasks.md` checkboxes, run `openspec status --change "<name>" --json`, and report progress (N/M tasks). The wave state in `.opencode/.ob-run.json` persists for resume.
 
-Resume: re-loading this skill after any crash recomputes DONE / FAILED / eligible from `tasks.md` and git and agentmemory MCP and `.ob-run.json` and continues. State is on disk, not in this conversation.
+Resume: re-loading this skill after any crash recomputes DONE / FAILED / eligible from `tasks.md`, git, and `.ob-run.json` and continues. State is on disk, not in this conversation.
