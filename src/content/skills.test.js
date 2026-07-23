@@ -67,4 +67,23 @@ describe("planning skill templates", () => {
     expect(goal).toContain("Follow the [output procedure](output.md)")
     expect(output).toContain("## Final report")
   })
+
+  it("keeps temporary artifacts inside the repository", () => {
+    const guardrails = skill("ob-guardrails-generic")
+    const evidence = skill("ob-ops-evidence")
+
+    expect(guardrails).toContain("$REPO_ROOT/.opencode/.tmp/")
+    expect(evidence).toContain("$REPO_ROOT/.opencode/.tmp/evidence-{change-id}/")
+  })
+
+  it("requires discoverable visual-evidence metadata and archived evidence", () => {
+    const scaffold = skill("ob-make-evidence-scaffold")
+    const contract = skill("ob-make-evidence-scaffold", "evidence-contract.md")
+    const evidence = skill("ob-ops-evidence")
+
+    expect(scaffold).toContain("name: visual-evidence")
+    expect(scaffold).toContain("Existing harness plus a missing or invalid skill")
+    expect(contract).toContain("openspec/changes/archive/<dated>-<id>/evidence/")
+    expect(evidence).toContain("Publish one idempotent status comment for every manifest result")
+  })
 })

@@ -1,10 +1,10 @@
 **NEVER use browser tools to navigate to atlassian.net: use `acli` CLI only. If `acli` is unavailable, skip publishing (report it) — do not fail the pipeline unless the caller declared publishing a ship gate.**
 
-Publish only a `passed` (or text-only) manifest. A `blocked`/`failed` manifest is surfaced, not published as success.
+Publish one status comment for every manifest. A `blocked` or `failed` manifest must include its status and reason, never a success claim.
 
 ### Step 1 — Image hosting caveat
 
-Jira comments cannot embed an image from a repo blob URL, and `acli` does not upload attachments inline. Use **text evidence** and link the committed asset path so a reviewer can open it in the repo:
+Jira comments cannot embed an image from a repo blob URL, and `acli` does not upload attachments inline. Use text evidence and derive a commit-pinned repository URL from `git remote get-url origin` when possible. Otherwise include the committed asset path, branch, and SHA:
 
 ```
 Screenshot committed at: {asset-path} (branch {branch}, commit {sha})
@@ -14,6 +14,12 @@ Screenshot committed at: {asset-path} (branch {branch}, commit {sha})
 
 ```
 <!-- ob-visual-evidence:{change-id} -->
+
+Status: `{status}`
+
+{reason?}
+
+Manifest and assets: {commit-pinned links when available, otherwise committed paths and SHA}
 
 {prMarkdown}
 

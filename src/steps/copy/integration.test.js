@@ -182,6 +182,7 @@ describe('ops command patching (real presets + real templates)', () => {
     const evidenceCli = { github: 'issues/{number}/comments', azure: 'az boards work-item update', jira: 'acli jira issue comment' }
     if (evidenceCli[backlog]) {
       expect(evidence).toContain(evidenceCli[backlog])
+      expect(evidence).toContain('commit-pinned')
     }
   })
 })

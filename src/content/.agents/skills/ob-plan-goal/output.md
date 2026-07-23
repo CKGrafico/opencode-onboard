@@ -21,7 +21,7 @@ git merge --no-ff "$BRANCH" -m "goal: {title} ({change-id})"
 git branch -d "$BRANCH"
 ```
 
-If the merge conflicts, abort it and use the failure policy. Do not push the default branch. Evidence remains in the archive because it has no pushed asset URL.
+If the merge conflicts, abort it and use the failure policy. Do not push the default branch. Evidence remains in the archive and publication is skipped because no commit-pinned repository URL exists.
 
 ## Push mode
 

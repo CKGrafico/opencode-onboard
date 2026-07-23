@@ -1,10 +1,10 @@
 **Browser MCP tools are FORBIDDEN for all Azure DevOps operations. Use `az boards` CLI only. If `az` is unavailable, skip publishing (report it) — do not fail the pipeline unless the caller declared publishing a ship gate.**
 
-Publish only a `passed` (or text-only) manifest. A `blocked`/`failed` manifest is surfaced, not published as success.
+Publish one status comment for every manifest. A `blocked` or `failed` manifest must include its status and reason, never a success claim.
 
 ### Step 1 — Image hosting caveat
 
-Azure DevOps discussion comments do not render an image from a repo blob URL the way GitHub does, and `az boards` cannot upload an attachment inline. Use **text evidence** and link the committed asset path so a reviewer can open it in the repo. Include a raw URL only if your repo host serves one that Azure markdown renders.
+Azure DevOps discussion comments do not render an image from a repo blob URL the way GitHub does, and `az boards` cannot upload an attachment inline. Use text evidence and derive a commit-pinned repository URL from `git remote get-url origin` when possible. Otherwise include the committed asset path, branch, and SHA.
 
 ```
 Screenshot committed at: {asset-path} (branch {branch}, commit {sha})
@@ -14,6 +14,12 @@ Screenshot committed at: {asset-path} (branch {branch}, commit {sha})
 
 ```
 <!-- ob-visual-evidence:{change-id} -->
+
+Status: `{status}`
+
+{reason?}
+
+Manifest and assets: {commit-pinned links when available, otherwise committed paths and SHA}
 
 {prMarkdown}
 

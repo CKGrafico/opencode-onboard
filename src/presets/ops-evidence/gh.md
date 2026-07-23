@@ -1,9 +1,9 @@
 **ALL GitHub data MUST come from `gh` CLI. NEVER use webfetch, HTTP requests, or browser MCP tools for GitHub. If `gh` is unavailable, skip publishing (report it) — do not fail the pipeline over it unless the caller declared publishing a ship gate.**
 Always pass `--repo {owner}/{repo}` (or `repos/{owner}/{repo}` for `gh api`) explicitly.
 
-Publish only a `passed` (or text-only) manifest. A `blocked`/`failed` manifest is surfaced, not published as success.
+Publish one status comment for every manifest. A `blocked` or `failed` manifest must include its status and reason, never a success claim.
 
-### Step 1 — Verify each asset exists on the remote (only for embedded images)
+### Step 1 — Build commit-pinned repository links
 
 An embedded image must be a raw URL pinned to the commit that actually contains it, and that commit must be pushed. For each asset in `evidence.json`:
 
@@ -13,7 +13,7 @@ SHA="$(git log -n 1 --format=%H -- '{asset-path}')"          # the commit that a
 gh api "repos/{owner}/{repo}/contents/{asset-path}?ref=$SHA" --silent   # 404 → not pushed yet → skip embedding
 ```
 
-Raw URL: `https://raw.githubusercontent.com/{owner}/{repo}/{SHA}/{asset-path}` (private repos: visible only to users with repo access). If verification fails, fall back to a text-only comment; never post a dead image link.
+Build a blob link for every committed manifest and asset: `https://github.com/{owner}/{repo}/blob/{SHA}/{asset-path}`. Use the raw URL only for a verified embeddable image: `https://raw.githubusercontent.com/{owner}/{repo}/{SHA}/{asset-path}`. If verification fails, include the asset path and SHA as text; never post a dead link.
 
 ### Step 2 — Build the comment body with a stable marker (idempotent)
 
@@ -21,6 +21,14 @@ Prefix the body with a hidden marker so re-runs update the same comment instead 
 
 ```
 <!-- ob-visual-evidence:{change-id} -->
+
+Status: `{status}`
+
+{reason?}
+
+Manifest: {commit-pinned evidence.json link}
+
+Assets: {commit-pinned asset links}
 
 {prMarkdown}
 ```

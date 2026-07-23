@@ -22,6 +22,13 @@ The marker sections below may contain instructions for selected optimization ski
 - Comments are for WHY, not WHAT. Use them only when the code does something non-obvious or the reason cannot be inferred from context. Keep comment ratio under 10%. If more than 10% of lines in a file are comments, refactor for clarity instead.
 - Each file should have one clear responsibility. Split by domain or feature (e.g. `user-constants.ts`, `order-types.ts`, `auth-config.ts`) rather than creating catch-all files like `constants.js`, `types.ts`, `config.js`, or `utils.ts` that collect unrelated things. A file that imports from many unrelated modules is a sign it should be split.
 
+## Temporary files
+
+- Create scratch files only under `$REPO_ROOT/.opencode/.tmp/`; create a task-specific child directory when needed.
+- Keep final artifacts in their required repository path. Copy or move a scratch artifact into that path before reporting it.
+- Never use operating-system temporary directories or paths outside `$REPO_ROOT`.
+- Remove scratch files when the task ends unless they are needed to diagnose a failure.
+
 ## Security
 
 - Validate all inputs.

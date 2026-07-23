@@ -2,4 +2,5 @@ node_modules
 .ob-run.json
 opencode-onboard.user.json
 source-roots.json
+tmp/
 *-engineer.*.md

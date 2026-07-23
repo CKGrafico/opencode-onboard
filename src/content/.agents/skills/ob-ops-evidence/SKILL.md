@@ -48,10 +48,12 @@ A project harness writes `evidence/` and `evidence.json` itself; consume its man
   DEST="$(ls -d "$REPO_ROOT/openspec/changes/archive/"*"{change-id}" 2>/dev/null | head -1)"
   [ -z "$DEST" ] && DEST="$REPO_ROOT/openspec/changes/{change-id}"
   mkdir -p "$DEST/evidence"
-  # save the screenshot to "$DEST/evidence/01-final.png"
-  ```
+   # save the screenshot to "$DEST/evidence/01-final.png"
+   ```
 
-**Step 4: Always write `evidence.json`.** Even non-UI/skipped/blocked changes get a manifest so the outcome is auditable. Build `prMarkdown` from the assets (or a text summary: tasks N/N, verification result, commit list).
+- Send command output and any intermediate capture files to `$REPO_ROOT/.opencode/.tmp/evidence-{change-id}/`, then copy final assets directly into `$DEST/evidence/`. Do not use an operating-system temporary directory.
+
+**Step 4: Always write `evidence.json`.** Even non-UI/skipped/blocked changes get a manifest so the outcome is auditable. Write it and every final asset under `$DEST/evidence/`, with manifest paths matching that archived location. Build `prMarkdown` from the assets (or a text summary: tasks N/N, verification result, commit list).
 
 Capture never commits, stages, or pushes. The caller owns git.
 
@@ -61,6 +63,7 @@ Preconditions:
 - An issue/work-item ref (and/or PR number) was provided. Else skip publishing.
 - Image URLs resolve only if the branch was pushed. In `pr`/`push` modes embed images; in `default` mode post text evidence only (never a dead image link).
 - Backlog platform from `.opencode/opencode-onboard.json` -> `platform.backlog`; `none`/`browser` means skip publishing.
+- Publish one idempotent status comment for every manifest result. A `blocked` or `failed` result must state its status and reason; it must never be presented as passed.
 
 The platform-specific publish procedure is injected by the CLI during onboarding:
 
