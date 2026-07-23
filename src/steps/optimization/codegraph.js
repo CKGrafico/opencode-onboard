@@ -1,7 +1,7 @@
 import { execa } from 'execa'
 import fse from 'fs-extra'
 import path from 'node:path'
-import { parse as parseJsonc } from 'jsonc-parser'
+import { applyEdits, modify, parse as parseJsonc } from 'jsonc-parser'
 import { header, success, warn, error, loading } from '../../utils/exec.js'
 
 /**
@@ -32,12 +32,16 @@ export async function fixCodegraphConfig() {
     return false
   }
 
-  let correctContent = {}
+  let correctText = JSON.stringify({ $schema: 'https://opencode.ai/config.json' }, null, 2)
   if (await fse.pathExists(correctFile)) {
     try {
-      correctContent = await fse.readJson(correctFile)
+      correctText = await fse.readFile(correctFile, 'utf-8')
+      const errors = []
+      parseJsonc(correctText, errors)
+      if (errors.length > 0) throw new Error(`parse errors: ${errors.length}`)
     } catch {
-      // ignore invalid existing config
+      warn('Could not parse .opencode/opencode.json, leaving it untouched')
+      return false
     }
   }
 
@@ -51,11 +55,16 @@ export async function fixCodegraphConfig() {
         if (entry.timeout == null) entry.timeout = 120000
       }
     }
-    correctContent.mcp = { ...(correctContent.mcp || {}), ...rogueMcp }
+    for (const [name, entry] of Object.entries(rogueMcp)) {
+      const edits = modify(correctText, ['mcp', name], entry, {
+        formattingOptions: { insertSpaces: true, tabSize: 2 },
+      })
+      correctText = applyEdits(correctText, edits)
+    }
   }
 
   await fse.ensureDir(path.dirname(correctFile))
-  await fse.writeJson(correctFile, correctContent, { spaces: 2 })
+  await fse.writeFile(correctFile, correctText, 'utf-8')
   await fse.remove(rogueFile)
   warn('Migrated codegraph config from opencode.jsonc → .opencode/opencode.json (removed opencode.jsonc)')
 

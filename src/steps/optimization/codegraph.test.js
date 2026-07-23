@@ -92,6 +92,31 @@ describe('fixCodegraphConfig()', () => {
     expect(readResult.mcp.codegraph.command).toEqual(['npx', '@colbymchenry/codegraph', 'serve', '--mcp'])
   })
 
+  it('preserves default_agent in a JSONC target config', async () => {
+    const rogueContent = {
+      mcpServers: {
+        codegraph: { command: ['codegraph', 'serve', '--mcp'] }
+      }
+    }
+    fs.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), JSON.stringify(rogueContent))
+
+    const opencodeDir = path.join(tmpDir, '.opencode')
+    fs.mkdirSync(opencodeDir, { recursive: true })
+    fs.writeFileSync(path.join(opencodeDir, 'opencode.json'), `{
+  // Keep this project setting
+  "default_agent": "fullstack-engineer"
+}
+`)
+
+    const result = await fixCodegraphConfig()
+
+    expect(result).toBe(true)
+    const content = fs.readFileSync(path.join(opencodeDir, 'opencode.json'), 'utf-8')
+    expect(content).toContain('Keep this project setting')
+    expect(content).toContain('"default_agent": "fullstack-engineer"')
+    expect(content).toContain('"codegraph"')
+  })
+
   it('handles JSONC with URLs containing //', async () => {
     const rogueRaw = `{
   "url": "https://example.com/path",
